@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {Button, Card, Col, Row, Typography} from "antd";
+import { Button, Card, Col, Row, Typography } from "antd";
 import {
   getTokenName,
   formatTokenAmount,
@@ -15,12 +15,12 @@ import {
 } from "../../utils/connection";
 import { PoolInfo } from "../../models";
 import { MARKETS, TOKEN_MINTS, Market } from "@project-serum/serum";
-import {Connection, PublicKey} from "@solana/web3.js";
-import { CopyOutlined } from '@ant-design/icons';
+import { Connection, PublicKey } from "@solana/web3.js";
+import { CopyOutlined } from "@ant-design/icons";
 
 export function abbreviateAddress(address: PublicKey, size = 4) {
   const base58 = address.toBase58();
-  return base58.slice(0, size) + '…' + base58.slice(-size);
+  return base58.slice(0, size) + "…" + base58.slice(-size);
 }
 
 const RADIAN = Math.PI / 180;
@@ -237,8 +237,10 @@ export const SupplyOverview = (props: {
               <Button
                 shape="round"
                 icon={<CopyOutlined />}
-                size={'small'}
-                onClick={() => navigator.clipboard.writeText(pool.pubkeys.account.toBase58())}
+                size={"small"}
+                onClick={() =>
+                  navigator.clipboard.writeText(pool.pubkeys.account.toBase58())
+                }
               />
             </Col>
           </Row>

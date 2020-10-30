@@ -117,20 +117,22 @@ interface Totals {
   fees: number;
 }
 
-const SRM_USDC_MARKET = new PublicKey("CDdR97S8y96v3To93aKvi3nCnjUrbuVSuumw8FLvbVeg");
+const SRM_USDC_MARKET = new PublicKey(
+  "CDdR97S8y96v3To93aKvi3nCnjUrbuVSuumw8FLvbVeg"
+);
 const SRM_MINT = new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt");
 
 const SRM_YIELD_POOLS = [
-  new PublicKey('ALNzhDhhB1VRuCk5ieofHqdk2wtLGjMfDjaP5t3LGCpv'),
-  new PublicKey('BrMQFZkL1ffHBsiURjmBTd4JDz4ddbTSVi7qfYCkYkNi'),
-  new PublicKey('Gjp8DQoZSCnAbUGRpLUwe1Tgg4iKG6Hjan2EW4ZPoddo'),
-  new PublicKey('6P5wDE2KjzTPu9RE2jZKWLxviqfMkVcnMBv6tQFaf4oB'),
-  new PublicKey('CWuypwJdDi8pxNZ1k4HMUVzk8rtkrBnzqfnmc6y1pci3'),
-  new PublicKey('2gJPRt8a9PNfjU4vFGtq4aH3ud1XY44tk9HvQVyF4eio'),
-  new PublicKey('GfnWGHHfVqvGAF9ovNfqTn9PgV1XL33YSFXjTCZbJS97'),
-  new PublicKey('CibFicoaEmw6CLocb1iDA9Vo6uMDwt75P1rAvUky2dq6'),
-  new PublicKey('tSiGXxfdHisArSPCf3zDRaQGGixYbeUojeNAVQmP1gg'),
-  new PublicKey('AVqsLVPtzNDZyDi2aV5n6tXitQM1wYZu5NDfAHJ9gDwW'),
+  new PublicKey("ALNzhDhhB1VRuCk5ieofHqdk2wtLGjMfDjaP5t3LGCpv"),
+  new PublicKey("BrMQFZkL1ffHBsiURjmBTd4JDz4ddbTSVi7qfYCkYkNi"),
+  new PublicKey("Gjp8DQoZSCnAbUGRpLUwe1Tgg4iKG6Hjan2EW4ZPoddo"),
+  new PublicKey("6P5wDE2KjzTPu9RE2jZKWLxviqfMkVcnMBv6tQFaf4oB"),
+  new PublicKey("CWuypwJdDi8pxNZ1k4HMUVzk8rtkrBnzqfnmc6y1pci3"),
+  new PublicKey("2gJPRt8a9PNfjU4vFGtq4aH3ud1XY44tk9HvQVyF4eio"),
+  new PublicKey("GfnWGHHfVqvGAF9ovNfqTn9PgV1XL33YSFXjTCZbJS97"),
+  new PublicKey("CibFicoaEmw6CLocb1iDA9Vo6uMDwt75P1rAvUky2dq6"),
+  new PublicKey("tSiGXxfdHisArSPCf3zDRaQGGixYbeUojeNAVQmP1gg"),
+  new PublicKey("AVqsLVPtzNDZyDi2aV5n6tXitQM1wYZu5NDfAHJ9gDwW"),
 ];
 
 export const ChartsView = React.memo(() => {
@@ -255,7 +257,7 @@ export const ChartsView = React.memo(() => {
           });
         }
       );
-    }
+    };
 
     const updateData = async () => {
       const TODAY = new Date();
@@ -295,9 +297,16 @@ export const ChartsView = React.memo(() => {
               ) * convert(accountB, mintB);
 
             let srmYield = 0;
-            if (SRM_YIELD_POOLS.some(address => address.equals(p.pubkeys.mint))) {
-              const srmMid = getMidPrice(SRM_USDC_MARKET.toBase58(), SRM_MINT.toBase58());
-              srmYield = ((100_000 * srmMid) / (baseReserveUSD + quoteReserveUSD)) * (365 / 30)
+            if (
+              SRM_YIELD_POOLS.some((address) => address.equals(p.pubkeys.mint))
+            ) {
+              const srmMid = getMidPrice(
+                SRM_USDC_MARKET.toBase58(),
+                SRM_MINT.toBase58()
+              );
+              srmYield =
+                ((100_000 * srmMid) / (baseReserveUSD + quoteReserveUSD)) *
+                (365 / 30);
             }
 
             const poolMint = cache.getMint(p.pubkeys.mint);
@@ -333,16 +342,20 @@ export const ChartsView = React.memo(() => {
                   // Aproximation not true for all pools we need to fine a better way
                   const daysSinceInception = Math.floor(
                     (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-                    (24 * 3600 * 1000)
+                      (24 * 3600 * 1000)
                   );
                   const apy0 =
-                    srmYield + parseFloat(
+                    srmYield +
+                    parseFloat(
                       ((baseVolume / daysSinceInception) * 0.003 * 356) as any
-                    ) / baseReserveUSD;
+                    ) /
+                      baseReserveUSD;
                   const apy1 =
-                    srmYield + parseFloat(
+                    srmYield +
+                    parseFloat(
                       ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
-                    ) / quoteReserveUSD;
+                    ) /
+                      quoteReserveUSD;
 
                   apy = Math.max(apy0, apy1);
                 }
@@ -430,7 +443,6 @@ export const ChartsView = React.memo(() => {
         });
       });
 
-
       allMarkets.forEach((m) => {
         const market = cache.get(m);
         if (!market) {
@@ -516,7 +528,7 @@ export const ChartsView = React.memo(() => {
         };
       },
       sorter: (a: any, b: any) => a.liquidity - b.liquidity,
-      defaultSortOrder: "descend" as any
+      defaultSortOrder: "descend" as any,
     },
     {
       title: "Supply",
