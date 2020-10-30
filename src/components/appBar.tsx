@@ -42,6 +42,16 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               <sup>↗</sup>
             </a>
           </Menu.Item>
+          <Menu.Item key="help">
+            <a
+              href={"https://serum-academy.com/en/serum-swap/"}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Help
+              <sup>↗</sup>
+            </a>
+          </Menu.Item>
         </Menu>
         {props.left}
       </div>
