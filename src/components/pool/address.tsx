@@ -1,14 +1,12 @@
-import React, { } from "react";
-import { Button, Col, Row, Typography } from "antd";
-import {
-  shortenAddress,
-} from "../../utils/utils";
+import React from "react";
+import { Button, Col, Row } from "antd";
 import { PoolInfo } from "../../models";
 import { CopyOutlined } from "@ant-design/icons";
+import { ExplorerLink } from "./../explorerLink";
 
 export const PoolAddress = (props: {
   pool?: PoolInfo;
-  style?: React.CSSProperties,
+  style?: React.CSSProperties;
 }) => {
   const { pool } = props;
 
@@ -17,25 +15,21 @@ export const PoolAddress = (props: {
   }
 
   return (
-    <Row style={{ width: '100%', ...props.style }}>
+    <Row style={{ width: "100%", ...props.style }}>
       <Col span={6}>Pool address:</Col>
       <Col span={15}>
-        <a
-          href={`https://explorer.solana.com/address/${pool.pubkeys.account.toBase58()}`}
-          // eslint-disable-next-line react/jsx-no-target-blank
-          target="_blank"
-        >
-          <Typography.Text code>
-            {shortenAddress(pool.pubkeys.account.toBase58(), 11)}
-          </Typography.Text>
-        </a>
+        <ExplorerLink
+          address={pool.pubkeys.account.toBase58()}
+          code={true}
+          type="address"
+        />
       </Col>
-      <Col span={3} style={{ display: 'flex' }}>
+      <Col span={3} style={{ display: "flex" }}>
         <Button
           shape="round"
           icon={<CopyOutlined />}
           size={"small"}
-          style={{ marginLeft: 'auto', marginRight: 0 }}
+          style={{ marginLeft: "auto", marginRight: 0 }}
           onClick={() =>
             navigator.clipboard.writeText(pool.pubkeys.account.toBase58())
           }

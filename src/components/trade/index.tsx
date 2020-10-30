@@ -129,9 +129,9 @@ export const TradeEntry = () => {
         {generateActionLabel(
           !pool
             ? POOL_NOT_AVAILABLE(
-              getTokenName(env, A.mintAddress),
-              getTokenName(env, B.mintAddress)
-            )
+                getTokenName(env, A.mintAddress),
+                getTokenName(env, B.mintAddress)
+              )
             : SWAP_LABEL,
           connected,
           env,

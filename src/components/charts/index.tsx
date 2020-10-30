@@ -342,20 +342,20 @@ export const ChartsView = React.memo(() => {
                   // Aproximation not true for all pools we need to fine a better way
                   const daysSinceInception = Math.floor(
                     (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-                    (24 * 3600 * 1000)
+                      (24 * 3600 * 1000)
                   );
                   const apy0 =
                     srmYield +
                     parseFloat(
                       ((baseVolume / daysSinceInception) * 0.003 * 356) as any
                     ) /
-                    baseReserveUSD;
+                      baseReserveUSD;
                   const apy1 =
                     srmYield +
                     parseFloat(
                       ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
                     ) /
-                    quoteReserveUSD;
+                      quoteReserveUSD;
 
                   apy = Math.max(apy0, apy1);
                 }

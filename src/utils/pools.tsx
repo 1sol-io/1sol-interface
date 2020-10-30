@@ -170,7 +170,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0].toBase58() ===
-      components[0].account.info.mint.toBase58()
+    components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -225,14 +225,14 @@ export const swap = async (
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-      wallet.publicKey,
-      SWAP_HOST_FEE_ADDRESS,
-      instructions,
-      cleanupInstructions,
-      accountRentExempt,
-      pool.pubkeys.mint,
-      signers
-    )
+        wallet.publicKey,
+        SWAP_HOST_FEE_ADDRESS,
+        instructions,
+        cleanupInstructions,
+        accountRentExempt,
+        pool.pubkeys.mint,
+        signers
+      )
     : undefined;
 
   // swap
@@ -331,7 +331,7 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => { },
+            init: async () => {},
           };
 
           // handling of legacy layout can be removed soon...
@@ -769,9 +769,9 @@ export async function calculateDependentAmount(
 
   const dependentTokenAmount = isFirstIndependent
     ? (accountB.info.amount.toNumber() / accountA.info.amount.toNumber()) *
-    adjAmount
+      adjAmount
     : (accountA.info.amount.toNumber() / accountB.info.amount.toNumber()) *
-    adjAmount;
+      adjAmount;
 
   return dependentTokenAmount / depPrecision;
 }

@@ -9,6 +9,7 @@ import {
 import React, { useContext, useEffect, useMemo } from "react";
 import { setProgramIds } from "./ids";
 import { notify } from "./notifications";
+import { ExplorerLink } from "../components/explorerLink";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -142,8 +143,35 @@ export function useSlippageConfig() {
   return { slippage, setSlippage };
 }
 
+const getErrorForTransaction = async (connection: Connection, txid: string) => {
+  // wait for all confirmation before geting transaction
+  await connection.confirmTransaction(txid, "max");
+
+  const tx = await connection.getParsedConfirmedTransaction(txid);
+
+  const errors: string[] = [];
+  if (tx?.meta && tx.meta.logMessages) {
+    tx.meta.logMessages.forEach((log) => {
+      const regex = /Error: (.*)/gm;
+      let m;
+      while ((m = regex.exec(log)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === regex.lastIndex) {
+          regex.lastIndex++;
+        }
+
+        if (m.length > 1) {
+          errors.push(m[1]);
+        }
+      }
+    });
+  }
+
+  return errors;
+};
+
 export const sendTransaction = async (
-  connection: any,
+  connection: Connection,
   wallet: any,
   instructions: TransactionInstruction[],
   signers: Account[],
@@ -173,14 +201,24 @@ export const sendTransaction = async (
 
   if (awaitConfirmation) {
     const status = (
-      await connection.confirmTransaction(txid, options && options.commitment)
+      await connection.confirmTransaction(
+        txid,
+        options && (options.commitment as any)
+      )
     ).value;
 
-    if (status.err) {
-      // TODO: notify
+    if (status?.err) {
+      const errors = await getErrorForTransaction(connection, txid);
       notify({
         message: "Transaction failed...",
-        description: `${txid}`,
+        description: (
+          <>
+            {errors.map((err) => (
+              <div>{err}</div>
+            ))}
+            <ExplorerLink address={txid} type="transaction" />
+          </>
+        ),
         type: "error",
       });
 
