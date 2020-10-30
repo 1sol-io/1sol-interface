@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Card } from "antd";
+import {Button, Card, Col, Row, Typography} from "antd";
 import {
   getTokenName,
   formatTokenAmount,
@@ -15,7 +15,13 @@ import {
 } from "../../utils/connection";
 import { PoolInfo } from "../../models";
 import { MARKETS, TOKEN_MINTS, Market } from "@project-serum/serum";
-import { Connection } from "@solana/web3.js";
+import {Connection, PublicKey} from "@solana/web3.js";
+import { CopyOutlined } from '@ant-design/icons';
+
+export function abbreviateAddress(address: PublicKey, size = 4) {
+  const base58 = address.toBase58();
+  return base58.slice(0, size) + '…' + base58.slice(-size);
+}
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = (props: any, data: any) => {
@@ -212,6 +218,32 @@ export const SupplyOverview = (props: {
           </div>
         </div>
       </div>
+      {pool.pubkeys.account && (
+        <div>
+          <Row>
+            <Col span={8}>Pool address:</Col>
+            <Col span={13}>
+              <a
+                href={`https://explorer.solana.com/address/${pool.pubkeys.account.toBase58()}`}
+                // eslint-disable-next-line react/jsx-no-target-blank
+                target="_blank"
+              >
+                <Typography.Text code>
+                  {abbreviateAddress(pool.pubkeys.account, 11)}
+                </Typography.Text>
+              </a>
+            </Col>
+            <Col span={2} offset={1}>
+              <Button
+                shape="round"
+                icon={<CopyOutlined />}
+                size={'small'}
+                onClick={() => navigator.clipboard.writeText(pool.pubkeys.account.toBase58())}
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
     </Card>
   );
 };
