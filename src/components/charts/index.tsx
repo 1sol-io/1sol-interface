@@ -565,6 +565,7 @@ export const ChartsView = React.memo(() => {
           children: formatPct.format(record.apy),
         };
       },
+      sorter: (a: any, b: any) => a.apy - b.apy,
     },
     {
       title: "Address",
