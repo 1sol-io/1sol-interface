@@ -33,7 +33,7 @@ const FlashText = (props: { text: string; val: number }) => {
 };
 
 const INITAL_LIQUIDITY_DATE = new Date("2020-10-27");
-const REFRESH_INTERVAL = 1_000;
+const REFRESH_INTERVAL = 30_000;
 
 const OrderBookParser = (id: PublicKey, acc: AccountInfo<Buffer>) => {
   const decoded = Orderbook.LAYOUT.decode(acc.data);
