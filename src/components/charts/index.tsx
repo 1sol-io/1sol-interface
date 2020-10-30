@@ -1,24 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Card, Popover, Table } from "antd";
-import { TradeEntry } from "./../trade";
-import { AddToLiquidity } from "./../pool/add";
-import { useWallet } from "./../../utils/wallet";
+import { Button, Popover, Table } from "antd";
 import { AppBar } from "./../appBar";
-import { List } from "antd/lib/form/Form";
-import { useOwnedPools, usePools } from "../../utils/pools";
 import {
   cache,
-  getCachedAccount,
   getMultipleAccounts,
   MintParser,
   ParsedAccountBase,
   useCachedPool,
 } from "../../utils/accounts";
 import { convert, getPoolName, STABLE_COINS } from "../../utils/utils";
-import { useConnection, useConnectionConfig } from "../../utils/connection";
+import { useConnectionConfig } from "../../utils/connection";
 import { Settings } from "../settings";
 import { SettingOutlined } from "@ant-design/icons";
-import { PoolIcon, TokenIcon } from "../tokenIcon";
+import { PoolIcon } from "../tokenIcon";
 import { Market, MARKETS, Orderbook, TOKEN_MINTS } from "@project-serum/serum";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import "./styles.less";
@@ -26,7 +20,7 @@ import echarts from "echarts";
 
 const FlashText = (props: { text: string; val: number }) => {
   const [activeClass, setActiveClass] = useState("");
-  const [value, setValue] = useState(props.val);
+  const [value] = useState(props.val);
   useEffect(() => {
     if (props.val !== value) {
       setActiveClass(props.val > value ? "flash-positive" : "flash-negative");
@@ -39,6 +33,7 @@ const FlashText = (props: { text: string; val: number }) => {
 };
 
 const INITAL_LIQUIDITY_DATE = new Date("2020-10-27");
+const REFRESH_INTERVAL = 1_000;
 
 const OrderBookParser = (id: PublicKey, acc: AccountInfo<Buffer>) => {
   const decoded = Orderbook.LAYOUT.decode(acc.data);
@@ -122,20 +117,18 @@ interface Totals {
   fees: number;
 }
 
-export const ChartsView = (props: {}) => {
-  const { connected, wallet } = useWallet();
+export const ChartsView = React.memo(() => {
   const { env, endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
   const [dataSource, setDataSource] = useState<any[]>([]);
-  const [totals, setTotals] = useState<Totals>({
+  const [totals, setTotals] = useState<Totals>(() => ({
     liquidity: 0,
     volume: 0,
     fees: 0,
-  });
+  }));
   const chartDiv = useRef<HTMLDivElement>(null);
   const echartsRef = useRef<any>(null);
   const updateCounterRef = useRef(0);
-
   // separate connection for market updates
   const connection = useMemo(() => new Connection(endpoint, "recent"), [
     endpoint,
@@ -234,8 +227,24 @@ export const ChartsView = (props: {}) => {
 
     let timer = 0;
 
-    const updateData = () => {
+    const toQuery = new Set<string>();
+    const accountsToObserve = new Set<string>();
+
+    const refreshAccounts = async (keys: string[]) => {
+      return getMultipleAccounts(connection, keys, "single").then(
+        ({ keys, array }) => {
+          return array.map((item, index) => {
+            const address = keys[index];
+            return cache.add(new PublicKey(address), item);
+          });
+        }
+      );
+    }
+
+    const updateData = async () => {
       const TODAY = new Date();
+
+      await refreshAccounts([...accountsToObserve.keys()]);
 
       setDataSource(
         pools
@@ -295,24 +304,26 @@ export const ChartsView = (props: {}) => {
                 volume = poolOwnerFees / 0.0004;
                 fees = volume * 0.003;
 
-                const baseVolume = (ownedPct * baseReserveUSD) / 0.0004;
-                const quoteVolume = (ownedPct * quoteReserveUSD) / 0.0004;
+                if (fees !== 0) {
+                  const baseVolume = (ownedPct * baseReserveUSD) / 0.0004;
+                  const quoteVolume = (ownedPct * quoteReserveUSD) / 0.0004;
 
-                // Aproximation not true for all pools we need to fine a better way
-                const daysSinceInception = Math.floor(
-                  (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
+                  // Aproximation not true for all pools we need to fine a better way
+                  const daysSinceInception = Math.floor(
+                    (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
                     (24 * 3600 * 1000)
-                );
-                const apy0 =
-                  parseFloat(
-                    ((baseVolume / daysSinceInception) * 0.003 * 356) as any
-                  ) / baseReserveUSD;
-                const apy1 =
-                  parseFloat(
-                    ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
-                  ) / quoteReserveUSD;
+                  );
+                  const apy0 =
+                    parseFloat(
+                      ((baseVolume / daysSinceInception) * 0.003 * 356) as any
+                    ) / baseReserveUSD;
+                  const apy1 =
+                    parseFloat(
+                      ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
+                    ) / quoteReserveUSD;
 
-                apy = Math.max(apy0, apy1);
+                  apy = Math.max(apy0, apy1);
+                }
               }
             }
 
@@ -348,7 +359,7 @@ export const ChartsView = (props: {}) => {
           .filter((p) => p)
       );
 
-      timer = window.setTimeout(() => updateData(), 200);
+      timer = window.setTimeout(() => updateData(), REFRESH_INTERVAL);
     };
     const subs: number[] = [];
 
@@ -397,8 +408,7 @@ export const ChartsView = (props: {}) => {
         });
       });
 
-      const toQuery = new Set<string>();
-      const accountsToObserve = new Set<string>();
+
       allMarkets.forEach((m) => {
         const market = cache.get(m);
         if (!market) {
@@ -422,30 +432,8 @@ export const ChartsView = (props: {}) => {
         accountsToObserve.add(decoded.info.asks.toBase58());
       });
 
-      await getMultipleAccounts(connection, [...toQuery.keys()], "single").then(
-        ({ keys, array }) => {
-          return array.map((item, index) => {
-            const address = keys[index];
-            return cache.add(new PublicKey(address), item);
-          });
-        }
-      );
+      await refreshAccounts([...toQuery.keys()]);
 
-      // subscribe to all markets by program id  to keep order books updated
-      [...accountsToObserve.keys()].forEach((id) => {
-        console.log(`sub id: ${id}`);
-        subs.push(
-          connection.onAccountChange(
-            new PublicKey(id),
-            (info) => {
-              if (cache.get(id)) {
-                cache.add(new PublicKey(id), info);
-              }
-            },
-            "singleGossip"
-          )
-        );
-      });
       // start update loop
       updateData();
     };
@@ -453,7 +441,6 @@ export const ChartsView = (props: {}) => {
     initalQuery();
 
     return () => {
-      subs.forEach((sub) => connection.removeAccountChangeListener(sub));
       window.clearTimeout(timer);
     };
   }, [pools]);
@@ -572,7 +559,7 @@ export const ChartsView = (props: {}) => {
       title: "Address",
       dataIndex: "address",
       key: "address",
-      render(text: string, record: any) {
+      render(text: string) {
         return {
           props: {
             style: { fontFamily: "monospace" } as React.CSSProperties,
@@ -615,4 +602,4 @@ export const ChartsView = (props: {}) => {
       />
     </>
   );
-};
+});
