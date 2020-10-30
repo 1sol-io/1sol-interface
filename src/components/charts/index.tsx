@@ -503,7 +503,7 @@ export const ChartsView = React.memo(() => {
         };
       },
       sorter: (a: any, b: any) => a.liquidity - b.liquidity,
-      sortOrder: "descend" as any,
+      defaultSortOrder: "descend" as any
     },
     {
       title: "Supply",
@@ -517,6 +517,7 @@ export const ChartsView = React.memo(() => {
           children: <FlashText text={text} val={record.supply} />,
         };
       },
+      sorter: (a: any, b: any) => a.supply - b.supply,
     },
     {
       title: "Volume",
@@ -535,6 +536,7 @@ export const ChartsView = React.memo(() => {
           ),
         };
       },
+      sorter: (a: any, b: any) => a.volume - b.volume,
     },
     {
       title: "Fees",
