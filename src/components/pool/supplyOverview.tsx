@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "antd";
-import { getTokenName, formatTokenAmount, convert } from "../../utils/utils";
+import {
+  getTokenName,
+  formatTokenAmount,
+  convert,
+  STABLE_COINS,
+} from "../../utils/utils";
 import { PieChart, Pie, Cell } from "recharts";
 import { useMint, useAccount } from "../../utils/accounts";
 import {
@@ -31,8 +36,6 @@ const renderCustomizedLabel = (props: any, data: any) => {
     </text>
   );
 };
-
-const STABLE_COINS = new Set(["USDC", "wUSDC", "USDT"]);
 
 const useMidPriceInUSD = (mint: string) => {
   const connection = useMemo(
@@ -178,15 +181,34 @@ export const SupplyOverview = (props: {
             justifyContent: "center",
           }}
         >
-          <div>
-            <span>{data[0].name}:</span> {formatTokenAmount(accountA, mintA)}{" "}
-            {!isBaseA && formatTokenAmount(accountA, mintA, priceA, "($", ")")}
+          <div title={formatTokenAmount(accountA, mintA)}>
+            <span>{data[0].name}:</span>{" "}
+            {formatTokenAmount(
+              accountA,
+              mintA,
+              1,
+              "",
+              "",
+              isBaseA ? 0 : 2,
+              isBaseA
+            )}{" "}
+            {!isBaseA &&
+              formatTokenAmount(accountA, mintA, priceA, "($", ")", 0, true)}
           </div>
-          <div>
-            <span>{data[1].name}:</span> {formatTokenAmount(accountB, mintB)}{" "}
+          <div title={formatTokenAmount(accountB, mintB)}>
+            <span>{data[1].name}:</span>{" "}
+            {formatTokenAmount(
+              accountB,
+              mintB,
+              1,
+              "",
+              "",
+              isBaseB ? 0 : 2,
+              isBaseB
+            )}{" "}
             {!isBaseB &&
               priceB &&
-              formatTokenAmount(accountB, mintB, priceB, "($", ")")}
+              formatTokenAmount(accountB, mintB, priceB, "($", ")", 0, true)}
           </div>
         </div>
       </div>

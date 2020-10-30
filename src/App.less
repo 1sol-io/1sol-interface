@@ -43,6 +43,31 @@ body {
   position: relative;
   padding: 1rem;
   z-index: 2;
+
+  .ant-menu-horizontal {
+    border-bottom-color: transparent;
+    background-color: transparent;
+    line-height: inherit;
+    font-size: 16px;
+    margin: 0 10px;
+
+    .ant-menu-item {
+      margin: 0 10px;
+      color: lightgrey;
+      height: 35px;
+      line-height: 35px;
+      border-width: 0px !important;
+    }
+
+    .ant-menu-item:hover {
+      color: white;
+      border-width: 0px !important;
+    }
+    
+    .ant-menu-item-selected {
+      font-weight: bold;
+    }
+  }
 }
 
 .App-Bar-left {
@@ -155,6 +180,30 @@ body {
   .ant-tabs-nav-list {
     width: 100% !important;
   }
+}
+
+.flash-positive {
+  color: rgba(0, 255, 0, 0.6);
+}
+
+.flash-negative {
+  color: rgba(255, 0, 0, 0.6);
+}
+
+.ant-table-cell {
+  padding: 6px 16px !important;
+}
+
+.ant-table {
+  margin: 0px 20px;
+}
+
+.ant-pagination-options {
+  display: none;
+}
+
+.ant-table-container table > thead > tr th {
+  text-align: center;
 }
 
 @media only screen and (max-width: 600px) {

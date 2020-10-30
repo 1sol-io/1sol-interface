@@ -7,6 +7,7 @@ import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
 import { usePools } from "./pools";
 import { TokenAccount, PoolInfo } from "./../models";
 import { notify } from "./notifications";
+import { chunks } from "./utils";
 
 const AccountsContext = React.createContext<any>(null);
 
@@ -27,9 +28,13 @@ class EventEmitter extends EventTarget {
 
 const accountEmitter = new EventEmitter();
 
-const mintCache = new Map<string, Promise<MintInfo>>();
+const pendingMintCalls = new Map<string, Promise<MintInfo>>();
+const mintCache = new Map<string, MintInfo>();
 const pendingAccountCalls = new Map<string, Promise<TokenAccount>>();
 const accountsCache = new Map<string, TokenAccount>();
+
+const pendingCalls = new Map<string, Promise<ParsedAccountBase>>();
+const genericCache = new Map<string, ParsedAccountBase>();
 
 const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
   const info = await connection.getAccountInfo(pubKey);
@@ -37,19 +42,7 @@ const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
     throw new Error("Failed to find mint account");
   }
 
-  const buffer = Buffer.from(info.data);
-
-  const data = deserializeAccount(buffer);
-
-  const details = {
-    pubkey: pubKey,
-    account: {
-      ...info,
-    },
-    info: data,
-  } as TokenAccount;
-
-  return details;
+  return tokenAccountFactory(pubKey, info);
 };
 
 const getMintInfo = async (connection: Connection, pubKey: PublicKey) => {
@@ -63,8 +56,123 @@ const getMintInfo = async (connection: Connection, pubKey: PublicKey) => {
   return deserializeMint(data);
 };
 
+export interface ParsedAccountBase {
+  pubkey: PublicKey;
+  account: AccountInfo<Buffer>;
+  info: any; // TODO: change to unkown
+}
+
+export interface ParsedAccount<T> extends ParsedAccountBase {
+  info: T;
+}
+
+export type AccountParser = (
+  pubkey: PublicKey,
+  data: AccountInfo<Buffer>
+) => ParsedAccountBase;
+export const MintParser = (pubKey: PublicKey, info: AccountInfo<Buffer>) => {
+  const buffer = Buffer.from(info.data);
+
+  const data = deserializeMint(buffer);
+
+  const details = {
+    pubkey: pubKey,
+    account: {
+      ...info,
+    },
+    info: data,
+  } as ParsedAccountBase;
+
+  return details;
+};
+
+export const TokenAccountParser = tokenAccountFactory;
+
+export const GenericAccountParser = (
+  pubKey: PublicKey,
+  info: AccountInfo<Buffer>
+) => {
+  const buffer = Buffer.from(info.data);
+
+  const details = {
+    pubkey: pubKey,
+    account: {
+      ...info,
+    },
+    info: buffer,
+  } as ParsedAccountBase;
+
+  return details;
+};
+
+export const keyToAccountParser = new Map<string, AccountParser>();
+
 export const cache = {
-  getAccount: async (connection: Connection, pubKey: string | PublicKey) => {
+  query: async (
+    connection: Connection,
+    pubKey: string | PublicKey,
+    parser?: AccountParser
+  ) => {
+    let id: PublicKey;
+    if (typeof pubKey === "string") {
+      id = new PublicKey(pubKey);
+    } else {
+      id = pubKey;
+    }
+
+    const address = id.toBase58();
+
+    let account = genericCache.get(address);
+    if (account) {
+      return account;
+    }
+
+    let query = pendingCalls.get(address);
+    if (query) {
+      return query;
+    }
+
+    query = connection.getAccountInfo(id).then((data) => {
+      if (!data) {
+        throw new Error("Account not found");
+      }
+
+      return cache.add(id, data, parser);
+    }) as Promise<TokenAccount>;
+    pendingCalls.set(address, query as any);
+
+    return query;
+  },
+  add: (id: PublicKey, obj: AccountInfo<Buffer>, parser?: AccountParser) => {
+    const address = id.toBase58();
+    const deserialize = parser ? parser : keyToAccountParser.get(address);
+    if (!deserialize) {
+      throw new Error(
+        "Deserializer needs to be registered or passed as a parameter"
+      );
+    }
+
+    cache.registerParser(id, deserialize);
+    pendingCalls.delete(address);
+    const account = deserialize(id, obj);
+    genericCache.set(address, account);
+    return account;
+  },
+  get: (pubKey: string | PublicKey) => {
+    let key: string;
+    if (typeof pubKey !== "string") {
+      key = pubKey.toBase58();
+    } else {
+      key = pubKey;
+    }
+
+    return genericCache.get(key);
+  },
+  registerParser: (pubkey: PublicKey, parser: AccountParser) => {
+    keyToAccountParser.set(pubkey.toBase58(), parser);
+  },
+
+  queryAccount: async (connection: Connection, pubKey: string | PublicKey) => {
     let id: PublicKey;
     if (typeof pubKey === "string") {
       id = new PublicKey(pubKey);
@@ -93,7 +201,22 @@ export const cache = {
 
     return query;
   },
-  getMint: async (connection: Connection, pubKey: string | PublicKey) => {
+  addAccount: (pubKey: PublicKey, obj: AccountInfo<Buffer>) => {
+    const account = tokenAccountFactory(pubKey, obj);
+    accountsCache.set(account.pubkey.toBase58(), account);
+    return account;
+  },
+  getAccount: (pubKey: string | PublicKey) => {
+    let key: string;
+    if (typeof pubKey !== "string") {
+      key = pubKey.toBase58();
+    } else {
+      key = pubKey;
+    }
+
+    return accountsCache.get(key);
+  },
+  queryMint: async (connection: Connection, pubKey: string | PublicKey) => {
     let id: PublicKey;
     if (typeof pubKey === "string") {
       id = new PublicKey(pubKey);
@@ -101,16 +224,40 @@ export const cache = {
       id = pubKey;
     }
 
-    let mint = mintCache.get(id.toBase58());
+    const address = id.toBase58();
+    let mint = mintCache.get(address);
     if (mint) {
       return mint;
     }
 
-    let query = getMintInfo(connection, id);
+    let query = pendingMintCalls.get(address);
+    if (query) {
+      return query;
+    }
 
-    mintCache.set(id.toBase58(), query as any);
+    query = getMintInfo(connection, id).then((data) => {
+      pendingAccountCalls.delete(address);
+      mintCache.set(address, data);
+      return data;
+    }) as Promise<MintInfo>;
+    pendingAccountCalls.set(address, query as any);
 
     return query;
+  },
+  getMint: (pubKey: string | PublicKey) => {
+    let key: string;
+    if (typeof pubKey !== "string") {
+      key = pubKey.toBase58();
+    } else {
+      key = pubKey;
+    }
+
+    return mintCache.get(key);
+  },
+  addMint: (pubKey: PublicKey, obj: AccountInfo<Buffer>) => {
+    const mint = deserializeMint(obj.data);
+    mintCache.set(pubKey.toBase58(), mint);
+    return mint;
   },
 };
 
@@ -123,6 +270,22 @@ export const getCachedAccount = (
     }
   }
 };
+
+function tokenAccountFactory(pubKey: PublicKey, info: AccountInfo<Buffer>) {
+  const buffer = Buffer.from(info.data);
+
+  const data = deserializeAccount(buffer);
+
+  const details = {
+    pubkey: pubKey,
+    account: {
+      ...info,
+    },
+    info: data,
+  } as TokenAccount;
+
+  return details;
+}
 
 function wrapNativeAccount(
   pubkey: PublicKey,
@@ -277,11 +440,15 @@ export function AccountsProvider({ children = null as any }) {
             if (mintCache.has(id)) {
               const data = Buffer.from(info.accountInfo.data);
               const mint = deserializeMint(data);
-              mintCache.set(id, new Promise((resolve) => resolve(mint)));
+              mintCache.set(id, mint);
               accountEmitter.raiseAccountUpdated(id);
             }
 
             accountEmitter.raiseAccountUpdated(id);
+          }
+
+          if (genericCache.has(id)) {
+            cache.add(new PublicKey(id), info.accountInfo);
           }
         },
         "singleGossip"
@@ -313,6 +480,56 @@ export function useNativeAccount() {
   };
 }
 
+export const getMultipleAccounts = async (
+  connection: any,
+  keys: string[],
+  commitment: string
+) => {
+  const result = await Promise.all(
+    chunks(keys, 99).map((chunk) =>
+      getMultipleAccountsCore(connection, chunk, commitment)
+    )
+  );
+
+  const array = result
+    .map(
+      (a) =>
+        a.array.map((acc) => {
+          const { data, ...rest } = acc;
+          const obj = {
+            ...rest,
+            data: Buffer.from(data[0], "base64"),
+          } as AccountInfo<Buffer>;
+          return obj;
+        }) as AccountInfo<Buffer>[]
+    )
+    .flat();
+  return { keys, array };
+};
+
+const getMultipleAccountsCore = async (
+  connection: any,
+  keys: string[],
+  commitment: string
+) => {
+  const args = connection._buildArgs([keys], commitment, "base64");
+
+  const unsafeRes = await connection._rpcRequest("getMultipleAccounts", args);
+  if (unsafeRes.error) {
+    throw new Error(
+      "failed to get info about account " + unsafeRes.error.message
+    );
+  }
+
+  if (unsafeRes.result.value) {
+    const array = unsafeRes.result.value as AccountInfo<string[]>[];
+    return { keys, array };
+  }
+
+  // TODO: fix
+  throw new Error();
+};
+
 export function useMint(id?: string) {
   const connection = useConnection();
   const [mint, setMint] = useState<MintInfo>();
@@ -323,7 +540,7 @@ export function useMint(id?: string) {
     }
 
     cache
-      .getMint(connection, id)
+      .queryMint(connection, id)
       .then(setMint)
       .catch((err) =>
         notify({
@@ -334,7 +551,7 @@ export function useMint(id?: string) {
     const onAccountEvent = (e: Event) => {
       const event = e as AccountUpdateEvent;
       if (event.id === id) {
-        cache.getMint(connection, id).then(setMint);
+        cache.queryMint(connection, id).then(setMint);
       }
     };
 
@@ -369,7 +586,7 @@ export function useAccount(pubKey?: PublicKey) {
           return;
         }
 
-        const acc = await cache.getAccount(connection, key).catch((err) =>
+        const acc = await cache.queryAccount(connection, key).catch((err) =>
           notify({
             message: err.message,
             type: "error",

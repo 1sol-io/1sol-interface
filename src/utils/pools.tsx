@@ -1,5 +1,6 @@
 import {
   Account,
+  AccountInfo,
   Connection,
   PublicKey,
   SystemProgram,
@@ -14,6 +15,7 @@ import {
   getCachedAccount,
   useUserAccounts,
   useCachedPool,
+  getMultipleAccounts,
 } from "./accounts";
 import {
   programIds,
@@ -33,6 +35,7 @@ import {
   swapInstruction,
   PoolConfig,
 } from "./../models";
+import { chunks } from "./../utils/utils";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -57,12 +60,12 @@ export const removeLiquidity = async (
   const minAmount0 = 0;
   const minAmount1 = 0;
 
-  const poolMint = await cache.getMint(connection, pool.pubkeys.mint);
-  const accountA = await cache.getAccount(
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
+  const accountA = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[0]
   );
-  const accountB = await cache.getAccount(
+  const accountB = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[1]
   );
@@ -177,7 +180,7 @@ export const swap = async (
       ? pool.pubkeys.holdingAccounts[1]
       : pool.pubkeys.holdingAccounts[0];
 
-  const poolMint = await cache.getMint(connection, pool.pubkeys.mint);
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
   if (!poolMint.mintAuthority || !pool.pubkeys.feeAccount) {
     throw new Error("Mint doesnt have authority");
   }
@@ -282,18 +285,13 @@ export const addLiquidity = async (
 
     await _addLiquidityNewPool(wallet, connection, components, options);
   } else {
-    await _addLiquidityExistingPool(
-      pool,
-      components,
-      connection,
-      wallet,
-    );
+    await _addLiquidityExistingPool(pool, components, connection, wallet);
   }
 };
 
 const getHoldings = (connection: Connection, accounts: string[]) => {
   return accounts.map((acc) =>
-    cache.getAccount(connection, new PublicKey(acc))
+    cache.queryAccount(connection, new PublicKey(acc))
   );
 };
 
@@ -380,6 +378,35 @@ export const usePools = () => {
           return result;
         });
 
+      const toQuery = poolsArray
+        .map(
+          (p) =>
+            [
+              ...p.pubkeys.holdingAccounts.map((h) => h.toBase58()),
+              ...p.pubkeys.holdingMints.map((h) => h.toBase58()),
+              p.pubkeys.feeAccount?.toBase58(), // used to calculate volume aproximation
+              p.pubkeys.mint.toBase58(),
+            ].filter((p) => p) as string[]
+        )
+        .flat();
+
+      // This will pre-cache all accounts used by pools
+      // All those accounts are updated whenever there is a change
+      await getMultipleAccounts(connection, toQuery, "single").then(
+        ({ keys, array }) => {
+          return array.map((obj, index) => {
+            const pubKey = new PublicKey(keys[index]);
+            if (obj.data.length === AccountLayout.span) {
+              return cache.addAccount(pubKey, obj);
+            } else if (obj.data.length === MintLayout.span) {
+              return cache.addMint(pubKey, obj);
+            }
+
+            return obj;
+          }) as any[];
+        }
+      );
+
       return poolsArray;
     };
 
@@ -458,7 +485,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
       for (let i = 0; i < matchingPool.length; i++) {
         const p = matchingPool[i];
 
-        const account = await cache.getAccount(
+        const account = await cache.queryAccount(
           connection,
           p.pubkeys.holdingAccounts[0]
         );
@@ -500,13 +527,13 @@ export const useOwnedPools = () => {
 };
 
 // Allow for this much price movement in the pool before adding liquidity to the pool aborts
-const SLIPPAGE = 0.0050
+const SLIPPAGE = 0.005;
 
 async function _addLiquidityExistingPool(
   pool: PoolInfo,
   components: LiquidityComponent[],
   connection: Connection,
-  wallet: any,
+  wallet: any
 ) {
   notify({
     message: "Adding Liquidity...",
@@ -514,7 +541,7 @@ async function _addLiquidityExistingPool(
     type: "warn",
   });
 
-  const poolMint = await cache.getMint(connection, pool.pubkeys.mint);
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
   if (!poolMint.mintAuthority) {
     throw new Error("Mint doesnt have authority");
   }
@@ -523,11 +550,11 @@ async function _addLiquidityExistingPool(
     throw new Error("Invald fee account");
   }
 
-  const accountA = await cache.getAccount(
+  const accountA = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[0]
   );
-  const accountB = await cache.getAccount(
+  const accountB = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[1]
   );
@@ -707,12 +734,12 @@ export async function calculateDependentAmount(
   amount: number,
   pool: PoolInfo
 ): Promise<number | undefined> {
-  const poolMint = await cache.getMint(connection, pool.pubkeys.mint);
-  const accountA = await cache.getAccount(
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
+  const accountA = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[0]
   );
-  const accountB = await cache.getAccount(
+  const accountB = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[1]
   );
@@ -724,8 +751,8 @@ export async function calculateDependentAmount(
     return;
   }
 
-  const mintA = await cache.getMint(connection, accountA.info.mint);
-  const mintB = await cache.getMint(connection, accountB.info.mint);
+  const mintA = await cache.queryMint(connection, accountA.info.mint);
+  const mintB = await cache.queryMint(connection, accountB.info.mint);
 
   if (!mintA || !mintB) {
     return;

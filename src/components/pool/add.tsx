@@ -91,7 +91,7 @@ export const AddToLiquidity = () => {
       type="primary"
       size="large"
     >
-      {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, env, A, B)}
+      {generateActionLabel(CREATE_POOL_LABEL, connected, env, A, B)}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Button>
   ) : (
@@ -176,7 +176,7 @@ export const AddToLiquidity = () => {
               !hasSufficientBalance)
           }
         >
-          {generateActionLabel(CREATE_POOL_LABEL, connected, env, A, B)}
+          {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, env, A, B)}
           {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
         </Button>
       )}
