@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Popover, Table } from "antd";
 import { AppBar } from "./../appBar";
 import {
@@ -15,8 +15,12 @@ import { SettingOutlined } from "@ant-design/icons";
 import { PoolIcon } from "../tokenIcon";
 import { Market, MARKETS, Orderbook, TOKEN_MINTS } from "@project-serum/serum";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
+import { Input } from 'antd';
+
 import "./styles.less";
 import echarts from "echarts";
+
+const { Search } = Input;
 
 const FlashText = (props: { text: string; val: number }) => {
   const [activeClass, setActiveClass] = useState("");
@@ -139,6 +143,7 @@ export const ChartsView = React.memo(() => {
   const { env, endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
   const [dataSource, setDataSource] = useState<any[]>([]);
+  const [search, setSearch] = useState<string>("");
   const [totals, setTotals] = useState<Totals>(() => ({
     liquidity: 0,
     volume: 0,
@@ -146,7 +151,6 @@ export const ChartsView = React.memo(() => {
   }));
   const chartDiv = useRef<HTMLDivElement>(null);
   const echartsRef = useRef<any>(null);
-  const updateCounterRef = useRef(0);
   // separate connection for market updates
   const connection = useMemo(() => new Connection(endpoint, "recent"), [
     endpoint,
@@ -167,6 +171,46 @@ export const ChartsView = React.memo(() => {
 
   // TODO: create cache object with layout type, get, query, add
 
+  const updateChart = useCallback(() => {
+    if (echartsRef.current) {
+      const searchRegex = new RegExp(search, "i");
+      echartsRef.current.setOption({
+        series: [
+          {
+            name: "Liquidity",
+            type: "treemap",
+            top: 0,
+            bottom: 10,
+            left: 30,
+            right: 30,
+            // visibleMin: 300,
+            label: {
+              show: true,
+              formatter: "{b}",
+            },
+            itemStyle: {
+              normal: {
+                borderColor: "#000",
+              },
+            },
+            breadcrumb: {
+              show: false,
+            },
+            data: dataSource.filter(row => !search || searchRegex.test(row.name)).map((row) => {
+              return {
+                value: row.liquidity,
+                name: row.name,
+                path: `Liquidity/${row.name}`,
+                data: row,
+              };
+            }),
+          },
+        ],
+      });
+    }
+  }, [dataSource, echartsRef.current, search]);
+
+
   // Updates total values
   useEffect(() => {
     setTotals(
@@ -181,43 +225,8 @@ export const ChartsView = React.memo(() => {
       )
     );
 
-    // update chart on data changes only every 5 ticks
-    if (echartsRef.current && updateCounterRef.current % 5 === 0) {
-      echartsRef.current.setOption({
-        series: [
-          {
-            name: "Liquidity",
-            type: "treemap",
-            visibleMin: 300,
-            label: {
-              show: true,
-              formatter: "{b}",
-            },
-            itemStyle: {
-              normal: {
-                borderColor: "#000",
-              },
-            },
-            breadcrumb: {
-              show: false,
-            },
-            data: dataSource.map((row) => {
-              return {
-                value: row.liquidity,
-                name: row.name,
-                path: `Liquidity/${row.name}`,
-                data: row,
-              };
-            }),
-          },
-        ],
-      });
-    }
-
-    if (dataSource.length > 0) {
-      updateCounterRef.current = updateCounterRef.current + 1;
-    }
-  }, [dataSource, echartsRef.current]);
+    updateChart();
+  }, [dataSource, updateChart, search]);
 
   useEffect(() => {
     const reverseSerumMarketCache = new Map<string, string>();
@@ -342,20 +351,20 @@ export const ChartsView = React.memo(() => {
                   // Aproximation not true for all pools we need to fine a better way
                   const daysSinceInception = Math.floor(
                     (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-                      (24 * 3600 * 1000)
+                    (24 * 3600 * 1000)
                   );
                   const apy0 =
                     srmYield +
                     parseFloat(
                       ((baseVolume / daysSinceInception) * 0.003 * 356) as any
                     ) /
-                      baseReserveUSD;
+                    baseReserveUSD;
                   const apy1 =
                     srmYield +
                     parseFloat(
                       ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
                     ) /
-                      quoteReserveUSD;
+                    quoteReserveUSD;
 
                   apy = Math.max(apy0, apy1);
                 }
@@ -606,6 +615,7 @@ export const ChartsView = React.memo(() => {
     },
   ];
 
+  const searchRegex = new RegExp(search, "i");
   return (
     <>
       <AppBar
@@ -628,10 +638,16 @@ export const ChartsView = React.memo(() => {
       <div className="info-header">
         <h1>Liquidity: {formatUSD.format(totals.liquidity)}</h1>
         <h1>Volume: {formatUSD.format(totals.volume)}</h1>
+        <Search className="search-input"
+          placeholder="Filter"
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onSearch={(value) => setSearch(value)} style={{ width: 200 }} />
       </div>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       <Table
-        dataSource={dataSource}
+        dataSource={dataSource.filter(row => !search || searchRegex.test(row.name))}
         columns={columns}
         size="small"
         pagination={{ pageSize: 10 }}
