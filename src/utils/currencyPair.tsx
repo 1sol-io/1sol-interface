@@ -65,7 +65,7 @@ export function CurrencyPairProvider({ children = null as any }) {
           search: ``,
         });
       } else {
-        history.push({});
+        return;
       }
     }
   }, [mintAddressA, mintAddressB]);
@@ -77,6 +77,9 @@ export function CurrencyPairProvider({ children = null as any }) {
     }
 
     let { defaultBase, defaultQuote } = getDefaultTokens(env, location.search);
+    if (!defaultBase || !defaultQuote) {
+      return;
+    }
     setMintAddressA(
       PopularTokens[env].find((t) => t.tokenSymbol === defaultBase)
         ?.mintAddress || ""
@@ -174,8 +177,8 @@ export const useCurrencyPairState = () => {
   return context as CurrencyPairContextState;
 };
 function getDefaultTokens(env: ENV, search: string) {
-  let defaultBase = "BTC";
-  let defaultQuote = "USDT";
+  let defaultBase;
+  let defaultQuote;
 
   console.log(search);
 
