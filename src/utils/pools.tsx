@@ -35,7 +35,7 @@ import {
   swapInstruction,
   PoolConfig,
 } from "./../models";
-import { chunks } from './../utils/utils';
+import { chunks } from "./../utils/utils";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -172,7 +172,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0].toBase58() ===
-      components[0].account.info.mint.toBase58()
+    components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -227,14 +227,14 @@ export const swap = async (
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-      wallet.publicKey,
-      SWAP_HOST_FEE_ADDRESS,
-      instructions,
-      cleanupInstructions,
-      accountRentExempt,
-      pool.pubkeys.mint,
-      signers
-    )
+        wallet.publicKey,
+        SWAP_HOST_FEE_ADDRESS,
+        instructions,
+        cleanupInstructions,
+        accountRentExempt,
+        pool.pubkeys.mint,
+        signers
+      )
     : undefined;
 
   // swap
@@ -285,12 +285,7 @@ export const addLiquidity = async (
 
     await _addLiquidityNewPool(wallet, connection, components, options);
   } else {
-    await _addLiquidityExistingPool(
-      pool,
-      components,
-      connection,
-      wallet,
-    );
+    await _addLiquidityExistingPool(pool, components, connection, wallet);
   }
 };
 
@@ -338,7 +333,7 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => { },
+            init: async () => {},
           };
 
           // handling of legacy layout can be removed soon...
@@ -383,27 +378,34 @@ export const usePools = () => {
           return result;
         });
 
-      const toQuery = poolsArray.map(p => [
-        ...p.pubkeys.holdingAccounts.map(h => h.toBase58()),
-        ...p.pubkeys.holdingMints.map(h => h.toBase58()),
-        p.pubkeys.feeAccount?.toBase58(), // used to calculate volume aproximation
-        p.pubkeys.mint.toBase58(),
-      ].filter(p => p) as string[]).flat();
+      const toQuery = poolsArray
+        .map(
+          (p) =>
+            [
+              ...p.pubkeys.holdingAccounts.map((h) => h.toBase58()),
+              ...p.pubkeys.holdingMints.map((h) => h.toBase58()),
+              p.pubkeys.feeAccount?.toBase58(), // used to calculate volume aproximation
+              p.pubkeys.mint.toBase58(),
+            ].filter((p) => p) as string[]
+        )
+        .flat();
 
       // This will pre-cache all accounts used by pools
       // All those accounts are updated whenever there is a change
-      await getMultipleAccounts(connection, toQuery, 'single').then(({ keys, array }) => {
-        return array.map((obj, index) => {
-          const pubKey = new PublicKey(keys[index]);
-          if (obj.data.length === AccountLayout.span) {
-            return cache.addAccount(pubKey, obj);
-          } else if (obj.data.length === MintLayout.span) {
-            return cache.addMint(pubKey, obj);
-          }
+      await getMultipleAccounts(connection, toQuery, "single").then(
+        ({ keys, array }) => {
+          return array.map((obj, index) => {
+            const pubKey = new PublicKey(keys[index]);
+            if (obj.data.length === AccountLayout.span) {
+              return cache.addAccount(pubKey, obj);
+            } else if (obj.data.length === MintLayout.span) {
+              return cache.addMint(pubKey, obj);
+            }
 
-          return obj;
-        }) as any[]
-      });
+            return obj;
+          }) as any[];
+        }
+      );
 
       return poolsArray;
     };
@@ -525,13 +527,13 @@ export const useOwnedPools = () => {
 };
 
 // Allow for this much price movement in the pool before adding liquidity to the pool aborts
-const SLIPPAGE = 0.0050
+const SLIPPAGE = 0.005;
 
 async function _addLiquidityExistingPool(
   pool: PoolInfo,
   components: LiquidityComponent[],
   connection: Connection,
-  wallet: any,
+  wallet: any
 ) {
   notify({
     message: "Adding Liquidity...",
@@ -769,9 +771,9 @@ export async function calculateDependentAmount(
 
   const dependentTokenAmount = isFirstIndependent
     ? (accountB.info.amount.toNumber() / accountA.info.amount.toNumber()) *
-    adjAmount
+      adjAmount
     : (accountA.info.amount.toNumber() / accountB.info.amount.toNumber()) *
-    adjAmount;
+      adjAmount;
 
   return dependentTokenAmount / depPrecision;
 }

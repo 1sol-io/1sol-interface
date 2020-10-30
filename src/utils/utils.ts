@@ -86,7 +86,10 @@ export function isKnownMint(env: ENV, mintAddress: string) {
 export const STABLE_COINS = new Set(["USDC", "wUSDC", "USDT"]);
 
 export function chunks<T>(array: T[], size: number): T[][] {
-  return Array.apply<number, T[], T[][]>(0, new Array(Math.ceil(array.length / size))).map((_, index) => array.slice(index * size, (index + 1) * size))
+  return Array.apply<number, T[], T[][]>(
+    0,
+    new Array(Math.ceil(array.length / size))
+  ).map((_, index) => array.slice(index * size, (index + 1) * size));
 }
 
 export function convert(
@@ -105,7 +108,7 @@ export function convert(
 var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];
 
 const abbreviateNumber = (number: number, precision: number) => {
-  let tier = Math.log10(number) / 3 | 0;
+  let tier = (Math.log10(number) / 3) | 0;
   let scaled = number;
   let suffix = SI_SYMBOL[tier];
   if (tier !== 0) {
@@ -114,7 +117,7 @@ const abbreviateNumber = (number: number, precision: number) => {
   }
 
   return scaled.toFixed(precision) + suffix;
-}
+};
 
 export function formatTokenAmount(
   account?: TokenAccount,
@@ -127,5 +130,8 @@ export function formatTokenAmount(
     return "";
   }
 
-  return `${[prefix]}${abbreviateNumber(convert(account, mint, rate), 6)}${suffix}`;
+  return `${[prefix]}${abbreviateNumber(
+    convert(account, mint, rate),
+    6
+  )}${suffix}`;
 }

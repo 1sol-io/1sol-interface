@@ -4,7 +4,7 @@ import { TradeEntry } from "./trade";
 import { AddToLiquidity } from "./pool/add";
 import { Settings } from "./settings";
 import { SettingOutlined } from "@ant-design/icons";
-import { AppBar } from './appBar';
+import { AppBar } from "./appBar";
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -29,21 +29,23 @@ export const ExchangeView = (props: {}) => {
 
   return (
     <>
-      <AppBar right={
-        <Popover
-          placement="topRight"
-          title="Settings"
-          content={<Settings />}
-          trigger="click"
-        >
-          <Button
-            shape="circle"
-            size="large"
-            type="text"
-            icon={<SettingOutlined />}
-          />
-        </Popover>
-      } />
+      <AppBar
+        right={
+          <Popover
+            placement="topRight"
+            title="Settings"
+            content={<Settings />}
+            trigger="click"
+          >
+            <Button
+              shape="circle"
+              size="large"
+              type="text"
+              icon={<SettingOutlined />}
+            />
+          </Popover>
+        }
+      />
       <Card
         className="exchange-card"
         headStyle={{ padding: 0 }}

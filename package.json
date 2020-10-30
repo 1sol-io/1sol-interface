@@ -41,7 +41,8 @@
     "localnet:logs": "solana-localnet logs -f",
     "predeploy": "git pull --ff-only && yarn && yarn build",
     "deploy": "gh-pages -d build",
-    "deploy:ar": "arweave deploy-dir build --key-file "
+    "deploy:ar": "arweave deploy-dir build --key-file ",
+    "format:fix": "prettier --write \"**/*.+(js|jsx|ts|tsx|json|css|md)\""
   },
   "eslintConfig": {
     "extends": "react-app"

@@ -3,9 +3,9 @@ import { Button, Menu, Popover } from "antd";
 import { PoolAccounts } from "./pool/view";
 import { useWallet } from "../utils/wallet";
 import { AccountInfo } from "./accountInfo";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 
-export const AppBar = (props: { left?: JSX.Element, right?: JSX.Element }) => {
+export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
   const { connected, wallet } = useWallet();
   const location = useLocation();
 
@@ -19,14 +19,18 @@ export const AppBar = (props: { left?: JSX.Element, right?: JSX.Element }) => {
               to={{
                 pathname: "/",
               }}
-            >Swap</Link>
+            >
+              Swap
+            </Link>
           </Menu.Item>
           <Menu.Item key="/info">
             <Link
               to={{
                 pathname: "/info",
               }}
-            >Charts</Link>
+            >
+              Charts
+            </Link>
           </Menu.Item>
           <Menu.Item key="trade">
             <a

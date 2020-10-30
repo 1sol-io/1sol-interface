@@ -48,23 +48,27 @@ export function CurrencyPairProvider({ children = null as any }) {
   // updates browser history on token changes
   useEffect(() => {
     // set history
-    const base = PopularTokens[env].find((t) => t.mintAddress === mintAddressA)?.tokenSymbol;
-    const quote = PopularTokens[env].find((t) => t.mintAddress === mintAddressB)?.tokenSymbol;
+    const base = PopularTokens[env].find((t) => t.mintAddress === mintAddressA)
+      ?.tokenSymbol;
+    const quote = PopularTokens[env].find((t) => t.mintAddress === mintAddressB)
+      ?.tokenSymbol;
 
     if (base && quote) {
       history.push({
-        pathname: '/',
+        pathname: "/",
         search: `?pair=${base}-${quote}`,
-      })
+      });
     } else {
       if (mintAddressA && mintAddressB) {
         history.push({
-          pathname: '/',
+          pathname: "/",
           search: ``,
         });
+      } else {
+        history.push({});
       }
     }
-  }, [mintAddressA, mintAddressB])
+  }, [mintAddressA, mintAddressB]);
 
   // Updates tokens on location change
   useEffect(() => {
@@ -73,8 +77,14 @@ export function CurrencyPairProvider({ children = null as any }) {
     }
 
     let { defaultBase, defaultQuote } = getDefaultTokens(env, location.search);
-    setMintAddressA(PopularTokens[env].find((t) => t.tokenSymbol === defaultBase)?.mintAddress || '');
-    setMintAddressB(PopularTokens[env].find((t) => t.tokenSymbol === defaultQuote)?.mintAddress || '');
+    setMintAddressA(
+      PopularTokens[env].find((t) => t.tokenSymbol === defaultBase)
+        ?.mintAddress || ""
+    );
+    setMintAddressB(
+      PopularTokens[env].find((t) => t.tokenSymbol === defaultQuote)
+        ?.mintAddress || ""
+    );
   }, [location, location.search, setMintAddressA, setMintAddressB]);
 
   const calculateDependent = useCallback(async () => {
@@ -164,8 +174,8 @@ export const useCurrencyPairState = () => {
   return context as CurrencyPairContextState;
 };
 function getDefaultTokens(env: ENV, search: string) {
-  let defaultBase = 'BTC';
-  let defaultQuote = 'USDT';
+  let defaultBase = "BTC";
+  let defaultQuote = "USDT";
 
   console.log(search);
 
@@ -176,9 +186,9 @@ function getDefaultTokens(env: ENV, search: string) {
 
   if (search) {
     const urlParams = new URLSearchParams(search);
-    const pair = urlParams.get('pair');
+    const pair = urlParams.get("pair");
     if (pair) {
-      let items = pair.split('-');
+      let items = pair.split("-");
 
       if (items.length > 1) {
         if (nameToToken.has(items[0])) {
@@ -193,4 +203,3 @@ function getDefaultTokens(env: ENV, search: string) {
   }
   return { defaultBase, defaultQuote };
 }
-
