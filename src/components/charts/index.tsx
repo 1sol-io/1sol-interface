@@ -171,9 +171,15 @@ export const ChartsView = React.memo(() => {
 
   // TODO: create cache object with layout type, get, query, add
 
+  let searchRegex: RegExp;
+  try {
+    searchRegex = new RegExp(search, "i");
+  } catch {
+    // ignore bad regex typed by user
+  }
+
   const updateChart = useCallback(() => {
     if (echartsRef.current) {
-      const searchRegex = new RegExp(search, "i");
       echartsRef.current.setOption({
         series: [
           {
@@ -196,7 +202,7 @@ export const ChartsView = React.memo(() => {
             breadcrumb: {
               show: false,
             },
-            data: dataSource.filter(row => !search || searchRegex.test(row.name)).map((row) => {
+            data: dataSource.filter(row => !search || !searchRegex || searchRegex.test(row.name)).map((row) => {
               return {
                 value: row.liquidity,
                 name: row.name,
@@ -615,7 +621,6 @@ export const ChartsView = React.memo(() => {
     },
   ];
 
-  const searchRegex = new RegExp(search, "i");
   return (
     <>
       <AppBar
@@ -647,7 +652,7 @@ export const ChartsView = React.memo(() => {
       </div>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       <Table
-        dataSource={dataSource.filter(row => !search || searchRegex.test(row.name))}
+        dataSource={dataSource.filter(row => !search || !searchRegex || searchRegex.test(row.name))}
         columns={columns}
         size="small"
         pagination={{ pageSize: 10 }}
