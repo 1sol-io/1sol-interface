@@ -119,19 +119,25 @@ const abbreviateNumber = (number: number, precision: number) => {
   return scaled.toFixed(precision) + suffix;
 };
 
+const format = (val: number, precision: number, abbr: boolean) =>
+  abbr ? abbreviateNumber(val, precision) : val.toFixed(precision);
+
 export function formatTokenAmount(
   account?: TokenAccount,
   mint?: MintInfo,
   rate: number = 1.0,
   prefix = "",
-  suffix = ""
+  suffix = "",
+  precision = 6,
+  abbr = false
 ): string {
   if (!account) {
     return "";
   }
 
-  return `${[prefix]}${abbreviateNumber(
+  return `${[prefix]}${format(
     convert(account, mint, rate),
-    6
+    precision,
+    abbr
   )}${suffix}`;
 }

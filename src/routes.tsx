@@ -17,7 +17,7 @@ export function Routes() {
             <AccountsProvider>
               <CurrencyPairProvider>
                 <Route exact path="/" component={ExchangeView} />
-                <Route exact path="/info" component={ChartsView} />
+                <Route exact path="/info" component={() => <ChartsView />} />
               </CurrencyPairProvider>
             </AccountsProvider>
           </WalletProvider>
