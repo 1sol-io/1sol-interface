@@ -1,4 +1,4 @@
-import { BrowserRouter, HashRouter, Route } from "react-router-dom";
+import { HashRouter, Route } from "react-router-dom";
 import React from "react";
 import { ExchangeView } from "./components/exchange";
 import { ChartsView } from "./components/charts";

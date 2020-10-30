@@ -14,6 +14,7 @@ import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
 import { getTokenName } from "../../utils/utils";
+import { PoolAddress } from "../pool/address";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -73,7 +74,7 @@ export const TradeEntry = () => {
 
   return (
     <>
-      <div>
+      <div className="input-card">
         <CurrencyInput
           title="Input"
           onInputChange={(val: any) => {
@@ -107,6 +108,7 @@ export const TradeEntry = () => {
             B.setMint(item);
           }}
         />
+        <PoolAddress pool={pool} />
       </div>
       <Button
         className="trade-button"
@@ -127,9 +129,9 @@ export const TradeEntry = () => {
         {generateActionLabel(
           !pool
             ? POOL_NOT_AVAILABLE(
-                getTokenName(env, A.mintAddress),
-                getTokenName(env, B.mintAddress)
-              )
+              getTokenName(env, A.mintAddress),
+              getTokenName(env, B.mintAddress)
+            )
             : SWAP_LABEL,
           connected,
           env,
