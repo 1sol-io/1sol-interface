@@ -117,6 +117,9 @@ interface Totals {
   fees: number;
 }
 
+const SRM_USDC_MARKET = new PublicKey("CDdR97S8y96v3To93aKvi3nCnjUrbuVSuumw8FLvbVeg");
+const SRM_MINT = new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt");
+
 export const ChartsView = React.memo(() => {
   const { env, endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
@@ -278,6 +281,12 @@ export const ChartsView = React.memo(() => {
                 mints[1]
               ) * convert(accountB, mintB);
 
+            let srmYield = 0;
+            if (mints[0] === SRM_MINT.toBase58() || mints[1] === SRM_MINT.toBase58()) {
+              const srmMid = getMidPrice(SRM_USDC_MARKET.toBase58(), SRM_MINT.toBase58());
+              srmYield = ((100_000 * srmMid) / (baseReserveUSD + quoteReserveUSD)) * (365 / 30)
+            }
+
             const poolMint = cache.getMint(p.pubkeys.mint);
             if (poolMint?.supply.eqn(0)) {
               return;
@@ -314,11 +323,11 @@ export const ChartsView = React.memo(() => {
                     (24 * 3600 * 1000)
                   );
                   const apy0 =
-                    parseFloat(
+                    srmYield + parseFloat(
                       ((baseVolume / daysSinceInception) * 0.003 * 356) as any
                     ) / baseReserveUSD;
                   const apy1 =
-                    parseFloat(
+                    srmYield + parseFloat(
                       ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
                     ) / quoteReserveUSD;
 
