@@ -25,8 +25,8 @@ const PoolItem = (props: {
   }
 
   const setPair = () => {
-    A.setMint(props.item.pool.pubkeys.holdingMints[0].toBase58());
-    B.setMint(props.item.pool.pubkeys.holdingMints[1].toBase58());
+    A.setMint(props.item.pool.pubkeys.holdingMints[0]?.toBase58());
+    B.setMint(props.item.pool.pubkeys.holdingMints[1]?.toBase58());
   };
 
   const sorted = item.pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();

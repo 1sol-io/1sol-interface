@@ -289,7 +289,7 @@ export const ChartsView = React.memo(() => {
               .map((a) => a.toBase58())
               .sort();
             const indexA =
-              mints[0] === p.pubkeys.holdingMints[0].toBase58() ? 0 : 1;
+              mints[0] === p.pubkeys.holdingMints[0]?.toBase58() ? 0 : 1;
             const indexB = indexA === 0 ? 1 : 0;
             const accountA = cache.getAccount(
               p.pubkeys.holdingAccounts[indexA]

@@ -96,12 +96,12 @@ export const SupplyOverview = (props: {
   const mintA = useMint(mintAddress[0]);
   const mintB = useMint(mintAddress[1]);
   const accountA = useAccount(
-    pool?.pubkeys.holdingMints[0].toBase58() === mintAddress[0]
+    pool?.pubkeys.holdingMints[0]?.toBase58() === mintAddress[0]
       ? pool?.pubkeys.holdingAccounts[0]
       : pool?.pubkeys.holdingAccounts[1]
   );
   const accountB = useAccount(
-    pool?.pubkeys.holdingMints[0].toBase58() === mintAddress[0]
+    pool?.pubkeys.holdingMints[0]?.toBase58() === mintAddress[0]
       ? pool?.pubkeys.holdingAccounts[1]
       : pool?.pubkeys.holdingAccounts[0]
   );
