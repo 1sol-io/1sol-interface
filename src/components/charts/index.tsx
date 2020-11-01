@@ -16,9 +16,12 @@ import { PoolIcon } from "../tokenIcon";
 import { Market, MARKETS, Orderbook, TOKEN_MINTS } from "@project-serum/serum";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { Input } from 'antd';
+import { POOLS_WITH_AIRDROP } from './../../models/airdrops';
+import { MINT_TO_MARKET } from './../../models/marketOverrides';
 
 import "./styles.less";
 import echarts from "echarts";
+import { PoolInfo } from "../../models";
 
 const { Search } = Input;
 
@@ -121,37 +124,6 @@ interface Totals {
   fees: number;
 }
 
-const SRM_USDC_MARKET = new PublicKey(
-  "CDdR97S8y96v3To93aKvi3nCnjUrbuVSuumw8FLvbVeg"
-);
-const SRM_MINT = new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt");
-
-const SRM_YIELD_POOLS = [
-  // FRONT
-  new PublicKey("ALNzhDhhB1VRuCk5ieofHqdk2wtLGjMfDjaP5t3LGCpv"),
-  // SUSHI
-  new PublicKey("BrMQFZkL1ffHBsiURjmBTd4JDz4ddbTSVi7qfYCkYkNi"),
-  // LINK
-  new PublicKey("Gjp8DQoZSCnAbUGRpLUwe1Tgg4iKG6Hjan2EW4ZPoddo"),
-  // YFI
-  new PublicKey("6P5wDE2KjzTPu9RE2jZKWLxviqfMkVcnMBv6tQFaf4oB"),
-  // BTC
-  new PublicKey("CWuypwJdDi8pxNZ1k4HMUVzk8rtkrBnzqfnmc6y1pci3"),
-  // USDT
-  new PublicKey("2gJPRt8a9PNfjU4vFGtq4aH3ud1XY44tk9HvQVyF4eio"),
-  // USDC
-  new PublicKey("GfnWGHHfVqvGAF9ovNfqTn9PgV1XL33YSFXjTCZbJS97"),
-  // ETH
-  new PublicKey("CibFicoaEmw6CLocb1iDA9Vo6uMDwt75P1rAvUky2dq6"),
-  // SRM
-  new PublicKey("tSiGXxfdHisArSPCf3zDRaQGGixYbeUojeNAVQmP1gg"),
-  // FTT
-  new PublicKey("AVqsLVPtzNDZyDi2aV5n6tXitQM1wYZu5NDfAHJ9gDwW"),
-  // TOMO
-  new PublicKey("3hD68MSUtPhRczxXJviwQ426g2fgiGyAUmVurfJiNvTD")
-
-];
-
 export const ChartsView = React.memo(() => {
   const { env, endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
@@ -249,7 +221,7 @@ export const ChartsView = React.memo(() => {
 
   useEffect(() => {
     const reverseSerumMarketCache = new Map<string, string>();
-    const marketsCache = [
+    const marketByMint = [
       ...new Set(pools.map((p) => p.pubkeys.holdingMints).flat()).values(),
     ].reduce((acc, key) => {
       const mintAddress = key.toBase58();
@@ -257,8 +229,10 @@ export const ChartsView = React.memo(() => {
       const SERUM_TOKEN = TOKEN_MINTS.find(
         (a) => a.address.toBase58() === mintAddress
       );
+
+      const marketAddress = MINT_TO_MARKET[mintAddress];
       const marketName = `${SERUM_TOKEN?.name}/USDC`;
-      const marketInfo = MARKETS.find((m) => m.name === marketName);
+      const marketInfo = MARKETS.find((m) => m.name === marketName || m.address.toBase58() === marketAddress);
 
       if (marketInfo) {
         reverseSerumMarketCache.set(marketInfo.address.toBase58(), mintAddress);
@@ -315,36 +289,25 @@ export const ChartsView = React.memo(() => {
 
             const baseReserveUSD =
               getMidPrice(
-                marketsCache.get(mints[0])?.marketInfo.address.toBase58() || "",
+                marketByMint.get(mints[0])?.marketInfo.address.toBase58() || "",
                 mints[0]
               ) * convert(accountA, mintA);
             const quoteReserveUSD =
               getMidPrice(
-                marketsCache.get(mints[1])?.marketInfo.address.toBase58() || "",
+                marketByMint.get(mints[1])?.marketInfo.address.toBase58() || "",
                 mints[1]
               ) * convert(accountB, mintB);
-
-            let srmYield = 0;
-            if (
-              SRM_YIELD_POOLS.some((address) => address.equals(p.pubkeys.mint))
-            ) {
-              const srmMid = getMidPrice(
-                SRM_USDC_MARKET.toBase58(),
-                SRM_MINT.toBase58()
-              );
-              srmYield =
-                ((100_000 * srmMid) / (baseReserveUSD + quoteReserveUSD)) *
-                (365 / 30);
-            }
 
             const poolMint = cache.getMint(p.pubkeys.mint);
             if (poolMint?.supply.eqn(0)) {
               return;
             }
 
+            let airdropYield = calculateAirdropYield(p, marketByMint, baseReserveUSD, quoteReserveUSD);
+
             let volume = 0;
             let fees = 0;
-            let apy = 0;
+            let apy = airdropYield;
             if (p.pubkeys.feeAccount) {
               const feeAccount = cache.getAccount(p.pubkeys.feeAccount);
 
@@ -363,6 +326,8 @@ export const ChartsView = React.memo(() => {
                 volume = poolOwnerFees / 0.0004;
                 fees = volume * 0.003;
 
+
+
                 if (fees !== 0) {
                   const baseVolume = (ownedPct * baseReserveUSD) / 0.0004;
                   const quoteVolume = (ownedPct * quoteReserveUSD) / 0.0004;
@@ -372,20 +337,16 @@ export const ChartsView = React.memo(() => {
                     (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
                     (24 * 3600 * 1000)
                   );
-                  const apy0 =
-                    srmYield +
-                    parseFloat(
-                      ((baseVolume / daysSinceInception) * 0.003 * 356) as any
-                    ) /
+                  const apy0 = parseFloat(
+                    ((baseVolume / daysSinceInception) * 0.003 * 356) as any
+                  ) /
                     baseReserveUSD;
-                  const apy1 =
-                    srmYield +
-                    parseFloat(
-                      ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
-                    ) /
+                  const apy1 = parseFloat(
+                    ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
+                  ) /
                     quoteReserveUSD;
 
-                  apy = Math.max(apy0, apy1);
+                  apy = apy + Math.max(apy0, apy1);
                 }
               }
             }
@@ -426,7 +387,7 @@ export const ChartsView = React.memo(() => {
     };
 
     const initalQuery = async () => {
-      const allMarkets = [...marketsCache.values()].map((m) =>
+      const allMarkets = [...marketByMint.values()].map((m) =>
         m.marketInfo.address.toBase58()
       );
 
@@ -440,7 +401,7 @@ export const ChartsView = React.memo(() => {
           const marketAddress = keys[index];
           const mintAddress = reverseSerumMarketCache.get(marketAddress);
           if (mintAddress) {
-            const market = marketsCache.get(mintAddress);
+            const market = marketByMint.get(mintAddress);
 
             if (market) {
               const programId = market.marketInfo.programId;
@@ -673,3 +634,28 @@ export const ChartsView = React.memo(() => {
     </>
   );
 });
+
+function calculateAirdropYield(p: PoolInfo, marketByMint: Map<string, SerumMarket>, baseReserveUSD: number, quoteReserveUSD: number) {
+  let airdropYield = 0;
+  let poolWithAirdrop = POOLS_WITH_AIRDROP.find((drop) => drop.pool.equals(p.pubkeys.mint));
+  if (poolWithAirdrop) {
+    airdropYield = poolWithAirdrop.airdrops.reduce((acc, item) => {
+      const market = marketByMint.get(item.mint.toBase58())?.marketInfo.address;
+      if (market) {
+        const midPrice = getMidPrice(
+          market?.toBase58(),
+          item.mint.toBase58()
+        );
+
+        acc = acc +
+          // airdrop yield
+          ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
+          (365 / 30);
+      }
+
+      return acc;
+    }, 0);
+  }
+  return airdropYield;
+}
+

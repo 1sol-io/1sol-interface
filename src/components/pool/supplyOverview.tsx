@@ -16,6 +16,7 @@ import {
 import { PoolInfo } from "../../models";
 import { MARKETS, TOKEN_MINTS, Market } from "@project-serum/serum";
 import { Connection } from "@solana/web3.js";
+import { MINT_TO_MARKET } from './../../models/marketOverrides';
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = (props: any, data: any) => {
@@ -51,7 +52,8 @@ const useMidPriceInUSD = (mint: string) => {
 
     const SERUM_TOKEN = TOKEN_MINTS.find((a) => a.address.toBase58() === mint);
     const marketName = `${SERUM_TOKEN?.name}/USDC`;
-    const marketInfo = MARKETS.find((m) => m.name === marketName);
+    const marketAddress = MINT_TO_MARKET[mint];
+    const marketInfo = MARKETS.find((m) => m.name === marketName || m.address.toBase58() === marketAddress);
 
     if (STABLE_COINS.has(SERUM_TOKEN?.name || "")) {
       setIsBase(true);
