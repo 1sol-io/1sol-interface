@@ -127,17 +127,29 @@ const SRM_USDC_MARKET = new PublicKey(
 const SRM_MINT = new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt");
 
 const SRM_YIELD_POOLS = [
-  new PublicKey("ALNzhDhhB1VRuCk5ieofHqdk2wtLGjMfDjaP5t3LGCpv"), // FRONT
-  new PublicKey("BrMQFZkL1ffHBsiURjmBTd4JDz4ddbTSVi7qfYCkYkNi"), // SUSHI
-  new PublicKey("Gjp8DQoZSCnAbUGRpLUwe1Tgg4iKG6Hjan2EW4ZPoddo"), // LINK
-  new PublicKey("6P5wDE2KjzTPu9RE2jZKWLxviqfMkVcnMBv6tQFaf4oB"), // YFI
-  new PublicKey("CWuypwJdDi8pxNZ1k4HMUVzk8rtkrBnzqfnmc6y1pci3"), // BTC
-  new PublicKey("2gJPRt8a9PNfjU4vFGtq4aH3ud1XY44tk9HvQVyF4eio"), // USDT
-  new PublicKey("GfnWGHHfVqvGAF9ovNfqTn9PgV1XL33YSFXjTCZbJS97"), // USDC
-  new PublicKey("CibFicoaEmw6CLocb1iDA9Vo6uMDwt75P1rAvUky2dq6"), // ETH
-  new PublicKey("tSiGXxfdHisArSPCf3zDRaQGGixYbeUojeNAVQmP1gg"), // SRM
-  new PublicKey("AVqsLVPtzNDZyDi2aV5n6tXitQM1wYZu5NDfAHJ9gDwW"), // FTT
-  new PublicKey("3hD68MSUtPhRczxXJviwQ426g2fgiGyAUmVurfJiNvTD") // TOMO
+  // FRONT
+  new PublicKey("ALNzhDhhB1VRuCk5ieofHqdk2wtLGjMfDjaP5t3LGCpv"),
+  // SUSHI
+  new PublicKey("BrMQFZkL1ffHBsiURjmBTd4JDz4ddbTSVi7qfYCkYkNi"),
+  // LINK
+  new PublicKey("Gjp8DQoZSCnAbUGRpLUwe1Tgg4iKG6Hjan2EW4ZPoddo"),
+  // YFI
+  new PublicKey("6P5wDE2KjzTPu9RE2jZKWLxviqfMkVcnMBv6tQFaf4oB"),
+  // BTC
+  new PublicKey("CWuypwJdDi8pxNZ1k4HMUVzk8rtkrBnzqfnmc6y1pci3"),
+  // USDT
+  new PublicKey("2gJPRt8a9PNfjU4vFGtq4aH3ud1XY44tk9HvQVyF4eio"),
+  // USDC
+  new PublicKey("GfnWGHHfVqvGAF9ovNfqTn9PgV1XL33YSFXjTCZbJS97"),
+  // ETH
+  new PublicKey("CibFicoaEmw6CLocb1iDA9Vo6uMDwt75P1rAvUky2dq6"),
+  // SRM
+  new PublicKey("tSiGXxfdHisArSPCf3zDRaQGGixYbeUojeNAVQmP1gg"),
+  // FTT
+  new PublicKey("AVqsLVPtzNDZyDi2aV5n6tXitQM1wYZu5NDfAHJ9gDwW"),
+  // TOMO
+  new PublicKey("3hD68MSUtPhRczxXJviwQ426g2fgiGyAUmVurfJiNvTD")
+
 ];
 
 export const ChartsView = React.memo(() => {
