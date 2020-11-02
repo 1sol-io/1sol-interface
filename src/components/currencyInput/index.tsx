@@ -39,6 +39,7 @@ export const CurrencyInput = (props: {
       <Option
         key={item.mintAddress}
         value={item.mintAddress}
+        name={item.tokenSymbol}
         title={item.mintAddress}
       >
         <div
@@ -104,6 +105,7 @@ export const CurrencyInput = (props: {
         <Option
           key={account.account.pubkey.toBase58()}
           value={mint}
+          name={name}
           title={mint}
         >
           <div key={mint} style={{ display: "flex", alignItems: "center" }}>
@@ -166,6 +168,7 @@ export const CurrencyInput = (props: {
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
           <Select
             size="large"
+            showSearch
             style={{ minWidth: 120 }}
             placeholder="CCY"
             value={props.mint}
@@ -174,6 +177,9 @@ export const CurrencyInput = (props: {
                 props.onMintChange(item);
               }
             }}
+            filterOption={(input, option) =>
+              option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
           >
             {[...renderPopularTokens, ...renderAdditionalTokens]}
           </Select>
