@@ -1,5 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { calculateDependentAmount, usePoolForBasket } from "./pools";
+import {
+  calculateDependentAmount,
+  usePoolForBasket,
+  PoolOperation,
+} from "./pools";
 import { useMint, useAccountByMint } from "./accounts";
 import { MintInfo } from "@solana/spl-token";
 import { ENV, useConnection, useConnectionConfig } from "./connection";
@@ -23,6 +27,7 @@ export interface CurrencyPairContextState {
   A: CurrencyContextState;
   B: CurrencyContextState;
   setLastTypedAccount: (mintAddress: string) => void;
+  setPoolOperation: (swapDirection: PoolOperation) => void;
 }
 
 const CurrencyPairContext = React.createContext<CurrencyPairContextState | null>(
@@ -44,6 +49,9 @@ export function CurrencyPairProvider({ children = null as any }) {
   const mintA = useMint(mintAddressA);
   const mintB = useMint(mintAddressB);
   const pool = usePoolForBasket([mintAddressA, mintAddressB]);
+  const [poolOperation, setPoolOperation] = useState<PoolOperation>(
+    PoolOperation.Add
+  );
 
   // updates browser history on token changes
   useEffect(() => {
@@ -109,9 +117,12 @@ export function CurrencyPairProvider({ children = null as any }) {
         connection,
         independent,
         amount,
-        pool
+        pool,
+        poolOperation
       );
-      if (result !== undefined && Number.isFinite(result)) {
+      if (typeof result === "string") {
+        setDependent(result);
+      } else if (result !== undefined && Number.isFinite(result)) {
         setDependent(result.toFixed(2));
       } else {
         setDependent("");
@@ -165,6 +176,7 @@ export function CurrencyPairProvider({ children = null as any }) {
             convert(accountB, mintB) >= parseFloat(amountB),
         },
         setLastTypedAccount,
+        setPoolOperation,
       }}
     >
       {children}
