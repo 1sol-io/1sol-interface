@@ -16,7 +16,7 @@ export const PoolAddress = (props: {
 
   return (
     <Row style={{ width: "100%", ...props.style }}>
-      <Col span={6}>Pool address:</Col>
+      <Col span={6}>Address:</Col>
       <Col span={15}>
         <ExplorerLink
           address={pool.pubkeys.account.toBase58()}

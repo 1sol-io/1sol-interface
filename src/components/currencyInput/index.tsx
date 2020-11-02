@@ -166,11 +166,9 @@ export const CurrencyInput = (props: {
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
           <Select
             size="large"
-            style={{ minWidth: 80 }}
+            style={{ minWidth: 120 }}
             placeholder="CCY"
             value={props.mint}
-            dropdownMatchSelectWidth={true}
-            dropdownStyle={{ minWidth: 200 }}
             onChange={(item) => {
               if (props.onMintChange) {
                 props.onMintChange(item);

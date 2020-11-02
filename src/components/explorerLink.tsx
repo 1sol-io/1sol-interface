@@ -21,10 +21,10 @@ export const ExplorerLink = (props: {
       target="_blank"
     >
       {code ? (
-        <Typography.Text code>{shortenAddress(address, 11)}</Typography.Text>
+        <Typography.Text code>{shortenAddress(address, 9)}</Typography.Text>
       ) : (
-        shortenAddress(address, 11)
-      )}
+          shortenAddress(address, 9)
+        )}
     </a>
   );
 };
