@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { addLiquidity, usePoolForBasket } from "../../utils/pools";
+import {
+  addLiquidity,
+  usePoolForBasket,
+  PoolOperation,
+} from "../../utils/pools";
 import { Button, Dropdown, Popover } from "antd";
 import { useWallet } from "../../utils/wallet";
 import {
@@ -30,7 +34,12 @@ export const AddToLiquidity = () => {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const [pendingTx, setPendingTx] = useState(false);
-  const { A, B, setLastTypedAccount } = useCurrencyPairState();
+  const {
+    A,
+    B,
+    setLastTypedAccount,
+    setPoolOperation,
+  } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
   const { env } = useConnectionConfig();
@@ -131,6 +140,7 @@ export const AddToLiquidity = () => {
       <CurrencyInput
         title="Input"
         onInputChange={(val: any) => {
+          setPoolOperation(PoolOperation.Add);
           if (A.amount !== val) {
             setLastTypedAccount(A.mintAddress);
           }
@@ -146,10 +156,10 @@ export const AddToLiquidity = () => {
       <CurrencyInput
         title="Input"
         onInputChange={(val: any) => {
+          setPoolOperation(PoolOperation.Add);
           if (B.amount !== val) {
             setLastTypedAccount(B.mintAddress);
           }
-
           B.setAmount(val);
         }}
         amount={B.amount}

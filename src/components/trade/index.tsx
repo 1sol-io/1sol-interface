@@ -8,7 +8,7 @@ import {
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
 import { LoadingOutlined } from "@ant-design/icons";
-import { swap, usePoolForBasket } from "../../utils/pools";
+import { swap, usePoolForBasket, PoolOperation } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
@@ -27,7 +27,12 @@ export const TradeEntry = () => {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const [pendingTx, setPendingTx] = useState(false);
-  const { A, B, setLastTypedAccount } = useCurrencyPairState();
+  const {
+    A,
+    B,
+    setLastTypedAccount,
+    setPoolOperation,
+  } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
   const { env } = useConnectionConfig();
@@ -39,6 +44,17 @@ export const TradeEntry = () => {
     A.setAmount(B.amount);
     B.setMint(tempMint);
     B.setAmount(tempAmount);
+    // @ts-ignore
+    setPoolOperation((op: PoolOperation) => {
+      switch (+op) {
+        case PoolOperation.SwapGivenInput:
+          return PoolOperation.SwapGivenProceeds;
+        case PoolOperation.SwapGivenProceeds:
+          return PoolOperation.SwapGivenInput;
+        case PoolOperation.Add:
+          return PoolOperation.SwapGivenInput;
+      }
+    });
   };
 
   const handleSwap = async () => {
@@ -78,6 +94,7 @@ export const TradeEntry = () => {
         <CurrencyInput
           title="Input"
           onInputChange={(val: any) => {
+            setPoolOperation(PoolOperation.SwapGivenInput);
             if (A.amount !== val) {
               setLastTypedAccount(A.mintAddress);
             }
@@ -96,6 +113,7 @@ export const TradeEntry = () => {
         <CurrencyInput
           title="To (Estimate)"
           onInputChange={(val: any) => {
+            setPoolOperation(PoolOperation.SwapGivenProceeds);
             if (B.amount !== val) {
               setLastTypedAccount(B.mintAddress);
             }
