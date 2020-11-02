@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button, Popover, Table } from "antd";
 import { AppBar } from "./../appBar";
 import {
@@ -15,9 +21,9 @@ import { SettingOutlined } from "@ant-design/icons";
 import { PoolIcon } from "../tokenIcon";
 import { Market, MARKETS, Orderbook, TOKEN_MINTS } from "@project-serum/serum";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { Input } from 'antd';
-import { POOLS_WITH_AIRDROP } from './../../models/airdrops';
-import { MINT_TO_MARKET } from './../../models/marketOverrides';
+import { Input } from "antd";
+import { POOLS_WITH_AIRDROP } from "./../../models/airdrops";
+import { MINT_TO_MARKET } from "./../../models/marketOverrides";
 
 import "./styles.less";
 import echarts from "echarts";
@@ -187,20 +193,23 @@ export const ChartsView = React.memo(() => {
             breadcrumb: {
               show: false,
             },
-            data: dataSource.filter(row => !search || !searchRegex || searchRegex.test(row.name)).map((row) => {
-              return {
-                value: row.liquidity,
-                name: row.name,
-                path: `Liquidity/${row.name}`,
-                data: row,
-              };
-            }),
+            data: dataSource
+              .filter(
+                (row) => !search || !searchRegex || searchRegex.test(row.name)
+              )
+              .map((row) => {
+                return {
+                  value: row.liquidity,
+                  name: row.name,
+                  path: `Liquidity/${row.name}`,
+                  data: row,
+                };
+              }),
           },
         ],
       });
     }
   }, [dataSource, echartsRef.current, search]);
-
 
   // Updates total values
   useEffect(() => {
@@ -232,7 +241,9 @@ export const ChartsView = React.memo(() => {
 
       const marketAddress = MINT_TO_MARKET[mintAddress];
       const marketName = `${SERUM_TOKEN?.name}/USDC`;
-      const marketInfo = MARKETS.find((m) => m.name === marketName || m.address.toBase58() === marketAddress);
+      const marketInfo = MARKETS.find(
+        (m) => m.name === marketName || m.address.toBase58() === marketAddress
+      );
 
       if (marketInfo) {
         reverseSerumMarketCache.set(marketInfo.address.toBase58(), mintAddress);
@@ -303,7 +314,12 @@ export const ChartsView = React.memo(() => {
               return;
             }
 
-            let airdropYield = calculateAirdropYield(p, marketByMint, baseReserveUSD, quoteReserveUSD);
+            let airdropYield = calculateAirdropYield(
+              p,
+              marketByMint,
+              baseReserveUSD,
+              quoteReserveUSD
+            );
 
             let volume = 0;
             let fees = 0;
@@ -326,8 +342,6 @@ export const ChartsView = React.memo(() => {
                 volume = poolOwnerFees / 0.0004;
                 fees = volume * 0.003;
 
-
-
                 if (fees !== 0) {
                   const baseVolume = (ownedPct * baseReserveUSD) / 0.0004;
                   const quoteVolume = (ownedPct * quoteReserveUSD) / 0.0004;
@@ -335,16 +349,16 @@ export const ChartsView = React.memo(() => {
                   // Aproximation not true for all pools we need to fine a better way
                   const daysSinceInception = Math.floor(
                     (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-                    (24 * 3600 * 1000)
+                      (24 * 3600 * 1000)
                   );
-                  const apy0 = parseFloat(
-                    ((baseVolume / daysSinceInception) * 0.003 * 356) as any
-                  ) /
-                    baseReserveUSD;
-                  const apy1 = parseFloat(
-                    ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
-                  ) /
-                    quoteReserveUSD;
+                  const apy0 =
+                    parseFloat(
+                      ((baseVolume / daysSinceInception) * 0.003 * 356) as any
+                    ) / baseReserveUSD;
+                  const apy1 =
+                    parseFloat(
+                      ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
+                    ) / quoteReserveUSD;
 
                   apy = apy + Math.max(apy0, apy1);
                 }
@@ -617,16 +631,21 @@ export const ChartsView = React.memo(() => {
       <div className="info-header">
         <h1>Liquidity: {formatUSD.format(totals.liquidity)}</h1>
         <h1>Volume: {formatUSD.format(totals.volume)}</h1>
-        <Search className="search-input"
+        <Search
+          className="search-input"
           placeholder="Filter"
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onSearch={(value) => setSearch(value)} style={{ width: 200 }} />
+          onSearch={(value) => setSearch(value)}
+          style={{ width: 200 }}
+        />
       </div>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       <Table
-        dataSource={dataSource.filter(row => !search || !searchRegex || searchRegex.test(row.name))}
+        dataSource={dataSource.filter(
+          (row) => !search || !searchRegex || searchRegex.test(row.name)
+        )}
         columns={columns}
         size="small"
         pagination={{ pageSize: 10 }}
@@ -635,22 +654,27 @@ export const ChartsView = React.memo(() => {
   );
 });
 
-function calculateAirdropYield(p: PoolInfo, marketByMint: Map<string, SerumMarket>, baseReserveUSD: number, quoteReserveUSD: number) {
+function calculateAirdropYield(
+  p: PoolInfo,
+  marketByMint: Map<string, SerumMarket>,
+  baseReserveUSD: number,
+  quoteReserveUSD: number
+) {
   let airdropYield = 0;
-  let poolWithAirdrop = POOLS_WITH_AIRDROP.find((drop) => drop.pool.equals(p.pubkeys.mint));
+  let poolWithAirdrop = POOLS_WITH_AIRDROP.find((drop) =>
+    drop.pool.equals(p.pubkeys.mint)
+  );
   if (poolWithAirdrop) {
     airdropYield = poolWithAirdrop.airdrops.reduce((acc, item) => {
       const market = marketByMint.get(item.mint.toBase58())?.marketInfo.address;
       if (market) {
-        const midPrice = getMidPrice(
-          market?.toBase58(),
-          item.mint.toBase58()
-        );
+        const midPrice = getMidPrice(market?.toBase58(), item.mint.toBase58());
 
-        acc = acc +
+        acc =
+          acc +
           // airdrop yield
           ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
-          (365 / 30);
+            (365 / 30);
       }
 
       return acc;
@@ -658,4 +682,3 @@ function calculateAirdropYield(p: PoolInfo, marketByMint: Map<string, SerumMarke
   }
   return airdropYield;
 }
-

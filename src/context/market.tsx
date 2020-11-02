@@ -1,23 +1,12 @@
 import React, { useContext } from "react";
 
-export interface MarketsContextState {
+export interface MarketsContextState {}
 
-}
-
-const MarketsContext = React.createContext<MarketsContextState | null>(
-  null
-);
+const MarketsContext = React.createContext<MarketsContextState | null>(null);
 
 export function MarketProvider({ children = null as any }) {
-
-
   return (
-    <MarketsContext.Provider
-      value={{
-      }}
-    >
-      {children}
-    </MarketsContext.Provider>
+    <MarketsContext.Provider value={{}}>{children}</MarketsContext.Provider>
   );
 }
 
