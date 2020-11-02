@@ -123,7 +123,7 @@ export function CurrencyPairProvider({ children = null as any }) {
       if (typeof result === "string") {
         setDependent(result);
       } else if (result !== undefined && Number.isFinite(result)) {
-        setDependent(result.toFixed(2));
+        setDependent(result.toFixed(6));
       } else {
         setDependent("");
       }
