@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^5.7.0",
-    "@project-serum/serum": "^0.13.10",
+    "@project-serum/serum": "^0.13.11",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
     "@solana/spl-token": "0.0.11",
     "@solana/spl-token-swap": "0.0.2",
