@@ -1,95 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "antd";
 import {
   getTokenName,
   formatTokenAmount,
   convert,
-  STABLE_COINS,
 } from "../../utils/utils";
-import { PieChart, Pie, Cell } from "recharts";
 import { useMint, useAccount } from "../../utils/accounts";
 import {
-  ENDPOINTS,
   useConnection,
   useConnectionConfig,
 } from "../../utils/connection";
 import { PoolInfo } from "../../models";
-import { MARKETS, TOKEN_MINTS, Market } from "@project-serum/serum";
-import { Connection } from "@solana/web3.js";
-import { MINT_TO_MARKET } from "./../../models/marketOverrides";
-
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = (props: any, data: any) => {
-  const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#FFFFFF"
-      textAnchor={x > cx ? "start" : "end"}
-      dominantBaseline="central"
-    >
-      {data[index].name}
-    </text>
-  );
-};
-
-const useMidPriceInUSD = (mint: string) => {
-  const connection = useMemo(
-    () => new Connection(ENDPOINTS[0].endpoint, "recent"),
-    []
-  );
-  const [price, setPrice] = useState<number | undefined>(undefined);
-  const [isBase, setIsBase] = useState(false);
-
-  useEffect(() => {
-    setIsBase(true);
-    setPrice(undefined);
-
-    const SERUM_TOKEN = TOKEN_MINTS.find((a) => a.address.toBase58() === mint);
-    const marketName = `${SERUM_TOKEN?.name}/USDC`;
-    const marketAddress = MINT_TO_MARKET[mint];
-    const marketInfo = MARKETS.find(
-      (m) => m.name === marketName || m.address.toBase58() === marketAddress
-    );
-
-    if (STABLE_COINS.has(SERUM_TOKEN?.name || "")) {
-      setIsBase(true);
-      setPrice(1.0);
-      return;
-    }
-
-    if (!marketInfo?.programId) {
-      return;
-    }
-
-    (async () => {
-      let market = await Market.load(
-        connection,
-        marketInfo.address,
-        undefined,
-        marketInfo.programId
-      );
-
-      const bids = await market.loadBids(connection);
-      const asks = await market.loadAsks(connection);
-      const bestBid = bids.getL2(1);
-      const bestAsk = asks.getL2(1);
-
-      setIsBase(false);
-
-      if (bestBid.length > 0 && bestAsk.length > 0) {
-        setPrice((bestBid[0][0] + bestAsk[0][0]) / 2.0);
-      }
-    })();
-  }, [connection, mint, setIsBase, setPrice]);
-
-  return { price, isBase };
-};
+import { useMidPriceInUSD } from "./../../context/market";
+import echarts from "echarts";
 
 export const SupplyOverview = (props: {
   mintAddress: string[];
@@ -115,6 +38,8 @@ export const SupplyOverview = (props: {
   >([]);
   const { price: priceA, isBase: isBaseA } = useMidPriceInUSD(mintAddress[0]);
   const { price: priceB, isBase: isBaseB } = useMidPriceInUSD(mintAddress[1]);
+  const chartDiv = useRef<HTMLDivElement>(null);
+  const echartsRef = useRef<any>(null);
 
   const hasBothPrices = priceA !== undefined && priceB !== undefined;
 
@@ -152,6 +77,43 @@ export const SupplyOverview = (props: {
     priceB,
   ]);
 
+  useEffect(() => {
+    if (chartDiv.current) {
+      echartsRef.current = echarts.init(chartDiv.current);
+    }
+
+    return () => {
+      echartsRef.current && echartsRef.current.dispose();
+    };
+  }, [echartsRef, chartDiv]);
+
+  useEffect(() => {
+    echartsRef.current?.setOption({
+      series: [
+        {
+          name: "Liquidity",
+          type: "pie",
+          top: 0,
+          bottom: 10,
+          left: 30,
+          right: 30,
+          // visibleMin: 300,
+          label: {
+            show: true,
+            formatter: "{b}",
+          },
+          itemStyle: {
+            normal: {
+              borderColor: "#000",
+            },
+          },
+          data: data,
+        },
+      ],
+    });
+  }, [echartsRef.current, data]);
+
+
   if (!pool || !accountA || !accountB || data.length < 1) {
     return null;
   }
@@ -159,22 +121,7 @@ export const SupplyOverview = (props: {
   return (
     <Card style={{ borderWidth: 0 }}>
       <div style={{ display: "flex" }}>
-        <PieChart width={150} height={150}>
-          <Pie
-            dataKey="value"
-            isAnimationActive={false}
-            data={data}
-            labelLine={false}
-            cx={70}
-            cy={70}
-            label={(props) => renderCustomizedLabel(props, data)}
-            outerRadius={60}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} stroke="" fill={entry.color} />
-            ))}
-          </Pie>
-        </PieChart>
+        <div ref={chartDiv} style={{ height: 150, width: 150 }} />
         <div
           style={{
             display: "flex",
@@ -217,5 +164,25 @@ export const SupplyOverview = (props: {
         </div>
       </div>
     </Card>
+  );
+};
+
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = (props: any, data: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#FFFFFF"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+    >
+      {data[index].name}
+    </text>
   );
 };
