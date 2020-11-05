@@ -33,7 +33,13 @@ export const TokenIcon = (props: {
   return (
     <Identicon
       address={props.mintAddress}
-      style={{ marginRight: "0.5rem", ...props.style }}
+      style={{
+        marginRight: "0.5rem",
+        width: 20,
+        height: 20,
+        marginTop: 2,
+        ...props.style,
+      }}
     />
   );
 };

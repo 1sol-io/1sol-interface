@@ -192,8 +192,6 @@ function getDefaultTokens(env: ENV, search: string) {
   let defaultBase;
   let defaultQuote;
 
-  console.log(search);
-
   const nameToToken = (PopularTokens[env] as any[]).reduce((map, item) => {
     map.set(item.tokenSymbol, item);
     return map;

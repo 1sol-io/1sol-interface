@@ -126,7 +126,7 @@ export const TradeEntry = () => {
             B.setMint(item);
           }}
         />
-        <PoolAddress pool={pool} />
+        <PoolAddress pool={pool} showLabel={true} />
       </div>
       <Button
         className="trade-button"
