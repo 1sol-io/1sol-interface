@@ -141,3 +141,13 @@ export function formatTokenAmount(
     abbr
   )}${suffix}`;
 }
+
+export const formatUSD = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+export const formatPct = new Intl.NumberFormat("en-US", {
+  style: "percent",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});

@@ -7,6 +7,7 @@ import { ExplorerLink } from "./../explorerLink";
 export const PoolAddress = (props: {
   pool?: PoolInfo;
   style?: React.CSSProperties;
+  showLabel?: boolean;
 }) => {
   const { pool } = props;
 
@@ -16,7 +17,7 @@ export const PoolAddress = (props: {
 
   return (
     <Row style={{ width: "100%", ...props.style }}>
-      <Col span={6}>Address:</Col>
+      {props.showLabel && <Col span={6}>Address:</Col>}
       <Col span={15}>
         <ExplorerLink
           address={pool.pubkeys.account.toBase58()}

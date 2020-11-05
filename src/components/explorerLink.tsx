@@ -19,6 +19,7 @@ export const ExplorerLink = (props: {
       href={`https://explorer.solana.com/${type}/${address}`}
       // eslint-disable-next-line react/jsx-no-target-blank
       target="_blank"
+      title={address}
     >
       {code ? (
         <Typography.Text code>{shortenAddress(address, 9)}</Typography.Text>

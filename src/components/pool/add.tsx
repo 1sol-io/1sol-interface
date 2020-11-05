@@ -172,7 +172,7 @@ export const AddToLiquidity = () => {
         mintAddress={[A.mintAddress, B.mintAddress]}
         pool={pool}
       />
-      <PoolAddress pool={pool} style={{ marginBottom: 10 }} />
+      <PoolAddress pool={pool} style={{ marginBottom: 10 }} showLabel={true} />
       {pool && (
         <Button
           className="add-button"

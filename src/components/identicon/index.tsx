@@ -14,7 +14,9 @@ export const Identicon = (props: {
   useEffect(() => {
     if (address && ref.current) {
       ref.current.innerHTML = "";
-      ref.current.appendChild(Jazzicon(16, parseInt(address.slice(0, 10), 16)));
+      ref.current.appendChild(
+        Jazzicon(props.style?.width || 16, parseInt(address.slice(0, 10), 16))
+      );
     }
   }, [address]);
 

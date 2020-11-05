@@ -8,23 +8,9 @@ import { usePools } from "./pools";
 import { TokenAccount, PoolInfo } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
+import { EventEmitter, AccountUpdateEvent } from "./eventEmitter";
 
 const AccountsContext = React.createContext<any>(null);
-
-class AccountUpdateEvent extends Event {
-  static type = "AccountUpdate";
-  id: string;
-  constructor(id: string) {
-    super(AccountUpdateEvent.type);
-    this.id = id;
-  }
-}
-
-class EventEmitter extends EventTarget {
-  raiseAccountUpdated(id: string) {
-    this.dispatchEvent(new AccountUpdateEvent(id));
-  }
-}
 
 const accountEmitter = new EventEmitter();
 
@@ -548,19 +534,15 @@ export function useMint(id?: string) {
           type: "error",
         })
       );
-    const onAccountEvent = (e: Event) => {
-      const event = e as AccountUpdateEvent;
+
+    const dispose = accountEmitter.onAccount((e) => {
+      const event = e;
       if (event.id === id) {
         cache.queryMint(connection, id).then(setMint);
       }
-    };
-
-    accountEmitter.addEventListener(AccountUpdateEvent.type, onAccountEvent);
+    });
     return () => {
-      accountEmitter.removeEventListener(
-        AccountUpdateEvent.type,
-        onAccountEvent
-      );
+      dispose();
     };
   }, [connection, id]);
 
@@ -602,19 +584,14 @@ export function useAccount(pubKey?: PublicKey) {
 
     query();
 
-    const onAccountEvent = (e: Event) => {
-      const event = e as AccountUpdateEvent;
+    const dispose = accountEmitter.onAccount((e) => {
+      const event = e;
       if (event.id === key) {
         query();
       }
-    };
-
-    accountEmitter.addEventListener(AccountUpdateEvent.type, onAccountEvent);
+    });
     return () => {
-      accountEmitter.removeEventListener(
-        AccountUpdateEvent.type,
-        onAccountEvent
-      );
+      dispose();
     };
   }, [connection, key]);
 

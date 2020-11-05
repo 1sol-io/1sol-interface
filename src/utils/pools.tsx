@@ -6,7 +6,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { sendTransaction, useConnection } from "./connection";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Token, MintLayout, AccountLayout } from "@solana/spl-token";
 import { notify } from "./notifications";
 import {
@@ -465,7 +465,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
   const connection = useConnection();
   const { pools } = useCachedPool();
   const [pool, setPool] = useState<PoolInfo>();
-  const sortedMints = [...mints].sort();
+  const sortedMints = useMemo(() => [...mints].sort(), [...mints]);
   useEffect(() => {
     (async () => {
       // reset pool during query
@@ -494,7 +494,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
         }
       }
     })();
-  }, [connection, ...sortedMints, pools]);
+  }, [connection, sortedMints, pools]);
 
   return pool;
 };
@@ -503,25 +503,33 @@ export const useOwnedPools = () => {
   const { pools } = useCachedPool();
   const { userAccounts } = useUserAccounts();
 
-  const map = userAccounts.reduce((acc, item) => {
-    const key = item.info.mint.toBase58();
-    acc.set(key, [...(acc.get(key) || []), item]);
-    return acc;
-  }, new Map<string, TokenAccount[]>());
+  const ownedPools = useMemo(() => {
+    const map = userAccounts.reduce((acc, item) => {
+      const key = item.info.mint.toBase58();
+      acc.set(key, [...(acc.get(key) || []), item]);
+      return acc;
+    }, new Map<string, TokenAccount[]>());
 
-  return pools
-    .filter((p) => map.has(p.pubkeys.mint.toBase58()))
-    .map((item) => {
-      let feeAccount = item.pubkeys.feeAccount?.toBase58();
-      return map.get(item.pubkeys.mint.toBase58())?.map((a) => {
-        return {
-          account: a as TokenAccount,
-          isFeeAccount: feeAccount === a.pubkey.toBase58(),
-          pool: item,
-        };
-      });
-    })
-    .flat();
+    return pools
+      .filter((p) => map.has(p.pubkeys.mint.toBase58()))
+      .map((item) => {
+        let feeAccount = item.pubkeys.feeAccount?.toBase58();
+        return map.get(item.pubkeys.mint.toBase58())?.map((a) => {
+          return {
+            account: a as TokenAccount,
+            isFeeAccount: feeAccount === a.pubkey.toBase58(),
+            pool: item,
+          };
+        }) as {
+          account: TokenAccount;
+          isFeeAccount: boolean;
+          pool: PoolInfo;
+        }[];
+      })
+      .flat();
+  }, [pools, userAccounts]);
+
+  return ownedPools;
 };
 
 // Allow for this much price movement in the pool before adding liquidity to the pool aborts

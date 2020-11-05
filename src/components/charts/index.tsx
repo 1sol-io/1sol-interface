@@ -1,20 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Popover, Table } from "antd";
 import { AppBar } from "./../appBar";
-import { useConnectionConfig } from "../../utils/connection";
 import { Settings } from "../settings";
 import { SettingOutlined } from "@ant-design/icons";
 import { PoolIcon } from "../tokenIcon";
 import { Input } from "antd";
-
 import "./styles.less";
 import echarts from "echarts";
-import { useMarkets } from "../../context/market";
+import { useEnrichedPools } from "../../context/market";
+import { usePools } from "../../utils/pools";
+import { formatPct, formatUSD } from "../../utils/utils";
+import { PoolAddress } from "../pool/address";
 
 const { Search } = Input;
 
@@ -39,7 +35,6 @@ interface Totals {
 }
 
 export const ChartsView = React.memo(() => {
-  const [dataSource] = useState<any[]>([]);
   const [search, setSearch] = useState<string>("");
   const [totals, setTotals] = useState<Totals>(() => ({
     liquidity: 0,
@@ -48,7 +43,8 @@ export const ChartsView = React.memo(() => {
   }));
   const chartDiv = useRef<HTMLDivElement>(null);
   const echartsRef = useRef<any>(null);
-  const midPriceInUSD = useMarkets()?.midPriceInUSD;
+  const { pools } = usePools();
+  const enriched = useEnrichedPools(pools);
   // separate connection for market updates
 
   useEffect(() => {
@@ -84,6 +80,7 @@ export const ChartsView = React.memo(() => {
             bottom: 10,
             left: 30,
             right: 30,
+            animation: false,
             // visibleMin: 300,
             label: {
               show: true,
@@ -97,7 +94,7 @@ export const ChartsView = React.memo(() => {
             breadcrumb: {
               show: false,
             },
-            data: dataSource
+            data: enriched
               .filter(
                 (row) => !search || !searchRegex || searchRegex.test(row.name)
               )
@@ -113,12 +110,12 @@ export const ChartsView = React.memo(() => {
         ],
       });
     }
-  }, [dataSource, echartsRef.current, search]);
+  }, [enriched, echartsRef.current, search]);
 
   // Updates total values
   useEffect(() => {
     setTotals(
-      dataSource.reduce(
+      enriched.reduce(
         (acc, item) => {
           acc.liquidity = acc.liquidity + item.liquidity;
           acc.volume = acc.volume + item.volume;
@@ -130,19 +127,7 @@ export const ChartsView = React.memo(() => {
     );
 
     updateChart();
-  }, [dataSource, updateChart, search]);
-
-
-
-  const formatUSD = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-  const formatPct = new Intl.NumberFormat("en-US", {
-    style: "percent",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  }, [enriched, updateChart, search]);
 
   const columns = [
     {
@@ -169,7 +154,7 @@ export const ChartsView = React.memo(() => {
       title: "Liquidity",
       dataIndex: "liquidity",
       key: "liquidity",
-      render(record: any) {
+      render(text: string, record: any) {
         return {
           props: {
             style: { textAlign: "right" },
@@ -203,7 +188,7 @@ export const ChartsView = React.memo(() => {
       title: "Volume",
       dataIndex: "volume",
       key: "volume",
-      render(record: any) {
+      render(text: string, record: any) {
         return {
           props: {
             style: { textAlign: "right" },
@@ -222,7 +207,7 @@ export const ChartsView = React.memo(() => {
       title: "Fees",
       dataIndex: "fees",
       key: "fees",
-      render(record: any) {
+      render(text: string, record: any) {
         return {
           props: {
             style: { textAlign: "right" },
@@ -237,7 +222,7 @@ export const ChartsView = React.memo(() => {
       title: "APY",
       dataIndex: "apy",
       key: "apy",
-      render(record: any) {
+      render(text: string, record: any) {
         return {
           props: {
             style: { textAlign: "right" },
@@ -251,12 +236,12 @@ export const ChartsView = React.memo(() => {
       title: "Address",
       dataIndex: "address",
       key: "address",
-      render(text: string) {
+      render(text: string, record: any) {
         return {
           props: {
             style: { fontFamily: "monospace" } as React.CSSProperties,
           },
-          children: <span>{text}</span>,
+          children: <PoolAddress pool={record.raw} />,
         };
       },
     },
@@ -296,7 +281,7 @@ export const ChartsView = React.memo(() => {
       </div>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       <Table
-        dataSource={dataSource.filter(
+        dataSource={enriched.filter(
           (row) => !search || !searchRegex || searchRegex.test(row.name)
         )}
         columns={columns}
@@ -306,4 +291,3 @@ export const ChartsView = React.memo(() => {
     </>
   );
 });
-

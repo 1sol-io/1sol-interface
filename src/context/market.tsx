@@ -1,7 +1,12 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { POOLS_WITH_AIRDROP } from "./../models/airdrops";
 import { MINT_TO_MARKET } from "./../models/marketOverrides";
-import { convert, getPoolName, STABLE_COINS } from "./../utils/utils";
+import {
+  convert,
+  getPoolName,
+  getTokenName,
+  STABLE_COINS,
+} from "./../utils/utils";
 import { ENV, useConnectionConfig } from "./../utils/connection";
 import {
   cache,
@@ -14,9 +19,15 @@ import { Market, MARKETS, Orderbook, TOKEN_MINTS } from "@project-serum/serum";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { useMemo } from "react";
 import { PoolInfo } from "../models";
+import { EventEmitter } from "./../utils/eventEmitter";
 
 export interface MarketsContextState {
   midPriceInUSD: (mint: string) => number;
+  marketEmitter: EventEmitter;
+  accountsToObserve: Map<string, number>;
+  marketByMint: Map<string, SerumMarket>;
+
+  subscribeToMarket: (mint: string) => () => void;
 }
 
 const INITAL_LIQUIDITY_DATE = new Date("2020-10-27");
@@ -24,9 +35,12 @@ const REFRESH_INTERVAL = 30_000;
 
 const MarketsContext = React.createContext<MarketsContextState | null>(null);
 
+const marketEmitter = new EventEmitter();
+
 export function MarketProvider({ children = null as any }) {
-  const { env, endpoint } = useConnectionConfig();
+  const { endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
+  const accountsToObserve = useMemo(() => new Map<string, number>(), []);
 
   const connection = useMemo(() => new Connection(endpoint, "recent"), [
     endpoint,
@@ -61,20 +75,18 @@ export function MarketProvider({ children = null as any }) {
   useEffect(() => {
     let timer = 0;
 
-    const accountsToObserve = new Set<string>();
-
     const updateData = async () => {
-
       await refreshAccounts(connection, [...accountsToObserve.keys()]);
 
-      const data = createEnrichedPools(pools, marketByMint, env)
+      // TODO: only raise mints that changed
+      marketEmitter.raiseMarketUpdated(new Set([...marketByMint.keys()]));
 
       timer = window.setTimeout(() => updateData(), REFRESH_INTERVAL);
     };
 
     const initalQuery = async () => {
       const reverseSerumMarketCache = new Map<string, string>();
-      [...marketByMint.keys()].forEach(mint => {
+      [...marketByMint.keys()].forEach((mint) => {
         const m = marketByMint.get(mint);
         if (m) {
           reverseSerumMarketCache.set(m.marketInfo.address.toBase58(), mint);
@@ -82,7 +94,7 @@ export function MarketProvider({ children = null as any }) {
       });
 
       const allMarkets = [...marketByMint.values()].map((m) => {
-        return m.marketInfo.address.toBase58()
+        return m.marketInfo.address.toBase58();
       });
 
       await getMultipleAccounts(
@@ -91,10 +103,7 @@ export function MarketProvider({ children = null as any }) {
         allMarkets.filter((a) => cache.get(a) === undefined),
         "single"
       ).then(({ keys, array }) => {
-
-        allMarkets.forEach(m => {
-
-        })
+        allMarkets.forEach(() => {});
 
         return array.map((item, index) => {
           const marketAddress = keys[index];
@@ -148,16 +157,17 @@ export function MarketProvider({ children = null as any }) {
         }
 
         toQuery.add(decoded.info.bids.toBase58());
-        accountsToObserve.add(decoded.info.bids.toBase58());
-
         toQuery.add(decoded.info.asks.toBase58());
-        accountsToObserve.add(decoded.info.asks.toBase58());
+
+        // TODO: only update when someone listnes to it
       });
 
       await refreshAccounts(connection, [...toQuery.keys()]);
 
+      marketEmitter.raiseMarketUpdated(new Set([...marketByMint.keys()]));
+
       // start update loop
-      // updateData();
+      updateData();
     };
 
     initalQuery();
@@ -167,16 +177,58 @@ export function MarketProvider({ children = null as any }) {
     };
   }, [pools, marketByMint]);
 
-  const midPriceInUSD = useCallback((mintAddress: string) => {
-    return getMidPrice(
-      marketByMint.get(mintAddress)?.marketInfo.address.toBase58(),
-      mintAddress);
-  }, [marketByMint]);
+  const midPriceInUSD = useCallback(
+    (mintAddress: string) => {
+      return getMidPrice(
+        marketByMint.get(mintAddress)?.marketInfo.address.toBase58(),
+        mintAddress
+      );
+    },
+    [marketByMint]
+  );
+
+  const subscribeToMarket = useCallback(
+    (mintAddress: string) => {
+      const info = marketByMint.get(mintAddress);
+      const market = cache.get(info?.marketInfo.address.toBase58() || "");
+      if (!market) {
+        return () => {};
+      }
+
+      const bid = market.info.bids.toBase58();
+      const ask = market.info.asks.toBase58();
+      accountsToObserve.set(bid, (accountsToObserve.get(bid) || 0) + 1);
+      accountsToObserve.set(ask, (accountsToObserve.get(ask) || 0) + 1);
+
+      // TODO: add event queue to query for last trade
+
+      return () => {
+        accountsToObserve.set(bid, (accountsToObserve.get(bid) || 0) - 1);
+        accountsToObserve.set(ask, (accountsToObserve.get(ask) || 0) - 1);
+
+        // cleanup
+        [...accountsToObserve.keys()].forEach((key) => {
+          if ((accountsToObserve.get(key) || 0) <= 0) {
+            accountsToObserve.delete(key);
+          }
+        });
+      };
+    },
+    [marketByMint]
+  );
 
   return (
-    <MarketsContext.Provider value={{
-      midPriceInUSD
-    }}>{children}</MarketsContext.Provider>
+    <MarketsContext.Provider
+      value={{
+        midPriceInUSD,
+        marketEmitter,
+        accountsToObserve,
+        marketByMint,
+        subscribeToMarket,
+      }}
+    >
+      {children}
+    </MarketsContext.Provider>
   );
 }
 
@@ -186,56 +238,100 @@ export const useMarkets = () => {
 };
 
 export const useMidPriceInUSD = (mint: string) => {
-  const midPriceInUSD = useContext(MarketsContext)?.midPriceInUSD;
+  const { midPriceInUSD, subscribeToMarket, marketEmitter } = useContext(
+    MarketsContext
+  ) as MarketsContextState;
   const [price, setPrice] = useState<number>(0);
 
   useEffect(() => {
-    if (midPriceInUSD) {
-      setPrice(midPriceInUSD(mint));
-    }
+    let subscription = subscribeToMarket(mint);
+    const update = () => {
+      if (midPriceInUSD) {
+        setPrice(midPriceInUSD(mint));
+      }
+    };
 
-    // TODO: add subscrption and refresh
-  }, [midPriceInUSD, mint])
+    update();
+    const dispose = marketEmitter.onMarket(update);
+
+    return () => {
+      subscription();
+      dispose();
+    };
+  }, [midPriceInUSD, mint]);
 
   return { price, isBase: price === 1.0 };
 };
 
-// TODO: 
+export const useEnrichedPools = (pools: PoolInfo[]) => {
+  const context = useContext(MarketsContext);
+  const { env } = useConnectionConfig();
+  const [enriched, setEnriched] = useState<any[]>([]);
+
+  const marketsByMint = context?.marketByMint;
+
+  useEffect(() => {
+    const mints = [...new Set([...marketsByMint?.keys()]).keys()];
+
+    const subscriptions = mints.map((m) => context?.subscribeToMarket(m));
+
+    const update = () => {
+      setEnriched(createEnrichedPools(pools, marketsByMint, env));
+    };
+
+    const dispose = context?.marketEmitter.onMarket(update);
+
+    update();
+
+    return () => {
+      dispose && dispose();
+      subscriptions.forEach((dispose) => dispose && dispose());
+    };
+  }, [env, pools, marketsByMint]);
+
+  return enriched;
+};
+
+// TODO:
 // 1. useEnrichedPools
 //      combines market and pools and user info
-// 2. ADD useMidPrice with event to refresh price 
+// 2. ADD useMidPrice with event to refresh price
 // that could subscribe to multiple markets and trigger refresh of those markets only when there is active subscription
 
-function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumMarket>, env: ENV) {
+function createEnrichedPools(
+  pools: PoolInfo[],
+  marketByMint: Map<string, SerumMarket> | undefined,
+  env: ENV
+) {
   const TODAY = new Date();
 
-  return pools
-    .filter(
-      (p) => p.pubkeys.holdingMints && p.pubkeys.holdingMints.length > 1
-    )
+  if (!marketByMint) {
+    return [];
+  }
+
+  const result = pools
+    .filter((p) => p.pubkeys.holdingMints && p.pubkeys.holdingMints.length > 1)
     .map((p, index) => {
       const mints = (p.pubkeys.holdingMints || [])
         .map((a) => a.toBase58())
         .sort();
       const indexA = mints[0] === p.pubkeys.holdingMints[0]?.toBase58() ? 0 : 1;
       const indexB = indexA === 0 ? 1 : 0;
-      const accountA = cache.getAccount(
-        p.pubkeys.holdingAccounts[indexA]
-      );
+      const accountA = cache.getAccount(p.pubkeys.holdingAccounts[indexA]);
       const mintA = cache.getMint(mints[0]);
-      const accountB = cache.getAccount(
-        p.pubkeys.holdingAccounts[indexB]
-      );
+      const accountB = cache.getAccount(p.pubkeys.holdingAccounts[indexB]);
       const mintB = cache.getMint(mints[1]);
 
-      const baseReserveUSD = getMidPrice(
-        marketByMint.get(mints[0])?.marketInfo.address.toBase58() || "",
-        mints[0]
-      ) * convert(accountA, mintA);
-      const quoteReserveUSD = getMidPrice(
-        marketByMint.get(mints[1])?.marketInfo.address.toBase58() || "",
-        mints[1]
-      ) * convert(accountB, mintB);
+      const baseReserveUSD =
+        getMidPrice(
+          marketByMint.get(mints[0])?.marketInfo.address.toBase58() || "",
+          mints[0]
+        ) * convert(accountA, mintA);
+      const quoteReserveUSD =
+        getMidPrice(
+          marketByMint.get(mints[1])?.marketInfo.address.toBase58() || "",
+          mints[1]
+        ) * convert(accountB, mintB);
 
       const poolMint = cache.getMint(p.pubkeys.mint);
       if (poolMint?.supply.eqn(0)) {
@@ -255,15 +351,18 @@ function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumM
       if (p.pubkeys.feeAccount) {
         const feeAccount = cache.getAccount(p.pubkeys.feeAccount);
 
-        if (poolMint &&
+        if (
+          poolMint &&
           feeAccount &&
-          feeAccount.info.mint.toBase58() === p.pubkeys.mint.toBase58()) {
+          feeAccount.info.mint.toBase58() === p.pubkeys.mint.toBase58()
+        ) {
           const feeBalance = feeAccount?.info.amount.toNumber();
           const supply = poolMint?.supply.toNumber();
 
           const ownedPct = feeBalance / supply;
 
-          const poolOwnerFees = ownedPct * baseReserveUSD + ownedPct * quoteReserveUSD;
+          const poolOwnerFees =
+            ownedPct * baseReserveUSD + ownedPct * quoteReserveUSD;
           volume = poolOwnerFees / 0.0004;
           fees = volume * 0.003;
 
@@ -274,14 +373,16 @@ function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumM
             // Aproximation not true for all pools we need to fine a better way
             const daysSinceInception = Math.floor(
               (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-              (24 * 3600 * 1000)
+                (24 * 3600 * 1000)
             );
-            const apy0 = parseFloat(
-              ((baseVolume / daysSinceInception) * 0.003 * 356) as any
-            ) / baseReserveUSD;
-            const apy1 = parseFloat(
-              ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
-            ) / quoteReserveUSD;
+            const apy0 =
+              parseFloat(
+                ((baseVolume / daysSinceInception) * 0.003 * 356) as any
+              ) / baseReserveUSD;
+            const apy1 =
+              parseFloat(
+                ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
+              ) / quoteReserveUSD;
 
             apy = apy + Math.max(apy0, apy1);
           }
@@ -297,6 +398,7 @@ function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumM
         key: p.pubkeys.account.toBase58(),
         id: index,
         name,
+        names: mints.map((m) => getTokenName(env, m)),
         address: p.pubkeys.mint.toBase58(),
         link,
         mints,
@@ -304,10 +406,10 @@ function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumM
         liquidityAinUsd: baseReserveUSD,
         liquidityB: convert(accountB, mintB),
         liquidityBinUsd: quoteReserveUSD,
-        supply: lpMint &&
+        supply:
+          lpMint &&
           (
-            lpMint?.supply.toNumber() /
-            Math.pow(10, lpMint?.decimals || 0)
+            lpMint?.supply.toNumber() / Math.pow(10, lpMint?.decimals || 0)
           ).toFixed(9),
         fees,
         liquidity: baseReserveUSD + quoteReserveUSD,
@@ -316,7 +418,8 @@ function createEnrichedPools(pools: PoolInfo[], marketByMint: Map<string, SerumM
         raw: p,
       };
     })
-    .filter((p) => p);
+    .filter((p) => p !== undefined);
+  return result;
 }
 
 function calculateAirdropYield(
@@ -339,7 +442,7 @@ function calculateAirdropYield(
           acc +
           // airdrop yield
           ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
-          (365 / 30);
+            (365 / 30);
       }
 
       return acc;
@@ -397,20 +500,26 @@ const getMidPrice = (marketAddress?: string, mintAddress?: string) => {
   const bids = cache.get(decodedMarket.bids)?.info;
   const asks = cache.get(decodedMarket.asks)?.info;
 
-  const bidsBook = new Orderbook(market, bids.accountFlags, bids.slab);
-  const asksBook = new Orderbook(market, asks.accountFlags, asks.slab);
+  if (bids && asks) {
+    const bidsBook = new Orderbook(market, bids.accountFlags, bids.slab);
+    const asksBook = new Orderbook(market, asks.accountFlags, asks.slab);
 
-  const bestBid = bidsBook.getL2(1);
-  const bestAsk = asksBook.getL2(1);
+    const bestBid = bidsBook.getL2(1);
+    const bestAsk = asksBook.getL2(1);
 
-  if (bestBid.length > 0 && bestAsk.length > 0) {
-    return (bestBid[0][0] + bestAsk[0][0]) / 2.0;
+    if (bestBid.length > 0 && bestAsk.length > 0) {
+      return (bestBid[0][0] + bestAsk[0][0]) / 2.0;
+    }
   }
 
   return 0;
 };
 
 const refreshAccounts = async (connection: Connection, keys: string[]) => {
+  if (keys.length === 0) {
+    return [];
+  }
+
   return getMultipleAccounts(connection, keys, "single").then(
     ({ keys, array }) => {
       return array.map((item, index) => {
@@ -437,6 +546,7 @@ interface SerumMarket {
   mintQuote?: AccountInfo<Buffer>;
   bidAccount?: AccountInfo<Buffer>;
   askAccount?: AccountInfo<Buffer>;
+  eventQueue?: AccountInfo<Buffer>;
 
   midPrice?: (mint?: PublicKey) => number;
 }
