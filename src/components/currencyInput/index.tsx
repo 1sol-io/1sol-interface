@@ -10,7 +10,6 @@ import {
 import { useUserAccounts, useMint, useCachedPool } from "../../utils/accounts";
 import "./styles.less";
 import { useConnectionConfig } from "../../utils/connection";
-import { useCurrencyPairState } from "../../utils/currencyPair";
 import { PoolIcon, TokenIcon } from "../tokenIcon";
 import PopularTokens from "../../utils/token-list.json";
 import { PublicKey } from "@solana/web3.js";
@@ -30,7 +29,6 @@ export const CurrencyInput = (props: {
   const mint = useMint(props.mint);
 
   const { env } = useConnectionConfig();
-  const { setPoolOperation } = useCurrencyPairState();
 
   const tokens = PopularTokens[env] as KnownToken[];
 

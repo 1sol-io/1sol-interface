@@ -8,7 +8,7 @@ import { usePools } from "./pools";
 import { TokenAccount, PoolInfo } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
-import { EventEmitter, AccountUpdateEvent } from "./eventEmitter";
+import { EventEmitter } from "./eventEmitter";
 
 const AccountsContext = React.createContext<any>(null);
 

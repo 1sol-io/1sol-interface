@@ -1,4 +1,4 @@
-import { EventEmitter as Emitter, EventArgs } from "eventemitter3";
+import { EventEmitter as Emitter } from "eventemitter3";
 
 export class AccountUpdateEvent {
   static type = "AccountUpdate";

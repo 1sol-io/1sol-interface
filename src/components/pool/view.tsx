@@ -3,19 +3,17 @@ import { ConfigProvider, Empty } from "antd";
 import { useOwnedPools } from "../../utils/pools";
 import { RemoveLiquidity } from "./remove";
 import { useMint } from "../../utils/accounts";
-import { useConnectionConfig } from "../../utils/connection";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import "./view.less";
-import { useEnrichedPools, useMidPriceInUSD } from "../../context/market";
+import { useEnrichedPools } from "../../context/market";
 import { formatUSD } from "../../utils/utils";
 
 const PoolItem = (props: {
   item: { pool: PoolInfo; isFeeAccount: boolean; account: TokenAccount };
   poolDetails: any;
 }) => {
-  const { env } = useConnectionConfig();
   const { A, B } = useCurrencyPairState();
   const item = props.item;
   const mint = useMint(item.account.info.mint.toBase58());
