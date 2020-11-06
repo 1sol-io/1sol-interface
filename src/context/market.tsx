@@ -392,7 +392,7 @@ function createEnrichedPools(
       const lpMint = cache.getMint(p.pubkeys.mint);
 
       const name = getPoolName(env, p);
-      const link = `#/?pair=${name.replace("/", "-")}`;
+      const link = `#/?pair=${getPoolName(env, p, false).replace("/", "-")}`;
 
       return {
         key: p.pubkeys.account.toBase58(),

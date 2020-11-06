@@ -71,26 +71,27 @@ export const CurrencyInput = (props: {
       return map;
     }, new Map<string, { account: TokenAccount; pool: PoolInfo | undefined }[]>());
 
-  // TODO: group multple accounts of same time and select one with max amount
-  const renderAdditionalTokens = [...grouppedUserAccounts.keys()].map(
+  const additionalAccounts = [...grouppedUserAccounts.keys()];
+  if (tokens.findIndex((t) => t.mintAddress === props.mint) < 0 && props.mint && !grouppedUserAccounts.has(props?.mint)) {
+    additionalAccounts.push(props.mint);
+  }
+
+  const renderAdditionalTokens = additionalAccounts.map(
     (mint) => {
+      let pool: PoolInfo | undefined;
       const list = grouppedUserAccounts.get(mint);
-      if (!list || list.length <= 0) {
-        return undefined;
-      }
-
-      const account = list[0];
-
-      if (account.account.info.amount.eqn(0)) {
-        return undefined;
+      if (list && list.length > 0) {
+        // TODO: group multple accounts of same time and select one with max amount
+        const account = list[0];
+        pool = account.pool;
       }
 
       let name: string;
       let icon: JSX.Element;
-      if (account.pool) {
-        name = getPoolName(env, account.pool);
+      if (pool) {
+        name = getPoolName(env, pool);
 
-        const sorted = account.pool.pubkeys.holdingMints
+        const sorted = pool.pubkeys.holdingMints
           .map((a: PublicKey) => a.toBase58())
           .sort();
         icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
@@ -101,7 +102,7 @@ export const CurrencyInput = (props: {
 
       return (
         <Option
-          key={account.account.pubkey.toBase58()}
+          key={mint}
           value={mint}
           name={name}
           title={mint}

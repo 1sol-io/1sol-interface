@@ -11,6 +11,7 @@ import { TokenAccount } from "../models";
 import { convert } from "./utils";
 import PopularTokens from "../utils/token-list.json";
 import { useHistory, useLocation } from "react-router-dom";
+import bs58 from 'bs58';
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -56,20 +57,20 @@ export function CurrencyPairProvider({ children = null as any }) {
   // updates browser history on token changes
   useEffect(() => {
     // set history
-    const base = PopularTokens[env].find((t) => t.mintAddress === mintAddressA)
-      ?.tokenSymbol;
-    const quote = PopularTokens[env].find((t) => t.mintAddress === mintAddressB)
-      ?.tokenSymbol;
+    const base =
+      PopularTokens[env].find((t) => t.mintAddress === mintAddressA)
+        ?.tokenSymbol || mintAddressA;
+    const quote =
+      PopularTokens[env].find((t) => t.mintAddress === mintAddressB)
+        ?.tokenSymbol || mintAddressB;
 
-    if (base && quote) {
+    if (base && quote && location.pathname.indexOf("info") < 0) {
       history.push({
-        pathname: "/",
         search: `?pair=${base}-${quote}`,
       });
     } else {
       if (mintAddressA && mintAddressB) {
         history.push({
-          pathname: "/",
           search: ``,
         });
       } else {
@@ -90,11 +91,15 @@ export function CurrencyPairProvider({ children = null as any }) {
     }
     setMintAddressA(
       PopularTokens[env].find((t) => t.tokenSymbol === defaultBase)
-        ?.mintAddress || ""
+        ?.mintAddress ||
+      defaultBase ||
+      ""
     );
     setMintAddressB(
       PopularTokens[env].find((t) => t.tokenSymbol === defaultQuote)
-        ?.mintAddress || ""
+        ?.mintAddress ||
+      defaultQuote ||
+      ""
     );
   }, [location, location.search, setMintAddressA, setMintAddressB]);
 
@@ -188,9 +193,15 @@ export const useCurrencyPairState = () => {
   const context = useContext(CurrencyPairContext);
   return context as CurrencyPairContextState;
 };
+
+const isValidAddress = (address: string) => {
+  const decoded = bs58.decode(address);
+  return decoded.length === 32;
+};
+
 function getDefaultTokens(env: ENV, search: string) {
-  let defaultBase;
-  let defaultQuote;
+  let defaultBase = "SOL";
+  let defaultQuote = "USDC";
 
   const nameToToken = (PopularTokens[env] as any[]).reduce((map, item) => {
     map.set(item.tokenSymbol, item);
@@ -204,11 +215,11 @@ function getDefaultTokens(env: ENV, search: string) {
       let items = pair.split("-");
 
       if (items.length > 1) {
-        if (nameToToken.has(items[0])) {
+        if (nameToToken.has(items[0]) || isValidAddress(items[0])) {
           defaultBase = items[0];
         }
 
-        if (nameToToken.has(items[1])) {
+        if (nameToToken.has(items[1]) || isValidAddress(items[1])) {
           defaultQuote = items[1];
         }
       }

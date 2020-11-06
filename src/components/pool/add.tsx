@@ -122,57 +122,63 @@ export const AddToLiquidity = () => {
   );
 
   return (
-    <div>
-      <Popover
-        trigger="hover"
-        content={
-          <div style={{ width: 300 }}>
-            Liquidity providers earn a fixed percentage fee on all trades
-            proportional to their share of the pool. Fees are added to the pool,
-            accrue in real time and can be claimed by withdrawing your
-            liquidity.
-          </div>
-        }
-      >
-        <Button type="text">Read more about providing liquidity.</Button>
-      </Popover>
+    <>
+      <div className="input-card">
+        <Popover
+          trigger="hover"
+          content={
+            <div style={{ width: 300 }}>
+              Liquidity providers earn a fixed percentage fee on all trades
+              proportional to their share of the pool. Fees are added to the
+              pool, accrue in real time and can be claimed by withdrawing your
+              liquidity.
+            </div>
+          }
+        >
+          <Button type="text">Read more about providing liquidity.</Button>
+        </Popover>
 
-      <CurrencyInput
-        title="Input"
-        onInputChange={(val: any) => {
-          setPoolOperation(PoolOperation.Add);
-          if (A.amount !== val) {
-            setLastTypedAccount(A.mintAddress);
-          }
-          A.setAmount(val);
-        }}
-        amount={A.amount}
-        mint={A.mintAddress}
-        onMintChange={(item) => {
-          A.setMint(item);
-        }}
-      />
-      <div>+</div>
-      <CurrencyInput
-        title="Input"
-        onInputChange={(val: any) => {
-          setPoolOperation(PoolOperation.Add);
-          if (B.amount !== val) {
-            setLastTypedAccount(B.mintAddress);
-          }
-          B.setAmount(val);
-        }}
-        amount={B.amount}
-        mint={B.mintAddress}
-        onMintChange={(item) => {
-          B.setMint(item);
-        }}
-      />
-      <SupplyOverview
-        mintAddress={[A.mintAddress, B.mintAddress]}
-        pool={pool}
-      />
-      <PoolAddress pool={pool} style={{ marginBottom: 10 }} showLabel={true} />
+        <CurrencyInput
+          title="Input"
+          onInputChange={(val: any) => {
+            setPoolOperation(PoolOperation.Add);
+            if (A.amount !== val) {
+              setLastTypedAccount(A.mintAddress);
+            }
+            A.setAmount(val);
+          }}
+          amount={A.amount}
+          mint={A.mintAddress}
+          onMintChange={(item) => {
+            A.setMint(item);
+          }}
+        />
+        <div>+</div>
+        <CurrencyInput
+          title="Input"
+          onInputChange={(val: any) => {
+            setPoolOperation(PoolOperation.Add);
+            if (B.amount !== val) {
+              setLastTypedAccount(B.mintAddress);
+            }
+            B.setAmount(val);
+          }}
+          amount={B.amount}
+          mint={B.mintAddress}
+          onMintChange={(item) => {
+            B.setMint(item);
+          }}
+        />
+        <SupplyOverview
+          mintAddress={[A.mintAddress, B.mintAddress]}
+          pool={pool}
+        />
+        <PoolAddress
+          pool={pool}
+          style={{ marginBottom: 10 }}
+          showLabel={true}
+        />
+      </div>
       {pool && (
         <Button
           className="add-button"
@@ -193,6 +199,6 @@ export const AddToLiquidity = () => {
         </Button>
       )}
       {!pool && createPoolButton}
-    </div>
+    </>
   );
 };
