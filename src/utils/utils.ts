@@ -58,13 +58,17 @@ export function shortenAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
-export function getTokenName(env: ENV, mintAddress: string): string {
+export function getTokenName(
+  env: ENV,
+  mintAddress: string,
+  shorten = true
+): string {
   const knownSymbol = AddressToToken.get(env)?.get(mintAddress)?.tokenSymbol;
   if (knownSymbol) {
     return knownSymbol;
   }
 
-  return `${mintAddress.substring(0, 5)}...`;
+  return shorten ? `${mintAddress.substring(0, 5)}...` : mintAddress;
 }
 
 export function getTokenIcon(
@@ -74,9 +78,9 @@ export function getTokenIcon(
   return AddressToToken.get(env)?.get(mintAddress)?.icon;
 }
 
-export function getPoolName(env: ENV, pool: PoolInfo) {
+export function getPoolName(env: ENV, pool: PoolInfo, shorten = true) {
   const sorted = pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();
-  return sorted.map((item) => getTokenName(env, item)).join("/");
+  return sorted.map((item) => getTokenName(env, item, shorten)).join("/");
 }
 
 export function isKnownMint(env: ENV, mintAddress: string) {

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Card } from "antd";
 import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "./../../context/market";
 import echarts from "echarts";
@@ -84,11 +83,5 @@ export const SupplyOverview = (props: {
     return null;
   }
 
-  return (
-    <Card style={{ borderWidth: 0 }}>
-      <div style={{ display: "flex" }}>
-        <div ref={chartDiv} style={{ height: 150, width: "100%" }} />
-      </div>
-    </Card>
-  );
+  return <div ref={chartDiv} style={{ height: 150, width: "100%" }} />;
 };
