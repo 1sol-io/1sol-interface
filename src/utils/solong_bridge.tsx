@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import { PublicKey } from '@solana/web3.js';
+import { notify } from "./notifications";
 
 export class SolongBridge extends EventEmitter {
   _publicKey: any
@@ -23,6 +24,15 @@ export class SolongBridge extends EventEmitter {
     if (this._onProcess) {
       return ;
     }
+
+    if ((window as any).solong === undefined){
+      notify({
+        message: "Solong Error",
+        description: "Please install solong wallet from Chrome " ,
+      });
+      return;
+    }
+
     this._onProcess = true;
     console.log('solong helper select account');
     (window as any).solong
