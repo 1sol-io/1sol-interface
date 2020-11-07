@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 import { PublicKey } from '@solana/web3.js';
 import { notify } from "./notifications";
 
-export class SolongBridge extends EventEmitter {
+export class SolongAdapter extends EventEmitter {
   _publicKey: any
   _onProcess:boolean
   constructor(providerUrl: string, network: string) {

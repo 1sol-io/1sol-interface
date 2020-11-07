@@ -3,7 +3,7 @@ import Wallet from "@project-serum/sol-wallet-adapter";
 import { notify } from "./notifications";
 import { useConnectionConfig } from "./connection";
 import { useLocalStorageState } from "./utils";
-import {SolongBridge} from "./solong_bridge";
+import {SolongAdapter} from "./solong_adapter";
 
 export const WALLET_PROVIDERS = [
   { name: "sollet.io", url: "https://www.sollet.io" },
@@ -22,7 +22,7 @@ export function WalletProvider({ children = null as any }) {
   const wallet = useMemo(() => {
     console.log("use new provider:", providerUrl, " endpoint:", endpoint)
     if (providerUrl==="http://solongwallet.com")  {
-      return new SolongBridge(providerUrl, endpoint);
+      return new SolongAdapter(providerUrl, endpoint);
     } else {
       return new Wallet(providerUrl, endpoint)
     }}, [
