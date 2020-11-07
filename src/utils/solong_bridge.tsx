@@ -32,7 +32,16 @@ export class SolongBridge extends EventEmitter {
         console.log('window solong select:', account, 'this:', this);
         this.emit('connect', this._publicKey);
       })
-      .catch(() => {})
+      .catch(() => {
+        this.disconnect()
+      })
       .finally(()=>{this._onProcess=false});
+  }
+
+  disconnect (){
+    if (this._publicKey) {
+      this._publicKey = null;
+      this.emit('disconnect');
+    }
   }
 }
