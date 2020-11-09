@@ -42,7 +42,7 @@ export const AddToLiquidity = () => {
   } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
-  const { env } = useConnectionConfig();
+  const { tokenMap } = useConnectionConfig();
   const [options, setOptions] = useState<PoolConfig>({
     curveType: 0,
     tradeFeeNumerator: 25,
@@ -101,7 +101,7 @@ export const AddToLiquidity = () => {
       type="primary"
       size="large"
     >
-      {generateActionLabel(CREATE_POOL_LABEL, connected, env, A, B)}
+      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Button>
   ) : (
@@ -116,7 +116,7 @@ export const AddToLiquidity = () => {
       size="large"
       overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
     >
-      {generateActionLabel(CREATE_POOL_LABEL, connected, env, A, B)}
+      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
@@ -194,7 +194,7 @@ export const AddToLiquidity = () => {
               !hasSufficientBalance)
           }
         >
-          {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, env, A, B)}
+          {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, tokenMap, A, B)}
           {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
         </Button>
       )}

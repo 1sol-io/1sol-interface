@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
 
-import PopularTokens from "./token-list.json";
-import { ENV } from "./connection";
 import { PoolInfo, TokenAccount } from "./../models";
 
 export interface KnownToken {
@@ -12,17 +10,7 @@ export interface KnownToken {
   mintAddress: string;
 }
 
-const AddressToToken = Object.keys(PopularTokens).reduce((map, key) => {
-  const tokens = PopularTokens[key as ENV] as KnownToken[];
-  const knownMints = tokens.reduce((map, item) => {
-    map.set(item.mintAddress, item);
-    return map;
-  }, new Map<string, KnownToken>());
-
-  map.set(key as ENV, knownMints);
-
-  return map;
-}, new Map<ENV, Map<string, KnownToken>>());
+export type KnownTokenMap = Map<string, KnownToken>;
 
 export function useLocalStorageState(key: string, defaultState?: string) {
   const [state, setState] = useState(() => {
@@ -59,11 +47,11 @@ export function shortenAddress(address: string, chars = 4): string {
 }
 
 export function getTokenName(
-  env: ENV,
+  map: KnownTokenMap,
   mintAddress: string,
   shorten = true
 ): string {
-  const knownSymbol = AddressToToken.get(env)?.get(mintAddress)?.tokenSymbol;
+  const knownSymbol = map.get(mintAddress)?.tokenSymbol;
   if (knownSymbol) {
     return knownSymbol;
   }
@@ -72,19 +60,23 @@ export function getTokenName(
 }
 
 export function getTokenIcon(
-  env: ENV,
+  map: KnownTokenMap,
   mintAddress: string
 ): string | undefined {
-  return AddressToToken.get(env)?.get(mintAddress)?.icon;
+  return map.get(mintAddress)?.icon;
 }
 
-export function getPoolName(env: ENV, pool: PoolInfo, shorten = true) {
+export function getPoolName(
+  map: KnownTokenMap,
+  pool: PoolInfo,
+  shorten = true
+) {
   const sorted = pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();
-  return sorted.map((item) => getTokenName(env, item, shorten)).join("/");
+  return sorted.map((item) => getTokenName(map, item, shorten)).join("/");
 }
 
-export function isKnownMint(env: ENV, mintAddress: string) {
-  return !!AddressToToken.get(env)?.get(mintAddress);
+export function isKnownMint(map: KnownTokenMap, mintAddress: string) {
+  return !!map.get(mintAddress);
 }
 
 export const STABLE_COINS = new Set(["USDC", "wUSDC", "USDT"]);

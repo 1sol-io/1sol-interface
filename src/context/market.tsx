@@ -5,9 +5,10 @@ import {
   convert,
   getPoolName,
   getTokenName,
+  KnownTokenMap,
   STABLE_COINS,
 } from "./../utils/utils";
-import { ENV, useConnectionConfig } from "./../utils/connection";
+import { useConnectionConfig } from "./../utils/connection";
 import {
   cache,
   getMultipleAccounts,
@@ -103,7 +104,7 @@ export function MarketProvider({ children = null as any }) {
         allMarkets.filter((a) => cache.get(a) === undefined),
         "single"
       ).then(({ keys, array }) => {
-        allMarkets.forEach(() => { });
+        allMarkets.forEach(() => {});
 
         return array.map((item, index) => {
           const marketAddress = keys[index];
@@ -192,7 +193,7 @@ export function MarketProvider({ children = null as any }) {
       const info = marketByMint.get(mintAddress);
       const market = cache.get(info?.marketInfo.address.toBase58() || "");
       if (!market) {
-        return () => { };
+        return () => {};
       }
 
       const bid = market.info.bids.toBase58();
@@ -265,7 +266,7 @@ export const useMidPriceInUSD = (mint: string) => {
 
 export const useEnrichedPools = (pools: PoolInfo[]) => {
   const context = useContext(MarketsContext);
-  const { env } = useConnectionConfig();
+  const { tokenMap } = useConnectionConfig();
   const [enriched, setEnriched] = useState<any[]>([]);
 
   const marketsByMint = context?.marketByMint;
@@ -276,7 +277,7 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
     const subscriptions = mints.map((m) => context?.subscribeToMarket(m));
 
     const update = () => {
-      setEnriched(createEnrichedPools(pools, marketsByMint, env));
+      setEnriched(createEnrichedPools(pools, marketsByMint, tokenMap));
     };
 
     const dispose = context?.marketEmitter.onMarket(update);
@@ -287,7 +288,7 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
       dispose && dispose();
       subscriptions.forEach((dispose) => dispose && dispose());
     };
-  }, [env, pools, marketsByMint]);
+  }, [tokenMap, pools, marketsByMint]);
 
   return enriched;
 };
@@ -301,7 +302,7 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
 function createEnrichedPools(
   pools: PoolInfo[],
   marketByMint: Map<string, SerumMarket> | undefined,
-  env: ENV
+  tokenMap: KnownTokenMap
 ) {
   const TODAY = new Date();
 
@@ -373,7 +374,7 @@ function createEnrichedPools(
             // Aproximation not true for all pools we need to fine a better way
             const daysSinceInception = Math.floor(
               (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-              (24 * 3600 * 1000)
+                (24 * 3600 * 1000)
             );
             const apy0 =
               parseFloat(
@@ -391,14 +392,17 @@ function createEnrichedPools(
 
       const lpMint = cache.getMint(p.pubkeys.mint);
 
-      const name = getPoolName(env, p);
-      const link = `#/?pair=${getPoolName(env, p, false).replace("/", "-")}`;
+      const name = getPoolName(tokenMap, p);
+      const link = `#/?pair=${getPoolName(tokenMap, p, false).replace(
+        "/",
+        "-"
+      )}`;
 
       return {
         key: p.pubkeys.account.toBase58(),
         id: index,
         name,
-        names: mints.map((m) => getTokenName(env, m)),
+        names: mints.map((m) => getTokenName(tokenMap, m)),
         address: p.pubkeys.mint.toBase58(),
         link,
         mints,
@@ -442,7 +446,7 @@ function calculateAirdropYield(
           acc +
           // airdrop yield
           ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
-          (365 / 30);
+            (365 / 30);
       }
 
       return acc;

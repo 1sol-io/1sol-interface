@@ -24,8 +24,8 @@ export const ExplorerLink = (props: {
       {code ? (
         <Typography.Text code>{shortenAddress(address, 9)}</Typography.Text>
       ) : (
-          shortenAddress(address, 9)
-        )}
+        shortenAddress(address, 9)
+      )}
     </a>
   );
 };
