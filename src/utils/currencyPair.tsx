@@ -76,7 +76,7 @@ export function CurrencyPairProvider({ children = null as any }) {
         return;
       }
     }
-  }, [mintAddressA, mintAddressB, tokens]);
+  }, [mintAddressA, mintAddressB, tokens, history, location]);
 
   // Updates tokens on location change
   useEffect(() => {
@@ -101,6 +101,8 @@ export function CurrencyPairProvider({ children = null as any }) {
         (isValidAddress(defaultQuote) ? defaultQuote : "") ||
         ""
     );
+    // mintAddressA and mintAddressB are not included here to prevent infinite loop
+    // eslint-disable-next-line
   }, [location, location.search, setMintAddressA, setMintAddressB, tokens]);
 
   const calculateDependent = useCallback(async () => {
@@ -143,6 +145,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     amountB,
     connection,
     lastTypedAccount,
+    poolOperation,
   ]);
 
   useEffect(() => {

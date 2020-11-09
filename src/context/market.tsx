@@ -176,7 +176,7 @@ export function MarketProvider({ children = null as any }) {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [pools, marketByMint]);
+  }, [pools, marketByMint, accountsToObserve, connection]);
 
   const midPriceInUSD = useCallback(
     (mintAddress: string) => {
@@ -215,7 +215,7 @@ export function MarketProvider({ children = null as any }) {
         });
       };
     },
-    [marketByMint]
+    [marketByMint, accountsToObserve]
   );
 
   return (
@@ -259,7 +259,7 @@ export const useMidPriceInUSD = (mint: string) => {
       subscription();
       dispose();
     };
-  }, [midPriceInUSD, mint]);
+  }, [midPriceInUSD, mint, marketEmitter, subscribeToMarket]);
 
   return { price, isBase: price === 1.0 };
 };
@@ -268,19 +268,24 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
   const context = useContext(MarketsContext);
   const { tokenMap } = useConnectionConfig();
   const [enriched, setEnriched] = useState<any[]>([]);
-
+  const subscribeToMarket = context?.subscribeToMarket;
+  const marketEmitter = context?.marketEmitter;
   const marketsByMint = context?.marketByMint;
 
   useEffect(() => {
+    if (!marketEmitter || !subscribeToMarket) {
+      return;
+    }
+
     const mints = [...new Set([...marketsByMint?.keys()]).keys()];
 
-    const subscriptions = mints.map((m) => context?.subscribeToMarket(m));
+    const subscriptions = mints.map((m) => subscribeToMarket(m));
 
     const update = () => {
       setEnriched(createEnrichedPools(pools, marketsByMint, tokenMap));
     };
 
-    const dispose = context?.marketEmitter.onMarket(update);
+    const dispose = marketEmitter.onMarket(update);
 
     update();
 
@@ -288,7 +293,7 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
       dispose && dispose();
       subscriptions.forEach((dispose) => dispose && dispose());
     };
-  }, [tokenMap, pools, marketsByMint]);
+  }, [tokenMap, pools, subscribeToMarket, marketEmitter, marketsByMint]);
 
   return enriched;
 };
@@ -336,7 +341,7 @@ function createEnrichedPools(
 
       const poolMint = cache.getMint(p.pubkeys.mint);
       if (poolMint?.supply.eqn(0)) {
-        return;
+        return undefined;
       }
 
       let airdropYield = calculateAirdropYield(
