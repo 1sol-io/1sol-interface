@@ -103,7 +103,7 @@ export function MarketProvider({ children = null as any }) {
         allMarkets.filter((a) => cache.get(a) === undefined),
         "single"
       ).then(({ keys, array }) => {
-        allMarkets.forEach(() => {});
+        allMarkets.forEach(() => { });
 
         return array.map((item, index) => {
           const marketAddress = keys[index];
@@ -192,7 +192,7 @@ export function MarketProvider({ children = null as any }) {
       const info = marketByMint.get(mintAddress);
       const market = cache.get(info?.marketInfo.address.toBase58() || "");
       if (!market) {
-        return () => {};
+        return () => { };
       }
 
       const bid = market.info.bids.toBase58();
@@ -373,7 +373,7 @@ function createEnrichedPools(
             // Aproximation not true for all pools we need to fine a better way
             const daysSinceInception = Math.floor(
               (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-                (24 * 3600 * 1000)
+              (24 * 3600 * 1000)
             );
             const apy0 =
               parseFloat(
@@ -414,7 +414,7 @@ function createEnrichedPools(
         fees,
         liquidity: baseReserveUSD + quoteReserveUSD,
         volume,
-        apy,
+        apy: Number.isFinite(apy) ? apy : 0,
         raw: p,
       };
     })
@@ -442,7 +442,7 @@ function calculateAirdropYield(
           acc +
           // airdrop yield
           ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
-            (365 / 30);
+          (365 / 30);
       }
 
       return acc;
@@ -484,6 +484,7 @@ const getMidPrice = (marketAddress?: string, mintAddress?: string) => {
   }
 
   const decodedMarket = marketInfo.info;
+
   const baseMintDecimals =
     cache.get(decodedMarket.baseMint)?.info.decimals || 0;
   const quoteMintDecimals =
