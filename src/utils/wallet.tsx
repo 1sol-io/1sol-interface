@@ -7,8 +7,8 @@ import {SolongAdapter} from "./solong_adapter";
 
 export const WALLET_PROVIDERS = [
   { name: "sollet.io", url: "https://www.sollet.io" },
-  { name: "solflare.com", url: "https://solflare.com/access-wallet" },
   { name: "solongwallet.com", url: "http://solongwallet.com" },
+  { name: "solflare.com", url: "https://solflare.com/access-wallet" },
 ];
 
 const WalletContext = React.createContext<any>(null);
