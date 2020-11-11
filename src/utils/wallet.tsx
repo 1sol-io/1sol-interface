@@ -3,9 +3,11 @@ import Wallet from "@project-serum/sol-wallet-adapter";
 import { notify } from "./notifications";
 import { useConnectionConfig } from "./connection";
 import { useLocalStorageState } from "./utils";
+import {SolongAdapter} from "./solong_adapter";
 
 export const WALLET_PROVIDERS = [
   { name: "sollet.io", url: "https://www.sollet.io" },
+  { name: "solongwallet.com", url: "http://solongwallet.com" },
   { name: "solflare.com", url: "https://solflare.com/access-wallet" },
 ];
 
@@ -17,7 +19,13 @@ export function WalletProvider({ children = null as any }) {
     "walletProvider",
     "https://www.sollet.io"
   );
-  const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
+  const wallet = useMemo(() => {
+    console.log("use new provider:", providerUrl, " endpoint:", endpoint)
+    if (providerUrl==="http://solongwallet.com")  {
+      return new SolongAdapter(providerUrl, endpoint);
+    } else {
+      return new Wallet(providerUrl, endpoint)
+    }}, [
     providerUrl,
     endpoint,
   ]);
