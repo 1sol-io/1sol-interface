@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Menu, Popover } from "antd";
-import { PoolAccounts } from "./pool/view";
+import { PoolAccounts } from "./pool/quickView";
 import { useWallet } from "../utils/wallet";
 import { AccountInfo } from "./accountInfo";
 import { Link, useLocation } from "react-router-dom";

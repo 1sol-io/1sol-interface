@@ -6,7 +6,7 @@ import { useMint } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
 import { useCurrencyPairState } from "../../utils/currencyPair";
-import "./view.less";
+import "./quickView.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatUSD } from "../../utils/utils";
 
