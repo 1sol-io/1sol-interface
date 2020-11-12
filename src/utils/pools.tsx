@@ -465,7 +465,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
   const connection = useConnection();
   const { pools } = useCachedPool();
   const [pool, setPool] = useState<PoolInfo>();
-  const sortedMints = useMemo(() => [...mints].sort(), [...mints]);
+  const sortedMints = useMemo(() => [...mints].sort(), [...mints]); // eslint-disable-line
   useEffect(() => {
     (async () => {
       // reset pool during query
@@ -819,28 +819,22 @@ export async function calculateDependentAmount(
   var depAdjustedAmount;
   switch (+op) {
     case PoolOperation.Add:
-      {
-        depAdjustedAmount =
-          (depBasketQuantity / indBasketQuantity) * indAdjustedAmount;
-      }
+      depAdjustedAmount =
+        (depBasketQuantity / indBasketQuantity) * indAdjustedAmount;
       break;
     case PoolOperation.SwapGivenProceeds:
-      {
-        depAdjustedAmount = estimateInputFromProceeds(
-          depBasketQuantity,
-          indBasketQuantity,
-          indAdjustedAmount
-        );
-      }
+      depAdjustedAmount = estimateInputFromProceeds(
+        depBasketQuantity,
+        indBasketQuantity,
+        indAdjustedAmount
+      );
       break;
     case PoolOperation.SwapGivenInput:
-      {
-        depAdjustedAmount = estimateProceedsFromInput(
-          indBasketQuantity,
-          depBasketQuantity,
-          indAdjustedAmount
-        );
-      }
+      depAdjustedAmount = estimateProceedsFromInput(
+        indBasketQuantity,
+        depBasketQuantity,
+        indAdjustedAmount
+      );
       break;
   }
   if (typeof depAdjustedAmount === "string") {

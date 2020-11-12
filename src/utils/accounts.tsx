@@ -384,14 +384,15 @@ export function AccountsProvider({ children = null as any }) {
     );
   }, [nativeAccount, wallet, tokenAccounts]);
 
+  const publicKey = wallet?.publicKey;
   useEffect(() => {
-    if (!connection || !wallet || !wallet.publicKey) {
+    if (!connection || !publicKey) {
       setTokenAccounts([]);
     } else {
       // cache host accounts to avoid query during swap
       precacheUserTokenAccounts(connection, SWAP_HOST_FEE_ADDRESS);
 
-      precacheUserTokenAccounts(connection, wallet.publicKey).then(() => {
+      precacheUserTokenAccounts(connection, publicKey).then(() => {
         setTokenAccounts(selectUserAccounts());
       });
 
@@ -444,7 +445,7 @@ export function AccountsProvider({ children = null as any }) {
         connection.removeProgramAccountChangeListener(tokenSubID);
       };
     }
-  }, [connection, connected, wallet?.publicKey]);
+  }, [connection, connected, publicKey, selectUserAccounts]);
 
   return (
     <AccountsContext.Provider

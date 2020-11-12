@@ -7,8 +7,8 @@ export const TokenIcon = (props: {
   mintAddress: string;
   style?: React.CSSProperties;
 }) => {
-  const { env } = useConnectionConfig();
-  const icon = getTokenIcon(env, props.mintAddress);
+  const { tokenMap } = useConnectionConfig();
+  const icon = getTokenIcon(tokenMap, props.mintAddress);
 
   if (icon) {
     return (

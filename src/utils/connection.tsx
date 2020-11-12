@@ -1,4 +1,4 @@
-import { useLocalStorageState } from "./utils";
+import { KnownToken, useLocalStorageState } from "./utils";
 import {
   Account,
   clusterApiUrl,
@@ -6,7 +6,7 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { setProgramIds } from "./ids";
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
@@ -34,6 +34,8 @@ interface ConnectionConfig {
   setSlippage: (val: number) => void;
   env: ENV;
   setEndpoint: (val: string) => void;
+  tokens: KnownToken[];
+  tokenMap: Map<string, KnownToken>;
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -44,6 +46,8 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   connection: new Connection(DEFAULT, "recent"),
   sendConnection: new Connection(DEFAULT, "recent"),
   env: ENDPOINTS[0].name,
+  tokens: [],
+  tokenMap: new Map<string, KnownToken>(),
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -67,6 +71,28 @@ export function ConnectionProvider({ children = undefined as any }) {
   const env =
     ENDPOINTS.find((end) => end.endpoint === endpoint)?.name ||
     ENDPOINTS[0].name;
+
+  const [tokens, setTokens] = useState<KnownToken[]>([]);
+  const [tokenMap, setTokenMap] = useState<Map<string, KnownToken>>(new Map());
+  useEffect(() => {
+    // fetch token files
+    window
+      .fetch(
+        `https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/${env}.json`
+      )
+      .then((res) => {
+        return res.json();
+      })
+      .then((list: KnownToken[]) => {
+        const knownMints = list.reduce((map, item) => {
+          map.set(item.mintAddress, item);
+          return map;
+        }, new Map<string, KnownToken>());
+
+        setTokenMap(knownMints);
+        setTokens(list);
+      });
+  }, [env]);
 
   setProgramIds(env);
 
@@ -113,6 +139,8 @@ export function ConnectionProvider({ children = undefined as any }) {
         setSlippage: (val) => setSlippage(val.toString()),
         connection,
         sendConnection,
+        tokens,
+        tokenMap,
         env,
       }}
     >
@@ -135,6 +163,8 @@ export function useConnectionConfig() {
     endpoint: context.endpoint,
     setEndpoint: context.setEndpoint,
     env: context.env,
+    tokens: context.tokens,
+    tokenMap: context.tokenMap,
   };
 }
 

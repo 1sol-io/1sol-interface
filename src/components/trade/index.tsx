@@ -35,7 +35,7 @@ export const TradeEntry = () => {
   } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
-  const { env } = useConnectionConfig();
+  const { tokenMap } = useConnectionConfig();
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
@@ -147,12 +147,12 @@ export const TradeEntry = () => {
         {generateActionLabel(
           !pool
             ? POOL_NOT_AVAILABLE(
-                getTokenName(env, A.mintAddress),
-                getTokenName(env, B.mintAddress)
+                getTokenName(tokenMap, A.mintAddress),
+                getTokenName(tokenMap, B.mintAddress)
               )
             : SWAP_LABEL,
           connected,
-          env,
+          tokenMap,
           A,
           B,
           true

@@ -6,12 +6,11 @@ import {
 } from "./pools";
 import { useMint, useAccountByMint } from "./accounts";
 import { MintInfo } from "@solana/spl-token";
-import { ENV, useConnection, useConnectionConfig } from "./connection";
+import { useConnection, useConnectionConfig } from "./connection";
 import { TokenAccount } from "../models";
-import { convert } from "./utils";
-import PopularTokens from "../utils/token-list.json";
+import { convert, KnownToken } from "./utils";
 import { useHistory, useLocation } from "react-router-dom";
-import bs58 from 'bs58';
+import bs58 from "bs58";
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -37,7 +36,7 @@ const CurrencyPairContext = React.createContext<CurrencyPairContextState | null>
 
 export function CurrencyPairProvider({ children = null as any }) {
   const connection = useConnection();
-  const { env } = useConnectionConfig();
+  const { tokens } = useConnectionConfig();
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");
   const history = useHistory();
@@ -58,11 +57,11 @@ export function CurrencyPairProvider({ children = null as any }) {
   useEffect(() => {
     // set history
     const base =
-      PopularTokens[env].find((t) => t.mintAddress === mintAddressA)
-        ?.tokenSymbol || mintAddressA;
+      tokens.find((t) => t.mintAddress === mintAddressA)?.tokenSymbol ||
+      mintAddressA;
     const quote =
-      PopularTokens[env].find((t) => t.mintAddress === mintAddressB)
-        ?.tokenSymbol || mintAddressB;
+      tokens.find((t) => t.mintAddress === mintAddressB)?.tokenSymbol ||
+      mintAddressB;
 
     if (base && quote && location.pathname.indexOf("info") < 0) {
       history.push({
@@ -77,7 +76,7 @@ export function CurrencyPairProvider({ children = null as any }) {
         return;
       }
     }
-  }, [mintAddressA, mintAddressB]);
+  }, [mintAddressA, mintAddressB, tokens, history, location]);
 
   // Updates tokens on location change
   useEffect(() => {
@@ -85,23 +84,26 @@ export function CurrencyPairProvider({ children = null as any }) {
       return;
     }
 
-    let { defaultBase, defaultQuote } = getDefaultTokens(env, location.search);
+    let { defaultBase, defaultQuote } = getDefaultTokens(
+      tokens,
+      location.search
+    );
     if (!defaultBase || !defaultQuote) {
       return;
     }
     setMintAddressA(
-      PopularTokens[env].find((t) => t.tokenSymbol === defaultBase)
-        ?.mintAddress ||
-      defaultBase ||
-      ""
+      tokens.find((t) => t.tokenSymbol === defaultBase)?.mintAddress ||
+        (isValidAddress(defaultBase) ? defaultBase : "") ||
+        ""
     );
     setMintAddressB(
-      PopularTokens[env].find((t) => t.tokenSymbol === defaultQuote)
-        ?.mintAddress ||
-      defaultQuote ||
-      ""
+      tokens.find((t) => t.tokenSymbol === defaultQuote)?.mintAddress ||
+        (isValidAddress(defaultQuote) ? defaultQuote : "") ||
+        ""
     );
-  }, [location, location.search, setMintAddressA, setMintAddressB]);
+    // mintAddressA and mintAddressB are not included here to prevent infinite loop
+    // eslint-disable-next-line
+  }, [location, location.search, setMintAddressA, setMintAddressB, tokens]);
 
   const calculateDependent = useCallback(async () => {
     if (pool && mintAddressA && mintAddressB) {
@@ -143,6 +145,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     amountB,
     connection,
     lastTypedAccount,
+    poolOperation,
   ]);
 
   useEffect(() => {
@@ -195,15 +198,19 @@ export const useCurrencyPairState = () => {
 };
 
 const isValidAddress = (address: string) => {
-  const decoded = bs58.decode(address);
-  return decoded.length === 32;
+  try {
+    const decoded = bs58.decode(address);
+    return decoded.length === 32;
+  } catch {
+    return false;
+  }
 };
 
-function getDefaultTokens(env: ENV, search: string) {
+function getDefaultTokens(tokens: KnownToken[], search: string) {
   let defaultBase = "SOL";
   let defaultQuote = "USDC";
 
-  const nameToToken = (PopularTokens[env] as any[]).reduce((map, item) => {
+  const nameToToken = tokens.reduce((map, item) => {
     map.set(item.tokenSymbol, item);
     return map;
   }, new Map<string, any>());
@@ -225,5 +232,8 @@ function getDefaultTokens(env: ENV, search: string) {
       }
     }
   }
-  return { defaultBase, defaultQuote };
+  return {
+    defaultBase,
+    defaultQuote,
+  };
 }

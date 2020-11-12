@@ -1,17 +1,11 @@
 import React from "react";
 import { Card, Select } from "antd";
 import { NumericInput } from "../numericInput";
-import {
-  getPoolName,
-  getTokenName,
-  isKnownMint,
-  KnownToken,
-} from "../../utils/utils";
+import { getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
 import { useUserAccounts, useMint, useCachedPool } from "../../utils/accounts";
 import "./styles.less";
 import { useConnectionConfig } from "../../utils/connection";
 import { PoolIcon, TokenIcon } from "../tokenIcon";
-import PopularTokens from "../../utils/token-list.json";
 import { PublicKey } from "@solana/web3.js";
 import { PoolInfo, TokenAccount } from "../../models";
 
@@ -28,9 +22,7 @@ export const CurrencyInput = (props: {
   const { pools } = useCachedPool();
   const mint = useMint(props.mint);
 
-  const { env } = useConnectionConfig();
-
-  const tokens = PopularTokens[env] as KnownToken[];
+  const { tokens, tokenMap } = useConnectionConfig();
 
   const renderPopularTokens = tokens.map((item) => {
     return (
@@ -60,7 +52,7 @@ export const CurrencyInput = (props: {
     })
     .reduce((map, acc) => {
       const mint = acc.info.mint.toBase58();
-      if (isKnownMint(env, mint)) {
+      if (isKnownMint(tokenMap, mint)) {
         return map;
       }
 
@@ -72,49 +64,46 @@ export const CurrencyInput = (props: {
     }, new Map<string, { account: TokenAccount; pool: PoolInfo | undefined }[]>());
 
   const additionalAccounts = [...grouppedUserAccounts.keys()];
-  if (tokens.findIndex((t) => t.mintAddress === props.mint) < 0 && props.mint && !grouppedUserAccounts.has(props?.mint)) {
+  if (
+    tokens.findIndex((t) => t.mintAddress === props.mint) < 0 &&
+    props.mint &&
+    !grouppedUserAccounts.has(props?.mint)
+  ) {
     additionalAccounts.push(props.mint);
   }
 
-  const renderAdditionalTokens = additionalAccounts.map(
-    (mint) => {
-      let pool: PoolInfo | undefined;
-      const list = grouppedUserAccounts.get(mint);
-      if (list && list.length > 0) {
-        // TODO: group multple accounts of same time and select one with max amount
-        const account = list[0];
-        pool = account.pool;
-      }
-
-      let name: string;
-      let icon: JSX.Element;
-      if (pool) {
-        name = getPoolName(env, pool);
-
-        const sorted = pool.pubkeys.holdingMints
-          .map((a: PublicKey) => a.toBase58())
-          .sort();
-        icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
-      } else {
-        name = getTokenName(env, mint);
-        icon = <TokenIcon mintAddress={mint} />;
-      }
-
-      return (
-        <Option
-          key={mint}
-          value={mint}
-          name={name}
-          title={mint}
-        >
-          <div key={mint} style={{ display: "flex", alignItems: "center" }}>
-            {icon}
-            {name}
-          </div>
-        </Option>
-      );
+  const renderAdditionalTokens = additionalAccounts.map((mint) => {
+    let pool: PoolInfo | undefined;
+    const list = grouppedUserAccounts.get(mint);
+    if (list && list.length > 0) {
+      // TODO: group multple accounts of same time and select one with max amount
+      const account = list[0];
+      pool = account.pool;
     }
-  );
+
+    let name: string;
+    let icon: JSX.Element;
+    if (pool) {
+      name = getPoolName(tokenMap, pool);
+
+      const sorted = pool.pubkeys.holdingMints
+        .map((a: PublicKey) => a.toBase58())
+        .sort();
+      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
+    } else {
+      name = getTokenName(tokenMap, mint);
+      icon = <TokenIcon mintAddress={mint} />;
+    }
+
+    return (
+      <Option key={mint} value={mint} name={name} title={mint}>
+        <div key={mint} style={{ display: "flex", alignItems: "center" }}>
+          {icon}
+          {name}
+        </div>
+      </Option>
+    );
+  });
 
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
