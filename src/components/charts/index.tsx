@@ -297,7 +297,6 @@ export const ChartsView = React.memo(() => {
       <div className="info-header">
         <h1>Liquidity: {formatUSD.format(totals.liquidity)}</h1>
         <h1>Volume (24h): {formatUSD.format(totals.volume)}</h1>
-        <h1>Fees: {formatUSD.format(totals.fees)}</h1>
         <Search
           className="search-input"
           placeholder="Filter"
