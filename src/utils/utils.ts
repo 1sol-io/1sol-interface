@@ -89,7 +89,7 @@ export function chunks<T>(array: T[], size: number): T[][] {
 }
 
 export function convert(
-  account?: TokenAccount,
+  account?: TokenAccount | number,
   mint?: MintInfo,
   rate: number = 1.0
 ): number {
@@ -97,8 +97,11 @@ export function convert(
     return 0;
   }
 
+  const amount =
+    typeof account === "number" ? account : account.info.amount?.toNumber();
+
   const precision = Math.pow(10, mint?.decimals || 0);
-  return (account.info.amount?.toNumber() / precision) * rate;
+  return (amount / precision) * rate;
 }
 
 var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];
@@ -142,6 +145,13 @@ export const formatUSD = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
+
+export const formatNumber = new Intl.NumberFormat("en-US", {
+  style: "decimal",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export const formatPct = new Intl.NumberFormat("en-US", {
   style: "percent",
   minimumFractionDigits: 2,

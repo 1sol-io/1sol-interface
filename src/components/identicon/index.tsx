@@ -7,6 +7,7 @@ import "./style.less";
 export const Identicon = (props: {
   address?: string;
   style?: React.CSSProperties;
+  className?: string;
 }) => {
   const { address, style } = props;
   const ref = useRef<HTMLDivElement>();
@@ -14,6 +15,7 @@ export const Identicon = (props: {
   useEffect(() => {
     if (address && ref.current) {
       ref.current.innerHTML = "";
+      ref.current.className = props.className || "";
       ref.current.appendChild(
         Jazzicon(
           style?.width || 16,

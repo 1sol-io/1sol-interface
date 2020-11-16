@@ -2,12 +2,9 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "./../../context/market";
 import echarts from "echarts";
-import { formatUSD } from "../../utils/utils";
+import { formatNumber, formatUSD } from "../../utils/utils";
 
-export const SupplyOverview = (props: {
-  mintAddress: string[];
-  pool?: PoolInfo;
-}) => {
+export const SupplyOverview = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
   const pools = useMemo(() => (pool ? [pool] : []), [pool]);
   const enriched = useEnrichedPools(pools);
@@ -36,10 +33,12 @@ export const SupplyOverview = (props: {
       {
         name: enriched[0].names[0],
         value: enriched[0].liquidityAinUsd,
+        tokens: enriched[0].liquidityA,
       },
       {
         name: enriched[0].names[1],
         value: enriched[0].liquidityBinUsd,
+        tokens: enriched[0].liquidityB,
       },
     ];
 
@@ -48,7 +47,8 @@ export const SupplyOverview = (props: {
         trigger: "item",
         formatter: function (params: any) {
           var val = formatUSD.format(params.value);
-          return `${params.name}: \n${val}`;
+          var tokenAmount = formatNumber.format(params.data.tokens);
+          return `${params.name}: \n${val}\n(${tokenAmount})`;
         },
       },
       series: [
@@ -59,12 +59,25 @@ export const SupplyOverview = (props: {
           bottom: 0,
           left: 0,
           right: 0,
+          animation: false,
           label: {
             fontSize: 14,
             show: true,
             formatter: function (params: any) {
               var val = formatUSD.format(params.value);
-              return `${params.name}\n${val}`;
+              var tokenAmount = formatNumber.format(params.data.tokens);
+              return `{c|${params.name}}\n{r|${tokenAmount}}\n{r|${val}}`;
+            },
+            rich: {
+              c: {
+                color: "#999",
+                lineHeight: 22,
+                align: "center",
+              },
+              r: {
+                color: "#999",
+                align: "right",
+              },
             },
             color: "rgba(255, 255, 255, 0.5)",
           },
