@@ -23,8 +23,8 @@ import { PoolInfo } from "../models";
 import { EventEmitter } from "./../utils/eventEmitter";
 
 interface RecentPoolData {
-    pool_identifier: string;
-    volume24hA: number;
+  pool_identifier: string;
+  volume24hA: number;
 }
 
 export interface MarketsContextState {
@@ -51,7 +51,9 @@ export function MarketProvider({ children = null as any }) {
   const { endpoint } = useConnectionConfig();
   const { pools } = useCachedPool();
   const accountsToObserve = useMemo(() => new Map<string, number>(), []);
-  const [dailyVolume, setDailyVolume] = useState<Map<string, RecentPoolData>>(new Map());
+  const [dailyVolume, setDailyVolume] = useState<Map<string, RecentPoolData>>(
+    new Map()
+  );
 
   const connection = useMemo(() => new Connection(endpoint, "recent"), [
     endpoint,
@@ -96,7 +98,9 @@ export function MarketProvider({ children = null as any }) {
 
     const bonfidaQuery = async () => {
       try {
-        const resp = await window.fetch('https://serum-api.bonfida.com/pools-recent');
+        const resp = await window.fetch(
+          "https://serum-api.bonfida.com/pools-recent"
+        );
         const data = await resp.json();
         const map = (data?.data as RecentPoolData[]).reduce((acc, item) => {
           acc.set(item.pool_identifier, item);
@@ -108,9 +112,11 @@ export function MarketProvider({ children = null as any }) {
         // ignore
       }
 
-      bonfidaTimer = window.setTimeout(() => bonfidaQuery(), BONFIDA_POOL_INTERVAL);
+      bonfidaTimer = window.setTimeout(
+        () => bonfidaQuery(),
+        BONFIDA_POOL_INTERVAL
+      );
     };
-
 
     const initalQuery = async () => {
       const reverseSerumMarketCache = new Map<string, string>();
@@ -131,7 +137,7 @@ export function MarketProvider({ children = null as any }) {
         allMarkets.filter((a) => cache.get(a) === undefined),
         "single"
       ).then(({ keys, array }) => {
-        allMarkets.forEach(() => { });
+        allMarkets.forEach(() => {});
 
         return array.map((item, index) => {
           const marketAddress = keys[index];
@@ -222,7 +228,7 @@ export function MarketProvider({ children = null as any }) {
       const info = marketByMint.get(mintAddress);
       const market = cache.get(info?.marketInfo.address.toBase58() || "");
       if (!market) {
-        return () => { };
+        return () => {};
       }
 
       // TODO: get recent volume
@@ -315,7 +321,9 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
     const subscriptions = mints.map((m) => subscribeToMarket(m));
 
     const update = () => {
-      setEnriched(createEnrichedPools(pools, marketsByMint, dailyVolume, tokenMap));
+      setEnriched(
+        createEnrichedPools(pools, marketsByMint, dailyVolume, tokenMap)
+      );
     };
 
     const dispose = marketEmitter.onMarket(update);
@@ -326,7 +334,14 @@ export const useEnrichedPools = (pools: PoolInfo[]) => {
       dispose && dispose();
       subscriptions.forEach((dispose) => dispose && dispose());
     };
-  }, [tokenMap, pools, dailyVolume, subscribeToMarket, marketEmitter, marketsByMint]);
+  }, [
+    tokenMap,
+    pools,
+    dailyVolume,
+    subscribeToMarket,
+    marketEmitter,
+    marketsByMint,
+  ]);
 
   return enriched;
 };
@@ -387,7 +402,8 @@ function createEnrichedPools(
       );
 
       let volume = 0;
-      let volume24h = baseMid * (poolData?.get(p.pubkeys.mint.toBase58())?.volume24hA || 0);
+      let volume24h =
+        baseMid * (poolData?.get(p.pubkeys.mint.toBase58())?.volume24hA || 0);
       let fees24h = volume24h * 0.0025;
       let fees = 0;
       let apy = airdropYield;
@@ -417,7 +433,7 @@ function createEnrichedPools(
             // Aproximation not true for all pools we need to fine a better way
             const daysSinceInception = Math.floor(
               (TODAY.getTime() - INITAL_LIQUIDITY_DATE.getTime()) /
-              (24 * 3600 * 1000)
+                (24 * 3600 * 1000)
             );
             const apy0 =
               parseFloat(
@@ -431,9 +447,7 @@ function createEnrichedPools(
             apy = apy + Math.max(apy0, apy1);
 
             const apy24h0 =
-              parseFloat(
-                ((volume24h) * 0.003 * 356) as any
-              ) / baseReserveUSD;
+              parseFloat((volume24h * 0.003 * 356) as any) / baseReserveUSD;
             apy24h = apy24h + apy24h0;
           }
         }
@@ -500,7 +514,7 @@ function calculateAirdropYield(
           acc +
           // airdrop yield
           ((item.amount * midPrice) / (baseReserveUSD + quoteReserveUSD)) *
-          (365 / 30);
+            (365 / 30);
       }
 
       return acc;

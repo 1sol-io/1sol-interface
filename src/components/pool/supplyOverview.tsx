@@ -4,9 +4,7 @@ import { useEnrichedPools } from "./../../context/market";
 import echarts from "echarts";
 import { formatNumber, formatUSD } from "../../utils/utils";
 
-export const SupplyOverview = (props: {
-  pool?: PoolInfo;
-}) => {
+export const SupplyOverview = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
   const pools = useMemo(() => (pool ? [pool] : []), [pool]);
   const enriched = useEnrichedPools(pools);
@@ -72,14 +70,14 @@ export const SupplyOverview = (props: {
             },
             rich: {
               c: {
-                color: '#999',
+                color: "#999",
                 lineHeight: 22,
-                align: 'center'
+                align: "center",
               },
               r: {
-                color: '#999',
-                align: 'right'
-              }
+                color: "#999",
+                align: "right",
+              },
             },
             color: "rgba(255, 255, 255, 0.5)",
           },

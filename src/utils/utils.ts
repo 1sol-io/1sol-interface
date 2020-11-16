@@ -97,7 +97,8 @@ export function convert(
     return 0;
   }
 
-  const amount = typeof account === 'number' ? account : account.info.amount?.toNumber();
+  const amount =
+    typeof account === "number" ? account : account.info.amount?.toNumber();
 
   const precision = Math.pow(10, mint?.decimals || 0);
   return (amount / precision) * rate;

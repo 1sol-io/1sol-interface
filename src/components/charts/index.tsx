@@ -8,14 +8,23 @@ import React, {
 import { Button, Popover, Table, Tooltip, Typography } from "antd";
 import { AppBar } from "./../appBar";
 import { Settings } from "../settings";
-import { SettingOutlined, TableOutlined, OneToOneOutlined } from "@ant-design/icons";
+import {
+  SettingOutlined,
+  TableOutlined,
+  OneToOneOutlined,
+} from "@ant-design/icons";
 import { PoolIcon } from "../tokenIcon";
 import { Input } from "antd";
 import "./styles.less";
 import echarts from "echarts";
 import { useEnrichedPools } from "../../context/market";
 import { usePools } from "../../utils/pools";
-import { formatNumber, formatPct, formatUSD, useLocalStorageState } from "../../utils/utils";
+import {
+  formatNumber,
+  formatPct,
+  formatUSD,
+  useLocalStorageState,
+} from "../../utils/utils";
 import { PoolAddress } from "../pool/address";
 import { PoolCard } from "./../pool/card";
 
@@ -43,7 +52,7 @@ interface Totals {
   fees: number;
 }
 
-const DEFAULT_DISPLAY_TYPE = 'Table';
+const DEFAULT_DISPLAY_TYPE = "Table";
 
 export const ChartsView = React.memo(() => {
   const [search, setSearch] = useState<string>("");
@@ -177,9 +186,7 @@ export const ChartsView = React.memo(() => {
           },
           children: (
             <div>
-              <div>
-                {formatUSD.format(record.liquidity)}
-              </div>
+              <div>{formatUSD.format(record.liquidity)}</div>
               <div>
                 <Text type="secondary" style={{ fontSize: 11 }}>
                   {formatNumber.format(record.liquidityA)} {record.names[0]}
@@ -240,7 +247,10 @@ export const ChartsView = React.memo(() => {
             style: { textAlign: "right" },
           },
           children: (
-            <FlashText text={formatUSD.format(record.fees24h)} val={record.fees24h} />
+            <FlashText
+              text={formatUSD.format(record.fees24h)}
+              val={record.fees24h}
+            />
           ),
         };
       },
@@ -306,40 +316,42 @@ export const ChartsView = React.memo(() => {
           onSearch={(value) => setSearch(value)}
           style={{ width: 200 }}
         />
-          <Tooltip title="Show as table">
-            <Button
-              size="small"  
-              type={infoDisplayType === 'Table' ? "primary" : 'text'}
-              onClick={() => setInfoDisplayType('Table')}
-              icon={<TableOutlined />}
-            />
-          </Tooltip>
-          <Tooltip title="Show as cards">
+        <Tooltip title="Show as table">
           <Button
             size="small"
-            type={infoDisplayType === 'Card' ? "primary" : 'text'}
-            onClick={() => setInfoDisplayType('Card')}
+            type={infoDisplayType === "Table" ? "primary" : "text"}
+            onClick={() => setInfoDisplayType("Table")}
+            icon={<TableOutlined />}
+          />
+        </Tooltip>
+        <Tooltip title="Show as cards">
+          <Button
+            size="small"
+            type={infoDisplayType === "Card" ? "primary" : "text"}
+            onClick={() => setInfoDisplayType("Card")}
             icon={<OneToOneOutlined />}
           />
-          </Tooltip>
-
+        </Tooltip>
       </div>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
-      {infoDisplayType === 'Table' ? <Table
-        dataSource={enriched.filter(
-          (row) => !search || !searchRegex || searchRegex.test(row.name)
-        )}
-        columns={columns}
-        size="small"
-        pagination={{ pageSize: 10 }}
-      /> :  
-        <div className="pool-grid">{enriched
-          .sort((a, b) => b.liquidity - a.liquidity)
-          .map(p => {
-          return <PoolCard pool={p.raw} />
-        })}</div>
-      
-      }
+      {infoDisplayType === "Table" ? (
+        <Table
+          dataSource={enriched.filter(
+            (row) => !search || !searchRegex || searchRegex.test(row.name)
+          )}
+          columns={columns}
+          size="small"
+          pagination={{ pageSize: 10 }}
+        />
+      ) : (
+        <div className="pool-grid">
+          {enriched
+            .sort((a, b) => b.liquidity - a.liquidity)
+            .map((p) => {
+              return <PoolCard pool={p.raw} />;
+            })}
+        </div>
+      )}
     </>
   );
 });

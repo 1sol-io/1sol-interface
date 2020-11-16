@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   calculateDependentAmount,
   usePoolForBasket,
@@ -43,25 +49,36 @@ const convertAmount = (amount: string, mint?: MintInfo) => {
 export const useCurrencyLeg = (defaultMint?: string) => {
   const { tokenMap } = useConnectionConfig();
   const [amount, setAmount] = useState("");
-  const [mintAddress, setMintAddress] = useState(defaultMint || '');
+  const [mintAddress, setMintAddress] = useState(defaultMint || "");
   const account = useAccountByMint(mintAddress);
   const mint = useMint(mintAddress);
 
-  return useMemo(() => ({
-    mintAddress: mintAddress,
-    account: account,
-    mint: mint,
-    amount: amount,
-    name: getTokenName(tokenMap, mintAddress),
-    icon: getTokenIcon(tokenMap, mintAddress),
-    setAmount: setAmount,
-    setMint: setMintAddress,
-    convertAmount: () => convertAmount(amount, mint),
-    sufficientBalance: () =>
-      account !== undefined &&
-      convert(account, mint) >= parseFloat(amount),
-  }), [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress, amount]);
-}
+  return useMemo(
+    () => ({
+      mintAddress: mintAddress,
+      account: account,
+      mint: mint,
+      amount: amount,
+      name: getTokenName(tokenMap, mintAddress),
+      icon: getTokenIcon(tokenMap, mintAddress),
+      setAmount: setAmount,
+      setMint: setMintAddress,
+      convertAmount: () => convertAmount(amount, mint),
+      sufficientBalance: () =>
+        account !== undefined && convert(account, mint) >= parseFloat(amount),
+    }),
+    [
+      mintAddress,
+      account,
+      mint,
+      amount,
+      tokenMap,
+      setAmount,
+      setMintAddress,
+      amount,
+    ]
+  );
+};
 
 export function CurrencyPairProvider({ children = null as any }) {
   const connection = useConnection();
@@ -97,7 +114,6 @@ export function CurrencyPairProvider({ children = null as any }) {
       mintAddressB;
 
     document.title = `Swap | Serum (${base}/${quote})`;
-
   }, [mintAddressA, mintAddressB, tokens, location]);
 
   // updates browser history on token changes
@@ -198,7 +214,6 @@ export function CurrencyPairProvider({ children = null as any }) {
   useEffect(() => {
     calculateDependent();
   }, [amountB, amountA, lastTypedAccount, calculateDependent]);
-
 
   return (
     <CurrencyPairContext.Provider

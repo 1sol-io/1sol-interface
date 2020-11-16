@@ -61,7 +61,10 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           <Button
             type="text"
             size="large"
-            onClick={() => history.push({ pathname: '/pool' })}>My Pools</Button>
+            onClick={() => history.push({ pathname: "/pool" })}
+          >
+            My Pools
+          </Button>
         )}
         <div>
           {!connected && (

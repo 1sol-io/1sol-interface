@@ -50,7 +50,7 @@ export const PoolIcon = (props: {
   mintA: string;
   mintB: string;
   style?: React.CSSProperties;
-  className?: string
+  className?: string;
 }) => {
   return (
     <div className={props.className} style={{ display: "flex" }}>
