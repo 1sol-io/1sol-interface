@@ -169,10 +169,7 @@ export const AddToLiquidity = () => {
             B.setMint(item);
           }}
         />
-        <SupplyOverview
-          mintAddress={[A.mintAddress, B.mintAddress]}
-          pool={pool}
-        />
+        <SupplyOverview pool={pool} />
         <PoolAddress
           pool={pool}
           style={{ marginBottom: 10 }}

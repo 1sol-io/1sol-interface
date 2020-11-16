@@ -27,6 +27,8 @@ export const ExchangeView = (props: {}) => {
 
   const [activeTab, setActiveTab] = useState(tabList[0].key);
 
+  // TODO: set path based on selected tab
+
   return (
     <>
       <AppBar

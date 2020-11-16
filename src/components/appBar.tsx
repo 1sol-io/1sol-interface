@@ -1,13 +1,13 @@
 import React from "react";
 import { Button, Menu, Popover } from "antd";
-import { PoolAccounts } from "./pool/quickView";
 import { useWallet } from "../utils/wallet";
 import { AccountInfo } from "./accountInfo";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 
 export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
   const { connected, wallet } = useWallet();
   const location = useLocation();
+  const history = useHistory();
 
   const TopBar = (
     <div className="App-Bar">
@@ -58,13 +58,10 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
       <div className="App-Bar-right">
         <AccountInfo />
         {connected && (
-          <Popover
-            placement="bottomRight"
-            content={<PoolAccounts />}
-            trigger="click"
-          >
-            <Button type="text">My Pools</Button>
-          </Popover>
+          <Button
+            type="text"
+            size="large"
+            onClick={() => history.push({ pathname: '/pool' })}>My Pools</Button>
         )}
         <div>
           {!connected && (

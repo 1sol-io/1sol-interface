@@ -9,12 +9,14 @@ import { useCurrencyPairState } from "../../utils/currencyPair";
 import "./quickView.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatUSD } from "../../utils/utils";
+import { useHistory, useLocation } from "react-router-dom";
 
 const PoolItem = (props: {
   item: { pool: PoolInfo; isFeeAccount: boolean; account: TokenAccount };
   poolDetails: any;
 }) => {
   const { A, B } = useCurrencyPairState();
+  const history = useHistory();
   const item = props.item;
   const mint = useMint(item.account.info.mint.toBase58());
   const amount =
@@ -32,8 +34,13 @@ const PoolItem = (props: {
   }
 
   const setPair = () => {
+    // navigate to pool info
     A.setMint(props.item.pool.pubkeys.holdingMints[0]?.toBase58());
     B.setMint(props.item.pool.pubkeys.holdingMints[1]?.toBase58());
+
+    history.push({
+      pathname: "/pool",
+    });
   };
 
   const sorted = item.pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();
