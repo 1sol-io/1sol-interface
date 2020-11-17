@@ -158,7 +158,7 @@ export const PoolCard = (props: { pool: PoolInfo }) => {
       </div>
       <div className="pool-card-row">
         <Text type="secondary" className="pool-card-cell ">
-          Arpox. APY (24h):
+          Approx. APY (24h):
         </Text>
         <div className="pool-card-cell ">
           {formatPct.format(enriched.apy24h)}
