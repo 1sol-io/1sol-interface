@@ -1,4 +1,4 @@
-import { Button, Spin } from "antd";
+import { Button, Popover, Spin } from "antd";
 import React, { useState } from "react";
 import {
   useConnection,
@@ -7,14 +7,14 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
-import { LoadingOutlined } from "@ant-design/icons";
+import { LoadingOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { swap, usePoolForBasket, PoolOperation } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
 import { getTokenName } from "../../utils/utils";
-import { PoolAddress } from "../pool/address";
+import { AccountsAddress, PoolAddress } from "../pool/address";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -91,6 +91,29 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="input-card">
+        <Popover
+          placement="topRight"
+          title={"Addresses"}
+          trigger="hover"
+          content={
+            <>
+              <PoolAddress pool={pool} showLabel={true} label={"Pool"} />
+              <AccountsAddress
+                pool={pool}
+                aName={A.name}
+                bName={B.name}
+              />
+            </>
+          }
+        >
+          <Button
+            shape="circle"
+            size="large"
+            type="text"
+            className={"trade-address-info-button"}
+            icon={<InfoCircleOutlined />}
+          />
+        </Popover>
         <CurrencyInput
           title="Input"
           onInputChange={(val: any) => {
@@ -126,7 +149,6 @@ export const TradeEntry = () => {
             B.setMint(item);
           }}
         />
-        <PoolAddress pool={pool} showLabel={true} />
       </div>
       <Button
         className="trade-button"

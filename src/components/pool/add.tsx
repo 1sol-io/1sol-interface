@@ -12,7 +12,7 @@ import {
   useSlippageConfig,
 } from "../../utils/connection";
 import { Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { LoadingOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
 import { CurrencyInput } from "../currencyInput";
@@ -26,7 +26,7 @@ import {
   ADD_LIQUIDITY_LABEL,
   generateActionLabel,
 } from "../labels";
-import { PoolAddress } from "./address";
+import { AccountsAddress, PoolAddress } from "./address";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -124,6 +124,29 @@ export const AddToLiquidity = () => {
   return (
     <>
       <div className="input-card">
+      <Popover
+          placement="topRight"
+          title={"Addresses"}
+          trigger="hover"
+          content={
+            <>
+              <PoolAddress pool={pool} showLabel={true} label={"Pool"} />
+              <AccountsAddress
+                pool={pool}
+                aName={A.name}
+                bName={B.name}
+              />
+            </>
+          }
+        >
+          <Button
+            shape="circle"
+            size="large"
+            type="text"
+            className={"trade-address-info-button"}
+            icon={<InfoCircleOutlined />}
+          />
+        </Popover>
         <Popover
           trigger="hover"
           content={
@@ -170,11 +193,6 @@ export const AddToLiquidity = () => {
           }}
         />
         <SupplyOverview pool={pool} />
-        <PoolAddress
-          pool={pool}
-          style={{ marginBottom: 10 }}
-          showLabel={true}
-        />
       </div>
       {pool && (
         <Button
