@@ -1,7 +1,7 @@
 import React from "react";
-import { Button, Col, Row } from "antd";
+import { Button, Col, Popover, Row } from "antd";
 import { PoolInfo } from "../../models";
-import { CopyOutlined } from "@ant-design/icons";
+import { CopyOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { ExplorerLink } from "./../explorerLink";
 
 
@@ -84,3 +84,36 @@ export const AccountsAddress = (props: {
       )}
     </>
 };
+
+
+export const AdressesPopover = (props : {
+  pool?: PoolInfo;
+  aName?: string;
+  bName?: string;
+}) => {
+  const {pool, aName, bName} = props
+
+  return <Popover
+    placement="topRight"
+    title={"Addresses"}
+    trigger="hover"
+    content={
+      <>
+        <PoolAddress pool={pool} showLabel={true} label={"Pool"} />
+        <AccountsAddress
+          pool={pool}
+          aName={aName}
+          bName={bName}
+        />
+      </>
+    }
+  >
+    <Button
+      shape="circle"
+      size="large"
+      type="text"
+      className={"trade-address-info-button"}
+      icon={<InfoCircleOutlined />}
+    />
+  </Popover>
+}
