@@ -26,7 +26,7 @@ import {
   ADD_LIQUIDITY_LABEL,
   generateActionLabel,
 } from "../labels";
-import { PoolAddress } from "./address";
+import { AdressesPopover } from "./address";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -124,6 +124,11 @@ export const AddToLiquidity = () => {
   return (
     <>
       <div className="input-card">
+        <AdressesPopover
+          pool={pool}
+          aName={A.name}
+          bName={B.name}
+        />
         <Popover
           trigger="hover"
           content={
@@ -170,11 +175,6 @@ export const AddToLiquidity = () => {
           }}
         />
         <SupplyOverview pool={pool} />
-        <PoolAddress
-          pool={pool}
-          style={{ marginBottom: 10 }}
-          showLabel={true}
-        />
       </div>
       {pool && (
         <Button
