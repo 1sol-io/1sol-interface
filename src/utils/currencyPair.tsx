@@ -68,15 +68,7 @@ export const useCurrencyLeg = (defaultMint?: string) => {
       sufficientBalance: () =>
         account !== undefined && convert(account, mint) >= parseFloat(amount),
     }),
-    [
-      mintAddress,
-      account,
-      mint,
-      amount,
-      tokenMap,
-      setAmount,
-      setMintAddress,
-    ]
+    [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress]
   );
 };
 
