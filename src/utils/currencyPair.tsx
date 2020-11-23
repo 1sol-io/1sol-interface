@@ -139,7 +139,7 @@ export function CurrencyPairProvider({ children = null as any }) {
         return;
       }
     }
-  }, [mintAddressA, mintAddressB, tokens, history, location]);
+  }, [mintAddressA, mintAddressB, tokens, history, location.pathname]);
 
   // Updates tokens on location change
   useEffect(() => {
