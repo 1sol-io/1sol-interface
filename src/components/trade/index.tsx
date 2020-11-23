@@ -227,7 +227,6 @@ export const TradeInfo = (props: {
   }, [A, B, slippage, lastTypedAccount, pool, enriched]);
 
   useEffect(() => {
-    console.log(A.convertAmount(), B.convertAmount(),parseFloat(A.amount),parseFloat(B.amount))
     if(priceAccount === B.mintAddress) {
       setExchangeRate(parseFloat(B.amount) / parseFloat(A.amount))
     } else {
@@ -251,7 +250,7 @@ export const TradeInfo = (props: {
         <div className="pool-card-cell " title={exchangeRate.toString()}>
            <Button
             shape="circle"
-            size="large"
+            size="middle"
             type="text"
             icon={<SwapOutlined />}
             onClick={handleSwapPriceInfo}
