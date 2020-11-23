@@ -124,11 +124,7 @@ export const AddToLiquidity = () => {
   return (
     <>
       <div className="input-card">
-        <AdressesPopover
-          pool={pool}
-          aName={A.name}
-          bName={B.name}
-        />
+        <AdressesPopover pool={pool} aName={A.name} bName={B.name} />
         <Popover
           trigger="hover"
           content={
