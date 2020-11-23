@@ -146,6 +146,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     if (!defaultBase || !defaultQuote) {
       return;
     }
+
     setMintAddressA(
       tokens.find((t) => t.tokenSymbol === defaultBase)?.mintAddress ||
         (isValidAddress(defaultBase) ? defaultBase : "") ||
