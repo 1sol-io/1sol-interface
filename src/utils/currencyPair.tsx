@@ -34,6 +34,7 @@ export interface CurrencyContextState {
 export interface CurrencyPairContextState {
   A: CurrencyContextState;
   B: CurrencyContextState;
+  lastTypedAccount: string;
   setLastTypedAccount: (mintAddress: string) => void;
   setPoolOperation: (swapDirection: PoolOperation) => void;
 }
@@ -75,7 +76,6 @@ export const useCurrencyLeg = (defaultMint?: string) => {
       tokenMap,
       setAmount,
       setMintAddress,
-      amount,
     ]
   );
 };
@@ -220,6 +220,7 @@ export function CurrencyPairProvider({ children = null as any }) {
       value={{
         A: base,
         B: quote,
+        lastTypedAccount,
         setLastTypedAccount,
         setPoolOperation,
       }}
