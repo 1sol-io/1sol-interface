@@ -311,7 +311,7 @@ export const TradeInfo = (props: {
             Liquidity Provider Fee <QuestionCircleOutlined />
           </Popover>
         </Text>
-        <div className="pool-card-cell " title={priceImpact.toString()}>
+        <div className="pool-card-cell " title={lpFee.toString()}>
          { lpFee } { A.name }
         </div>
       </div>
