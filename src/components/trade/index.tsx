@@ -216,7 +216,7 @@ export const TradeInfo = (props: {
     const enrichedA = A.mintAddress === enriched[0].mints[0] ? A : B;
     const enrichedB = enrichedA.mintAddress === A.mintAddress ? B : A;
     const calculatedRatio = (
-      enrichedA.convertAmount() / enrichedB.convertAmount()
+      parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount)
     );
     // % difference between pool ratio and  calculated ratio
     setPriceImpact(Math.abs(100 - (calculatedRatio*100) / supplyRatio))
