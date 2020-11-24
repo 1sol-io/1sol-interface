@@ -1,4 +1,4 @@
-import { Button, Spin, Typography } from "antd";
+import { Button, Popover, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   useConnection,
@@ -7,7 +7,7 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
-import { LoadingOutlined, SwapOutlined } from "@ant-design/icons";
+import { LoadingOutlined, SwapOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { swap, usePoolForBasket, PoolOperation, LIQUIDITY_PROVIDER_FEE } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -245,7 +245,7 @@ export const TradeInfo = (props: {
     <div className="pool-card" style={{width: "initial"}}>
       <div className="pool-card-row">
         <Text className="pool-card-cell" >
-          Price:
+          Price
         </Text>
         <div className="pool-card-cell " title={exchangeRate.toString()}>
            <Button
@@ -263,7 +263,17 @@ export const TradeInfo = (props: {
       </div>
       <div className="pool-card-row">
         <Text className="pool-card-cell" >
-          { maxMinLabel }:
+          <Popover
+            trigger="hover"
+            content={
+              <div style={{ width: 300 }}>
+                You transaction will revert if there is a large, unfavorable price
+                movement before it is confirmed.
+              </div>
+            }
+          >
+            { maxMinLabel } <QuestionCircleOutlined />
+          </Popover>
         </Text>
         <div className="pool-card-cell " title={amountOut.toString()}>
         { amountOut.toFixed(6) } { B.name}
@@ -271,7 +281,17 @@ export const TradeInfo = (props: {
       </div>
       <div className="pool-card-row">
         <Text className="pool-card-cell" >
-          Price Impact:
+          <Popover
+            trigger="hover"
+            content={
+              <div style={{ width: 300 }}>
+               The difference between the market price and
+               estimated price due to trade size.
+              </div>
+            }
+          >
+            Price Impact <QuestionCircleOutlined />
+          </Popover>
         </Text>
         <div className="pool-card-cell " title={priceImpact.toString()}>
           { priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%" }
@@ -279,7 +299,17 @@ export const TradeInfo = (props: {
       </div>
       <div className="pool-card-row">
         <Text className="pool-card-cell" >
-          Liquidity Provider Fee:
+          <Popover
+            trigger="hover"
+            content={
+              <div style={{ width: 300 }}>
+               A portion of each trade ({LIQUIDITY_PROVIDER_FEE * 100}%)
+               goes to liquidity providers as a protocol incentive.
+              </div>
+            }
+          >
+            Liquidity Provider Fee <QuestionCircleOutlined />
+          </Popover>
         </Text>
         <div className="pool-card-cell " title={priceImpact.toString()}>
          { lpFee } { A.name }
