@@ -158,7 +158,6 @@ export const formatPct = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-
 export const formatPriceNumber = new Intl.NumberFormat("en-US", {
   style: "decimal",
   minimumFractionDigits: 2,

@@ -128,11 +128,7 @@ export const AddToLiquidity = () => {
   return (
     <>
       <div className="input-card">
-        <AdressesPopover
-          pool={pool}
-          aName={A.name}
-          bName={B.name}
-        />
+        <AdressesPopover pool={pool} aName={A.name} bName={B.name} />
         <Popover
           trigger="hover"
           content={
@@ -178,9 +174,7 @@ export const AddToLiquidity = () => {
             B.setMint(item);
           }}
         />
-        {pool && (
-          <PoolPrice pool={pool} />
-        )}
+        {pool && <PoolPrice pool={pool} />}
         <SupplyOverview pool={pool} />
       </div>
       {pool && (
@@ -208,10 +202,7 @@ export const AddToLiquidity = () => {
   );
 };
 
-
-export const PoolPrice = (props: {
-  pool: PoolInfo;
-}) => {
+export const PoolPrice = (props: { pool: PoolInfo }) => {
   const pool = props.pool;
   const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
     props.pool,
@@ -234,24 +225,24 @@ export const PoolPrice = (props: {
     <Card
       className="ccy-input"
       style={{ borderRadius: 20, width: "100%" }}
-      bodyStyle={{padding: "7px"}}
+      bodyStyle={{ padding: "7px" }}
       size="small"
       title="Prices and pool share"
     >
       <Row style={{ width: "100%" }}>
         <Col span={8}>
           {formatPriceNumber.format(
-            parseFloat(enriched.liquidityA)/parseFloat(enriched.liquidityB)
+            parseFloat(enriched.liquidityA) / parseFloat(enriched.liquidityB)
           )}
         </Col>
         <Col span={8}>
           {formatPriceNumber.format(
-            parseFloat(enriched.liquidityB)/parseFloat(enriched.liquidityA)
+            parseFloat(enriched.liquidityB) / parseFloat(enriched.liquidityA)
           )}
         </Col>
         <Col span={8}>
-          {(ratio * 100) < 0.001 && ratio > 0 ? "<" : ""}
-          &nbsp;{formatPriceNumber.format(ratio*100)}%
+          {ratio * 100 < 0.001 && ratio > 0 ? "<" : ""}
+          &nbsp;{formatPriceNumber.format(ratio * 100)}%
         </Col>
       </Row>
       <Row style={{ width: "100%" }}>
@@ -261,18 +252,13 @@ export const PoolPrice = (props: {
         <Col span={8}>
           {enriched.names[1]} per {enriched.names[0]}
         </Col>
-        <Col span={8}>
-          Share of pool
-        </Col>
+        <Col span={8}>Share of pool</Col>
       </Row>
     </Card>
-  )
-}
+  );
+};
 
-
-export const YourPosition = (props: {
-  pool?: PoolInfo
-}) => {
+export const YourPosition = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
   const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
     props.pool,
@@ -281,7 +267,7 @@ export const YourPosition = (props: {
   const { userAccounts } = useUserAccounts();
   const lpMint = useMint(pool?.pubkeys.mint);
 
-  if(!pool || !enriched) {
+  if (!pool || !enriched) {
     return null;
   }
   const baseMintAddress = pool.pubkeys.holdingMints[0].toBase58();
@@ -294,22 +280,18 @@ export const YourPosition = (props: {
     (lpMint?.supply.toNumber() || 0);
 
   return (
-
     <Card
       className="ccy-input"
       style={{ borderRadius: 20, width: "100%" }}
-      bodyStyle={{padding: "7px"}}
+      bodyStyle={{ padding: "7px" }}
       size="small"
       title="Your Position"
     >
-      <div className="pool-card" style={{width: "initial"}}>
+      <div className="pool-card" style={{ width: "initial" }}>
         <div className="pool-card-row">
           <div className="pool-card-cell">
             <div style={{ display: "flex", alignItems: "center" }}>
-              <PoolIcon
-                mintA={baseMintAddress}
-                mintB={quoteMintAddress}
-              />
+              <PoolIcon mintA={baseMintAddress} mintB={quoteMintAddress} />
               <h3>{enriched?.name}</h3>
             </div>
           </div>
@@ -318,31 +300,25 @@ export const YourPosition = (props: {
           </div>
         </div>
         <div className="pool-card-row">
+          <div className="pool-card-cell">Your Share:</div>
           <div className="pool-card-cell">
-            Your Share:
-          </div>
-          <div className="pool-card-cell">
-            {(ratio * 100) < 0.001 && ratio > 0 ? "<" : ""}
-            {formatPriceNumber.format(ratio*100)}%
+            {ratio * 100 < 0.001 && ratio > 0 ? "<" : ""}
+            {formatPriceNumber.format(ratio * 100)}%
           </div>
         </div>
         <div className="pool-card-row">
+          <div className="pool-card-cell">{enriched.names[0]}:</div>
           <div className="pool-card-cell">
-            {enriched.names[0]}:
-          </div>
-          <div className="pool-card-cell">
-            {formatPriceNumber.format(ratio*enriched.liquidityA)}
+            {formatPriceNumber.format(ratio * enriched.liquidityA)}
           </div>
         </div>
         <div className="pool-card-row">
+          <div className="pool-card-cell">{enriched.names[1]}:</div>
           <div className="pool-card-cell">
-          {enriched.names[1]}:
-          </div>
-          <div className="pool-card-cell">
-            {formatPriceNumber.format(ratio*enriched.liquidityB)}
+            {formatPriceNumber.format(ratio * enriched.liquidityB)}
           </div>
         </div>
       </div>
-      </Card>
+    </Card>
   );
 };

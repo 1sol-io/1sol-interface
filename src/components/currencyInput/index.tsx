@@ -1,8 +1,18 @@
 import React from "react";
 import { Card, Select } from "antd";
 import { NumericInput } from "../numericInput";
-import { getPoolName, getTokenName, isKnownMint, KnownToken } from "../../utils/utils";
-import { useUserAccounts, useMint, useCachedPool, useAccountByMint } from "../../utils/accounts";
+import {
+  getPoolName,
+  getTokenName,
+  isKnownMint,
+  KnownToken,
+} from "../../utils/utils";
+import {
+  useUserAccounts,
+  useMint,
+  useCachedPool,
+  useAccountByMint,
+} from "../../utils/accounts";
 import "./styles.less";
 import { useConnectionConfig } from "../../utils/connection";
 import { PoolIcon, TokenIcon } from "../tokenIcon";
@@ -11,21 +21,17 @@ import { PoolInfo, TokenAccount } from "../../models";
 
 const { Option } = Select;
 
-const TokenDisplay = (props: {
-  token: KnownToken;
-  showBalance?: boolean;
-}) => {
+const TokenDisplay = (props: { token: KnownToken; showBalance?: boolean }) => {
   const { token, showBalance } = props;
   const tokenMint = useMint(token.mintAddress);
   const tokenAccount = useAccountByMint(token.mintAddress);
 
   let balance: number = 0;
   let hasBalance: boolean = false;
-  if(showBalance) {
+  if (showBalance) {
     if (tokenAccount && tokenMint) {
-      balance = (
-        tokenAccount.info.amount.toNumber() / Math.pow(10, tokenMint.decimals)
-      );
+      balance =
+        tokenAccount.info.amount.toNumber() / Math.pow(10, tokenMint.decimals);
       hasBalance = balance > 0;
     }
   }
@@ -39,19 +45,20 @@ const TokenDisplay = (props: {
       >
         <TokenIcon mintAddress={token.mintAddress} />
         {token.tokenSymbol}
-        {showBalance ?
+        {showBalance ? (
           <span
             title={balance.toString()}
             key={token.mintAddress}
             className="token-balance"
           >
-            &nbsp; {hasBalance && balance < 0.001 ? "< 0.001" : balance.toFixed(3)}
+            &nbsp;{" "}
+            {hasBalance && balance < 0.001 ? "< 0.001" : balance.toFixed(3)}
           </span>
-        : null}
+        ) : null}
       </div>
     </>
   );
-}
+};
 
 export const CurrencyInput = (props: {
   mint?: string;
@@ -67,7 +74,6 @@ export const CurrencyInput = (props: {
   const { tokens, tokenMap } = useConnectionConfig();
 
   const renderPopularTokens = tokens.map((item) => {
-
     return (
       <Option
         key={item.mintAddress}
@@ -75,11 +81,7 @@ export const CurrencyInput = (props: {
         name={item.tokenSymbol}
         title={item.mintAddress}
       >
-        <TokenDisplay
-          key={item.mintAddress}
-          token={item}
-          showBalance={true}
-        />
+        <TokenDisplay key={item.mintAddress} token={item} showBalance={true} />
       </Option>
     );
   });
@@ -140,7 +142,7 @@ export const CurrencyInput = (props: {
 
     return (
       <Option key={mint} value={mint} name={name}>
-        {pool && !token?
+        {pool && !token ? (
           <div
             key={mint}
             title={mint}
@@ -149,10 +151,10 @@ export const CurrencyInput = (props: {
             {icon}
             {name}
           </div>
-        : null }
-        {token ?
+        ) : null}
+        {token ? (
           <TokenDisplay key={mint} token={token} showBalance={true} />
-        : null}
+        ) : null}
       </Option>
     );
   });
