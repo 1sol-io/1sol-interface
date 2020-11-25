@@ -91,11 +91,7 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="input-card">
-        <AdressesPopover
-          pool={pool}
-          aName={A.name}
-          bName={B.name}
-        />
+        <AdressesPopover pool={pool} aName={A.name} bName={B.name} />
         <CurrencyInput
           title="Input"
           onInputChange={(val: any) => {
