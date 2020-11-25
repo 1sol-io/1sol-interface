@@ -39,16 +39,16 @@ const TokenDisplay = (props: {
       >
         <TokenIcon mintAddress={token.mintAddress} />
         {token.tokenSymbol}
+        {showBalance ?
+          <span
+            title={balance.toString()}
+            key={token.mintAddress}
+            className="token-balance"
+          >
+            &nbsp; {hasBalance && balance < 0.001 ? "< 0.001" : balance.toFixed(3)}
+          </span>
+        : null}
       </div>
-      {showBalance ?
-        <div
-          title={balance.toString()}
-          key={token.mintAddress}
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          {hasBalance && balance < 0.001 ? "< 0.001" : balance.toFixed(2)}
-        </div>
-      : null}
     </>
   );
 }
