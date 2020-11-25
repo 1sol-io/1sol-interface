@@ -34,6 +34,7 @@ export interface CurrencyContextState {
 export interface CurrencyPairContextState {
   A: CurrencyContextState;
   B: CurrencyContextState;
+  lastTypedAccount: string;
   setLastTypedAccount: (mintAddress: string) => void;
   setPoolOperation: (swapDirection: PoolOperation) => void;
 }
@@ -67,16 +68,7 @@ export const useCurrencyLeg = (defaultMint?: string) => {
       sufficientBalance: () =>
         account !== undefined && convert(account, mint) >= parseFloat(amount),
     }),
-    [
-      mintAddress,
-      account,
-      mint,
-      amount,
-      tokenMap,
-      setAmount,
-      setMintAddress,
-      amount,
-    ]
+    [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress]
   );
 };
 
@@ -154,6 +146,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     if (!defaultBase || !defaultQuote) {
       return;
     }
+
     setMintAddressA(
       tokens.find((t) => t.tokenSymbol === defaultBase)?.mintAddress ||
         (isValidAddress(defaultBase) ? defaultBase : "") ||
@@ -220,6 +213,7 @@ export function CurrencyPairProvider({ children = null as any }) {
       value={{
         A: base,
         B: quote,
+        lastTypedAccount,
         setLastTypedAccount,
         setPoolOperation,
       }}

@@ -23,7 +23,7 @@ export const Identicon = (props: {
         )
       );
     }
-  }, [address, style]);
+  }, [address, style, props.className]);
 
   return (
     <div className="identicon-wrapper" ref={ref as any} style={props.style} />

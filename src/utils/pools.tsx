@@ -37,6 +37,8 @@ import {
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
+export const LIQUIDITY_PROVIDER_FEE = 0.003;
+
 export const removeLiquidity = async (
   connection: Connection,
   wallet: any,
