@@ -49,14 +49,15 @@ export function shortenAddress(address: string, chars = 4): string {
 export function getTokenName(
   map: KnownTokenMap,
   mintAddress: string,
-  shorten = true
+  shorten = true,
+  length = 5,
 ): string {
   const knownSymbol = map.get(mintAddress)?.tokenSymbol;
   if (knownSymbol) {
     return knownSymbol;
   }
 
-  return shorten ? `${mintAddress.substring(0, 5)}...` : mintAddress;
+  return shorten ? `${mintAddress.substring(0, length)}...` : mintAddress;
 }
 
 export function getTokenIcon(

@@ -21,10 +21,15 @@ import { PoolInfo, TokenAccount } from "../../models";
 
 const { Option } = Select;
 
-const TokenDisplay = (props: { token: KnownToken; showBalance?: boolean }) => {
-  const { token, showBalance } = props;
-  const tokenMint = useMint(token.mintAddress);
-  const tokenAccount = useAccountByMint(token.mintAddress);
+const TokenDisplay = (props: {
+  name: string;
+  mintAddress: string;
+  icon?: JSX.Element;
+  showBalance?: boolean;
+}) => {
+  const { showBalance, mintAddress, name, icon } = props;
+  const tokenMint = useMint(mintAddress);
+  const tokenAccount = useAccountByMint(mintAddress);
 
   let balance: number = 0;
   let hasBalance: boolean = false;
@@ -39,20 +44,21 @@ const TokenDisplay = (props: { token: KnownToken; showBalance?: boolean }) => {
   return (
     <>
       <div
-        title={token.mintAddress}
-        key={token.mintAddress}
-        style={{ display: "flex", alignItems: "center" }}
+        title={mintAddress}
+        key={mintAddress}
+        style={{ display: "flex", alignItems: "center", justifyContent: 'space-between' }}
       >
-        <TokenIcon mintAddress={token.mintAddress} />
-        {token.tokenSymbol}
-        {showBalance ? (
+        <div style={{ display: 'flex', alignItems: "center"  }}>
+          {icon || <TokenIcon mintAddress={mintAddress} />}
+          {name}
+        </div>
+        {showBalance ?
           <span
             title={balance.toString()}
-            key={token.mintAddress}
+            key={mintAddress}
             className="token-balance"
           >
-            &nbsp;{" "}
-            {hasBalance && balance < 0.001 ? "< 0.001" : balance.toFixed(3)}
+            &nbsp; {hasBalance && balance < 0.001 ? "<0.001" : balance.toFixed(3)}
           </span>
         ) : null}
       </div>
@@ -81,7 +87,12 @@ export const CurrencyInput = (props: {
         name={item.tokenSymbol}
         title={item.mintAddress}
       >
-        <TokenDisplay key={item.mintAddress} token={item} showBalance={true} />
+        <TokenDisplay
+          key={item.mintAddress}
+          name={item.tokenSymbol}
+          mintAddress={item.mintAddress}
+          showBalance={true}
+        />
       </Option>
     );
   });
@@ -126,35 +137,24 @@ export const CurrencyInput = (props: {
 
     let name: string;
     let icon: JSX.Element;
-    let token: KnownToken | undefined;
     if (pool) {
       name = getPoolName(tokenMap, pool);
-
       const sorted = pool.pubkeys.holdingMints
         .map((a: PublicKey) => a.toBase58())
         .sort();
       icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
     } else {
-      token = tokenMap.get(mint);
-      name = getTokenName(tokenMap, mint);
+      name = getTokenName(tokenMap, mint, true, 3);
       icon = <TokenIcon mintAddress={mint} />;
     }
 
     return (
       <Option key={mint} value={mint} name={name}>
-        {pool && !token ? (
-          <div
-            key={mint}
-            title={mint}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            {icon}
-            {name}
-          </div>
-        ) : null}
-        {token ? (
-          <TokenDisplay key={mint} token={token} showBalance={true} />
-        ) : null}
+        <TokenDisplay key={mint} 
+        mintAddress={mint} 
+        name={name} 
+        icon={icon}
+        showBalance={!pool} />
       </Option>
     );
   });
@@ -211,7 +211,7 @@ export const CurrencyInput = (props: {
           <Select
             size="large"
             showSearch
-            style={{ minWidth: 120 }}
+            style={{ minWidth: 150 }}
             placeholder="CCY"
             value={props.mint}
             onChange={(item) => {
