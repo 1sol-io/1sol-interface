@@ -292,27 +292,27 @@ export const YourPosition = (props: { pool?: PoolInfo }) => {
           <div className="pool-card-cell">
             <div style={{ display: "flex", alignItems: "center" }}>
               <PoolIcon mintA={baseMintAddress} mintB={quoteMintAddress} />
-              <h3>{enriched?.name}</h3>
+              <h3 style={{ margin: 0 }}>{enriched?.name}</h3>
             </div>
           </div>
           <div className="pool-card-cell">
-            <h3>{formatPriceNumber.format(ratio * enriched.supply)}</h3>
+            <h3 style={{ margin: 0 }}>{formatPriceNumber.format(ratio * enriched.supply)}</h3>
           </div>
         </div>
-        <div className="pool-card-row">
+        <div className="pool-card-row" style={{ margin: 0 }}>
           <div className="pool-card-cell">Your Share:</div>
           <div className="pool-card-cell">
             {ratio * 100 < 0.001 && ratio > 0 ? "<" : ""}
             {formatPriceNumber.format(ratio * 100)}%
           </div>
         </div>
-        <div className="pool-card-row">
+        <div className="pool-card-row" style={{ margin: 0 }}>
           <div className="pool-card-cell">{enriched.names[0]}:</div>
           <div className="pool-card-cell">
             {formatPriceNumber.format(ratio * enriched.liquidityA)}
           </div>
         </div>
-        <div className="pool-card-row">
+        <div className="pool-card-row" style={{ margin: 0 }}>
           <div className="pool-card-cell">{enriched.names[1]}:</div>
           <div className="pool-card-cell">
             {formatPriceNumber.format(ratio * enriched.liquidityB)}
