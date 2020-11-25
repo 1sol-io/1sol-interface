@@ -5,7 +5,6 @@ import {
   getPoolName,
   getTokenName,
   isKnownMint,
-  KnownToken,
 } from "../../utils/utils";
 import {
   useUserAccounts,
@@ -60,7 +59,7 @@ const TokenDisplay = (props: {
           >
             &nbsp; {hasBalance && balance < 0.001 ? "<0.001" : balance.toFixed(3)}
           </span>
-        ) : null}
+        : null}
       </div>
     </>
   );
