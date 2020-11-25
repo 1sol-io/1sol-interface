@@ -30,6 +30,7 @@ import { AdressesPopover } from "./address";
 import { formatPriceNumber } from "../../utils/utils";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { useEnrichedPools } from "../../context/market";
+import { PoolIcon } from "../tokenIcon";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -202,6 +203,7 @@ export const AddToLiquidity = () => {
         </Button>
       )}
       {!pool && createPoolButton}
+      <YourPosition pool={pool} />
     </>
   );
 };
@@ -232,6 +234,8 @@ export const PoolPrice = (props: {
     <Card
       className="ccy-input"
       style={{ borderRadius: 20, width: "100%" }}
+      bodyStyle={{padding: "7px"}}
+      size="small"
       title="Prices and pool share"
     >
       <Row style={{ width: "100%" }}>
@@ -258,9 +262,87 @@ export const PoolPrice = (props: {
           {enriched.names[1]} per {enriched.names[0]}
         </Col>
         <Col span={8}>
-          Your share
+          Share of pool
         </Col>
       </Row>
     </Card>
   )
 }
+
+
+export const YourPosition = (props: {
+  pool?: PoolInfo
+}) => {
+  const { pool } = props;
+  const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
+    props.pool,
+  ]);
+  const enriched = useEnrichedPools(pools)[0];
+  const { userAccounts } = useUserAccounts();
+  const lpMint = useMint(pool?.pubkeys.mint);
+
+  if(!pool || !enriched) {
+    return null;
+  }
+  const baseMintAddress = pool.pubkeys.holdingMints[0].toBase58();
+  const quoteMintAddress = pool.pubkeys.holdingMints[1].toBase58();
+
+  const ratio =
+    userAccounts
+      .filter((f) => pool.pubkeys.mint.equals(f.info.mint))
+      .reduce((acc, item) => item.info.amount.toNumber() + acc, 0) /
+    (lpMint?.supply.toNumber() || 0);
+
+  return (
+
+    <Card
+      className="ccy-input"
+      style={{ borderRadius: 20, width: "100%" }}
+      bodyStyle={{padding: "7px"}}
+      size="small"
+      title="Your Position"
+    >
+      <div className="pool-card" style={{width: "initial"}}>
+        <div className="pool-card-row">
+          <div className="pool-card-cell">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <PoolIcon
+                mintA={baseMintAddress}
+                mintB={quoteMintAddress}
+              />
+              <h3>{enriched?.name}</h3>
+            </div>
+          </div>
+          <div className="pool-card-cell">
+            <h3>{formatPriceNumber.format(ratio * enriched.supply)}</h3>
+          </div>
+        </div>
+        <div className="pool-card-row">
+          <div className="pool-card-cell">
+            Your Share:
+          </div>
+          <div className="pool-card-cell">
+            {(ratio * 100) < 0.001 && ratio > 0 ? "<" : ""}
+            {formatPriceNumber.format(ratio*100)}%
+          </div>
+        </div>
+        <div className="pool-card-row">
+          <div className="pool-card-cell">
+            {enriched.names[0]}:
+          </div>
+          <div className="pool-card-cell">
+            {formatPriceNumber.format(ratio*enriched.liquidityA)}
+          </div>
+        </div>
+        <div className="pool-card-row">
+          <div className="pool-card-cell">
+          {enriched.names[1]}:
+          </div>
+          <div className="pool-card-cell">
+            {formatPriceNumber.format(ratio*enriched.liquidityB)}
+          </div>
+        </div>
+      </div>
+      </Card>
+  );
+};
