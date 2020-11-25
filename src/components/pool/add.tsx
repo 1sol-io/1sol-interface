@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   addLiquidity,
   usePoolForBasket,
   PoolOperation,
 } from "../../utils/pools";
-import { Button, Dropdown, Popover } from "antd";
+import { Button, Card, Col, Dropdown, Popover, Row } from "antd";
 import { useWallet } from "../../utils/wallet";
 import {
   useConnection,
@@ -18,7 +18,7 @@ import { SupplyOverview } from "./supplyOverview";
 import { CurrencyInput } from "../currencyInput";
 import { DEFAULT_DENOMINATOR, PoolConfigCard } from "./config";
 import "./add.less";
-import { PoolConfig } from "../../models";
+import { PoolConfig, PoolInfo } from "../../models";
 import { SWAP_PROGRAM_OWNER_FEE_ADDRESS } from "../../utils/ids";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import {
@@ -27,6 +27,9 @@ import {
   generateActionLabel,
 } from "../labels";
 import { AdressesPopover } from "./address";
+import { formatPriceNumber } from "../../utils/utils";
+import { useMint, useUserAccounts } from "../../utils/accounts";
+import { useEnrichedPools } from "../../context/market";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -174,6 +177,9 @@ export const AddToLiquidity = () => {
             B.setMint(item);
           }}
         />
+        {pool && (
+          <PoolPrice pool={pool} />
+        )}
         <SupplyOverview pool={pool} />
       </div>
       {pool && (
@@ -199,3 +205,62 @@ export const AddToLiquidity = () => {
     </>
   );
 };
+
+
+export const PoolPrice = (props: {
+  pool: PoolInfo;
+}) => {
+  const pool = props.pool;
+  const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
+    props.pool,
+  ]);
+  const enriched = useEnrichedPools(pools)[0];
+
+  const { userAccounts } = useUserAccounts();
+  const lpMint = useMint(pool.pubkeys.mint);
+
+  const ratio =
+    userAccounts
+      .filter((f) => pool.pubkeys.mint.equals(f.info.mint))
+      .reduce((acc, item) => item.info.amount.toNumber() + acc, 0) /
+    (lpMint?.supply.toNumber() || 0);
+
+  if (!enriched) {
+    return null;
+  }
+  return (
+    <Card
+      className="ccy-input"
+      style={{ borderRadius: 20, width: "100%" }}
+      title="Prices and pool share"
+    >
+      <Row style={{ width: "100%" }}>
+        <Col span={8}>
+          {formatPriceNumber.format(
+            parseFloat(enriched.liquidityA)/parseFloat(enriched.liquidityB)
+          )}
+        </Col>
+        <Col span={8}>
+          {formatPriceNumber.format(
+            parseFloat(enriched.liquidityB)/parseFloat(enriched.liquidityA)
+          )}
+        </Col>
+        <Col span={8}>
+          {(ratio * 100) < 0.001 && ratio > 0 ? "<" : ""}
+          &nbsp;{formatPriceNumber.format(ratio*100)}%
+        </Col>
+      </Row>
+      <Row style={{ width: "100%" }}>
+        <Col span={8}>
+          {enriched.names[0]} per {enriched.names[1]}
+        </Col>
+        <Col span={8}>
+          {enriched.names[1]} per {enriched.names[0]}
+        </Col>
+        <Col span={8}>
+          Your share
+        </Col>
+      </Row>
+    </Card>
+  )
+}
