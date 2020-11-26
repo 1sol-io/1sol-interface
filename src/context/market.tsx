@@ -21,6 +21,7 @@ import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { useMemo } from "react";
 import { PoolInfo } from "../models";
 import { EventEmitter } from "./../utils/eventEmitter";
+import { LIQUIDITY_PROVIDER_FEE } from "../utils/pools";
 
 interface RecentPoolData {
   pool_identifier: string;
@@ -424,7 +425,7 @@ function createEnrichedPools(
           const poolOwnerFees =
             ownedPct * baseReserveUSD + ownedPct * quoteReserveUSD;
           volume = poolOwnerFees / 0.0004;
-          fees = volume * 0.003;
+          fees = volume * LIQUIDITY_PROVIDER_FEE;
 
           if (fees !== 0) {
             const baseVolume = (ownedPct * baseReserveUSD) / 0.0004;
