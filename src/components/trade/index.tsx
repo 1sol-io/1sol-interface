@@ -1,4 +1,4 @@
-import { Button, Popover, Spin, Typography } from "antd";
+import { Button, Card, Popover, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   useConnection,
@@ -11,6 +11,7 @@ import {
   LoadingOutlined,
   SwapOutlined,
   QuestionCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import {
   swap,
@@ -26,6 +27,8 @@ import { colorWarning, getTokenName } from "../../utils/utils";
 import { AdressesPopover } from "../pool/address";
 import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
+import { AppBar } from "../appBar";
+import { Settings } from "../settings";
 
 const { Text } = Typography;
 
@@ -306,3 +309,34 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
     </div>
   ) : null;
 };
+
+export const TradeView = () => {
+  return (
+    <>
+      <AppBar
+        right={
+          <Popover
+            placement="topRight"
+            title="Settings"
+            content={<Settings />}
+            trigger="click"
+          >
+            <Button
+              shape="circle"
+              size="large"
+              type="text"
+              icon={<SettingOutlined />}
+            />
+          </Popover>
+        }
+      />
+      <Card
+        className="exchange-card"
+        headStyle={{ padding: 0 }}
+        bodyStyle={{ position: "relative" }}
+      >
+        <TradeEntry />
+      </Card>
+    </>
+  );
+}
