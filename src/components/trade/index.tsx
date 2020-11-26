@@ -22,7 +22,7 @@ import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
-import { getTokenName } from "../../utils/utils";
+import { colorWarning, getTokenName } from "../../utils/utils";
 import { AdressesPopover } from "../pool/address";
 import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
@@ -178,14 +178,13 @@ export const TradeEntry = () => {
 };
 
 export const TradeInfo = (props: { pool?: PoolInfo }) => {
-  const { A, B, lastTypedAccount } = useCurrencyPairState();
+  const { A, B } = useCurrencyPairState();
   const { pool } = props;
   const { slippage } = useSlippageConfig();
   const pools = useMemo(() => (pool ? [pool] : []), [pool]);
   const enriched = useEnrichedPools(pools);
 
   const [amountOut, setAmountOut] = useState(0);
-  const [maxMinLabel, setMaxMinLabelOut] = useState("");
   const [priceImpact, setPriceImpact] = useState(0);
   const [lpFee, setLpFee] = useState(0);
   const [exchangeRate, setExchangeRate] = useState(0);
@@ -198,7 +197,6 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
     if (B.amount) {
       const minAmountOut = parseFloat(B?.amount) * (1 - slippage);
       setAmountOut(minAmountOut);
-      setMaxMinLabelOut("Minimun Received");
     }
     const liqA = enriched[0].liquidityA;
     const liqB = enriched[0].liquidityB;
@@ -209,20 +207,19 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
     const calculatedRatio =
       parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount);
     // % difference between pool ratio and  calculated ratio
+    console.log("mayot", calculatedRatio, supplyRatio, enrichedA.amount, enrichedB.amount)
     setPriceImpact(Math.abs(100 - (calculatedRatio * 100) / supplyRatio));
 
     // 6 decimals without trailing zeros
     const lpFeeStr = (parseFloat(A.amount) * LIQUIDITY_PROVIDER_FEE).toFixed(6);
     setLpFee(parseFloat(lpFeeStr));
-  }, [A, B, slippage, lastTypedAccount, pool, enriched]);
 
-  useEffect(() => {
     if (priceAccount === B.mintAddress) {
       setExchangeRate(parseFloat(B.amount) / parseFloat(A.amount));
     } else {
       setExchangeRate(parseFloat(A.amount) / parseFloat(B.amount));
     }
-  }, [A, B, priceAccount]);
+  }, [B, slippage, pool, enriched, priceAccount]);
 
   const handleSwapPriceInfo = () => {
     if (priceAccount !== B.mintAddress) {
@@ -260,7 +257,7 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
               </div>
             }
           >
-            {maxMinLabel} <QuestionCircleOutlined />
+            Minimun Received <QuestionCircleOutlined />
           </Popover>
         </Text>
         <div className="pool-card-cell " title={amountOut.toString()}>
@@ -281,7 +278,11 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
             Price Impact <QuestionCircleOutlined />
           </Popover>
         </Text>
-        <div className="pool-card-cell " title={priceImpact.toString()}>
+        <div
+          className="pool-card-cell "
+          title={priceImpact.toString()}
+          style={{ color: colorWarning(priceImpact)}}
+        >
           {priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%"}
         </div>
       </div>
