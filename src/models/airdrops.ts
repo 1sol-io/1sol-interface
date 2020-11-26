@@ -6,8 +6,6 @@ interface PoolAirdrop {
     mint: PublicKey;
     amount: number;
   }[];
-};
+}
 
-export const POOLS_WITH_AIRDROP: PoolAirdrop[] = [
- 
-];
+export const POOLS_WITH_AIRDROP: PoolAirdrop[] = [];
