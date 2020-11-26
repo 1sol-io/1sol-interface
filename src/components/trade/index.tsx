@@ -207,7 +207,6 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
     const calculatedRatio =
       parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount);
     // % difference between pool ratio and  calculated ratio
-    console.log("mayot", calculatedRatio, supplyRatio, enrichedA.amount, enrichedB.amount)
     setPriceImpact(Math.abs(100 - (calculatedRatio * 100) / supplyRatio));
 
     // 6 decimals without trailing zeros
@@ -281,7 +280,7 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
         <div
           className="pool-card-cell "
           title={priceImpact.toString()}
-          style={{ color: colorWarning(priceImpact)}}
+          style={{ color: colorWarning(priceImpact) }}
         >
           {priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%"}
         </div>

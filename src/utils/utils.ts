@@ -167,10 +167,7 @@ export const formatPriceNumber = new Intl.NumberFormat("en-US", {
 
 // returns a Color from a 4 color array, green to red, depending on the index
 // of the closer (up) checkpoint number from the value
-export const colorWarning = (
-  value = 0,
-  valueCheckpoints = [1, 3, 5, 100],
-) => {
+export const colorWarning = (value = 0, valueCheckpoints = [1, 3, 5, 100]) => {
   const defaultIndex = 1;
   const colorCodes = ["#27ae60", "inherit", "#f3841e", "#ff3945"];
   if (value > valueCheckpoints[valueCheckpoints.length - 1]) {
@@ -179,18 +176,16 @@ export const colorWarning = (
   const closest = [...valueCheckpoints].sort((a, b) => {
     const first = a - value < 0 ? Number.POSITIVE_INFINITY : a - value;
     const second = b - value < 0 ? Number.POSITIVE_INFINITY : b - value;
-    if ( first <second ) {
+    if (first < second) {
       return -1;
-    } else if (first>second) {
+    } else if (first > second) {
       return 1;
     }
     return 0;
-  })[0]
+  })[0];
   const index = valueCheckpoints.indexOf(closest);
-
-  console.log(value, closest, index)
   if (index !== -1) {
     return colorCodes[index];
   }
   return colorCodes[defaultIndex];
-}
+};
