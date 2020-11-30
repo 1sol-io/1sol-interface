@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useConnection } from "./connection";
 import { useWallet } from "./wallet";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
@@ -374,7 +374,7 @@ export function AccountsProvider({ children = null as any }) {
   const { nativeAccount } = UseNativeAccount();
   const { pools } = usePools();
 
-  const publicKey = useMemo(() => wallet?.publicKey, [wallet, connected]);
+  const publicKey = wallet?.publicKey;
 
   const selectUserAccounts = useCallback(() => {
     return [...accountsCache.values()].filter(
