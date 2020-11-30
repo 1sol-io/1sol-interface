@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useConnection } from "./connection";
 import { useWallet } from "./wallet";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
@@ -192,6 +192,11 @@ export const cache = {
     accountsCache.set(account.pubkey.toBase58(), account);
     return account;
   },
+  deleteAccount: (pubkey: PublicKey) => {
+    const id = pubkey?.toBase58();
+    accountsCache.delete(id);
+    accountEmitter.raiseAccountUpdated(id);
+  },
   getAccount: (pubKey: string | PublicKey) => {
     let key: string;
     if (typeof pubKey !== "string") {
@@ -369,22 +374,23 @@ export function AccountsProvider({ children = null as any }) {
   const { nativeAccount } = UseNativeAccount();
   const { pools } = usePools();
 
+  const publicKey = useMemo(() => wallet?.publicKey, [wallet, connected]);
+
   const selectUserAccounts = useCallback(() => {
     return [...accountsCache.values()].filter(
-      (a) => a.info.owner.toBase58() === wallet.publicKey.toBase58()
+      (a) => a.info.owner.toBase58() === publicKey?.toBase58()
     );
-  }, [wallet]);
+  }, [publicKey]);
 
   useEffect(() => {
     setUserAccounts(
       [
-        wrapNativeAccount(wallet.publicKey, nativeAccount),
+        wrapNativeAccount(publicKey, nativeAccount),
         ...tokenAccounts,
       ].filter((a) => a !== undefined) as TokenAccount[]
     );
-  }, [nativeAccount, wallet, tokenAccounts]);
-
-  const publicKey = wallet?.publicKey;
+  }, [nativeAccount, publicKey, tokenAccounts]);
+  
   useEffect(() => {
     if (!connection || !publicKey) {
       setTokenAccounts([]);
@@ -395,6 +401,10 @@ export function AccountsProvider({ children = null as any }) {
       precacheUserTokenAccounts(connection, publicKey).then(() => {
         setTokenAccounts(selectUserAccounts());
       });
+
+      const dispose = accountEmitter.onAccount(() => {
+        setTokenAccounts(selectUserAccounts());
+      })
 
       // This can return different types of accounts: token-account, mint, multisig
       // TODO: web3.js expose ability to filter. discuss filter syntax
@@ -420,7 +430,6 @@ export function AccountsProvider({ children = null as any }) {
               accountsCache.has(id)
             ) {
               accountsCache.set(id, details);
-              setTokenAccounts(selectUserAccounts());
               accountEmitter.raiseAccountUpdated(id);
             }
           } else if (info.accountInfo.data.length === MintLayout.span) {
@@ -428,7 +437,6 @@ export function AccountsProvider({ children = null as any }) {
               const data = Buffer.from(info.accountInfo.data);
               const mint = deserializeMint(data);
               mintCache.set(id, mint);
-              accountEmitter.raiseAccountUpdated(id);
             }
 
             accountEmitter.raiseAccountUpdated(id);
@@ -443,6 +451,7 @@ export function AccountsProvider({ children = null as any }) {
 
       return () => {
         connection.removeProgramAccountChangeListener(tokenSubID);
+        dispose();
       };
     }
   }, [connection, connected, publicKey, selectUserAccounts]);

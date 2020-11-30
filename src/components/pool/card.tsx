@@ -3,7 +3,7 @@ import { Card, Typography } from "antd";
 import { RemoveLiquidity } from "./remove";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
-import { PoolInfo } from "../../models";
+import { PoolInfo, TokenAccount } from "../../models";
 import "./view.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatNumber, formatPct, formatUSD } from "../../utils/utils";
@@ -12,7 +12,7 @@ import { SupplyOverview } from "./supplyOverview";
 
 const { Text } = Typography;
 
-export const PoolCard = (props: { pool: PoolInfo }) => {
+export const PoolCard = (props: { pool: PoolInfo, account?: TokenAccount }) => {
   const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
     props.pool,
   ]);
@@ -20,23 +20,14 @@ export const PoolCard = (props: { pool: PoolInfo }) => {
   const { userAccounts } = useUserAccounts();
 
   const pool = props.pool;
+  const account = props.account;
 
   const baseMintAddress = pool.pubkeys.holdingMints[0].toBase58();
   const quoteMintAddress = pool.pubkeys.holdingMints[1].toBase58();
   const lpMint = useMint(pool.pubkeys.mint);
 
-  const ratio =
-    userAccounts
-      .filter((f) => pool.pubkeys.mint.equals(f.info.mint))
-      .reduce((acc, item) => item.info.amount.toNumber() + acc, 0) /
+  const ratio = (account?.info.amount.toNumber() || 0) /
     (lpMint?.supply.toNumber() || 0);
-
-  const sortedUserAccounts = userAccounts
-    .filter((f) => pool.pubkeys.mint.equals(f.info.mint))
-    .sort((a, b) => a.info.amount.toNumber() - b.info.amount.toNumber());
-
-  const largestUserAccount =
-    sortedUserAccounts.length > 0 ? sortedUserAccounts[0] : null;
 
   if (!enriched) {
     return null;
@@ -208,8 +199,8 @@ export const PoolCard = (props: { pool: PoolInfo }) => {
       <SupplyOverview pool={pool} />
       <div className="pool-card-row">
         {/* {item && <Button type="default" onClick={setPair}>Add</Button>} */}
-        {largestUserAccount && (
-          <RemoveLiquidity instance={{ pool, account: largestUserAccount }} />
+        {props.account && (
+          <RemoveLiquidity instance={{ pool, account: props.account }} />
         )}
       </div>
     </Card>

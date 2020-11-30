@@ -135,12 +135,29 @@ export const removeLiquidity = async (
     )
   );
 
+  const deleteAccount = liquidityAmount === account.info.amount.toNumber();
+  if (deleteAccount) {
+    instructions.push(
+      Token.createCloseAccountInstruction(
+        programIds().token,
+        account.pubkey,
+        authority,
+        wallet.publicKey,
+        []
+      )
+    );
+  }
+
   let tx = await sendTransaction(
     connection,
     wallet,
     instructions.concat(cleanupInstructions),
     signers
   );
+
+  if(deleteAccount) {
+    cache.deleteAccount(account.pubkey);
+  }
 
   notify({
     message: "Liquidity Returned. Thank you for your support.",
@@ -172,7 +189,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0]?.toBase58() ===
-    components[0].account.info.mint.toBase58()
+      components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -227,14 +244,14 @@ export const swap = async (
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-        wallet.publicKey,
-        SWAP_HOST_FEE_ADDRESS,
-        instructions,
-        cleanupInstructions,
-        accountRentExempt,
-        pool.pubkeys.mint,
-        signers
-      )
+      wallet.publicKey,
+      SWAP_HOST_FEE_ADDRESS,
+      instructions,
+      cleanupInstructions,
+      accountRentExempt,
+      pool.pubkeys.mint,
+      signers
+    )
     : undefined;
 
   // swap
@@ -333,7 +350,7 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => {},
+            init: async () => { },
           };
 
           // handling of legacy layout can be removed soon...
