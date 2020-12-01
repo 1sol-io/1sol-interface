@@ -1,18 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Button, Card, Popover, Table, Tooltip, Typography } from "antd";
-import { AppBar } from "./../appBar";
-import { Settings } from "../settings";
-import {
-  SettingOutlined,
-  TableOutlined,
-  OneToOneOutlined,
-} from "@ant-design/icons";
+import React, { useEffect, useRef } from "react";
+import { Card } from "antd";
 import "./styles.less";
 import echarts from "echarts";
 import { PoolInfo } from "../../models";
