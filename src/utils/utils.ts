@@ -164,3 +164,8 @@ export const formatPriceNumber = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 8,
 });
+
+export const formatShortDate = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+});
