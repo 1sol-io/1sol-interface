@@ -21,7 +21,7 @@ import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { useMemo } from "react";
 import { PoolInfo } from "../models";
 import { EventEmitter } from "./../utils/eventEmitter";
-import { LIQUIDITY_PROVIDER_FEE } from "../utils/pools";
+import { LIQUIDITY_PROVIDER_FEE, SERUM_FEE } from "../utils/pools";
 
 interface RecentPoolData {
   pool_identifier: string;
@@ -405,7 +405,7 @@ function createEnrichedPools(
       let volume = 0;
       let volume24h =
         baseMid * (poolData?.get(p.pubkeys.mint.toBase58())?.volume24hA || 0);
-      let fees24h = volume24h * 0.0025;
+      let fees24h = volume24h * (LIQUIDITY_PROVIDER_FEE - SERUM_FEE);
       let fees = 0;
       let apy = airdropYield;
       let apy24h = airdropYield;
@@ -438,17 +438,17 @@ function createEnrichedPools(
             );
             const apy0 =
               parseFloat(
-                ((baseVolume / daysSinceInception) * 0.003 * 356) as any
+                ((baseVolume / daysSinceInception) * LIQUIDITY_PROVIDER_FEE * 356) as any
               ) / baseReserveUSD;
             const apy1 =
               parseFloat(
-                ((quoteVolume / daysSinceInception) * 0.003 * 356) as any
+                ((quoteVolume / daysSinceInception) * LIQUIDITY_PROVIDER_FEE * 356) as any
               ) / quoteReserveUSD;
 
             apy = apy + Math.max(apy0, apy1);
 
             const apy24h0 =
-              parseFloat((volume24h * 0.003 * 356) as any) / baseReserveUSD;
+              parseFloat((volume24h * LIQUIDITY_PROVIDER_FEE * 356) as any) / baseReserveUSD;
             apy24h = apy24h + apy24h0;
           }
         }
