@@ -104,7 +104,7 @@ export const HistoricalVolume = React.memo(
       return () => {
         echartsRef.current.dispose();
       };
-    }, []);
+    });
     return <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />;
   }
 );
@@ -194,7 +194,7 @@ export const HistoricalLiquidity = React.memo(
       return () => {
         echartsRef.current.dispose();
       };
-    }, []);
+    });
     return <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />;
   }
 );
