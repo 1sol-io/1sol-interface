@@ -37,7 +37,7 @@ export const TokenIcon = (props: {
       address={props.mintAddress}
       style={{
         marginRight: "0.5rem",
-        display: 'flex',
+        display: "flex",
         alignSelf: "center",
         width: 20,
         height: 20,

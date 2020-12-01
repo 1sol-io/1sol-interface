@@ -296,7 +296,9 @@ export const YourPosition = (props: { pool?: PoolInfo }) => {
             </div>
           </div>
           <div className="pool-card-cell">
-            <h3 style={{ margin: 0 }}>{formatPriceNumber.format(ratio * enriched.supply)}</h3>
+            <h3 style={{ margin: 0 }}>
+              {formatPriceNumber.format(ratio * enriched.supply)}
+            </h3>
           </div>
         </div>
         <div className="pool-card-row" style={{ margin: 0 }}>
