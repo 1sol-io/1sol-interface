@@ -7,13 +7,22 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
-import { LoadingOutlined, SwapOutlined, QuestionCircleOutlined } from "@ant-design/icons";
-import { swap, usePoolForBasket, PoolOperation, LIQUIDITY_PROVIDER_FEE } from "../../utils/pools";
+import {
+  LoadingOutlined,
+  SwapOutlined,
+  QuestionCircleOutlined,
+} from "@ant-design/icons";
+import {
+  swap,
+  usePoolForBasket,
+  PoolOperation,
+  LIQUIDITY_PROVIDER_FEE,
+} from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
-import { getTokenName } from "../../utils/utils";
+import { colorWarning, getTokenName } from "../../utils/utils";
 import { AdressesPopover } from "../pool/address";
 import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
@@ -26,7 +35,6 @@ const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 // Compute price breakdown with/without fee
 // Show slippage
 // Show fee information
-
 
 export const TradeEntry = () => {
   const { wallet, connected } = useWallet();
@@ -169,138 +177,122 @@ export const TradeEntry = () => {
   );
 };
 
-
-export const TradeInfo = (props: {
-  pool?: PoolInfo;
-}) => {
-  const {
-    A,
-    B,
-    lastTypedAccount,
-  } = useCurrencyPairState();
+export const TradeInfo = (props: { pool?: PoolInfo }) => {
+  const { A, B } = useCurrencyPairState();
   const { pool } = props;
   const { slippage } = useSlippageConfig();
   const pools = useMemo(() => (pool ? [pool] : []), [pool]);
   const enriched = useEnrichedPools(pools);
 
   const [amountOut, setAmountOut] = useState(0);
-  const [maxMinLabel, setMaxMinLabelOut] = useState("");
   const [priceImpact, setPriceImpact] = useState(0);
   const [lpFee, setLpFee] = useState(0);
   const [exchangeRate, setExchangeRate] = useState(0);
   const [priceAccount, setPriceAccount] = useState("");
 
   useEffect(() => {
-
     if (!pool || enriched.length === 0) {
       return;
     }
-    if(B.amount) {
+    if (B.amount) {
       const minAmountOut = parseFloat(B?.amount) * (1 - slippage);
       setAmountOut(minAmountOut);
-      setMaxMinLabelOut("Minimun Received");
     }
-    // else if(A.amount && lastTypedAccount === B.mintAddress) {
-    //   const maxAmountOut = ;
-    //   setAmountOut(maxAmountOut);
-    //   setMaxMinLabelOut("Maximun Sold");
-    // }
     const liqA = enriched[0].liquidityA;
     const liqB = enriched[0].liquidityB;
-    const supplyRatio = (liqA / liqB);
+    const supplyRatio = liqA / liqB;
     // We need to make sure the order matched the pool's accounts order
     const enrichedA = A.mintAddress === enriched[0].mints[0] ? A : B;
     const enrichedB = enrichedA.mintAddress === A.mintAddress ? B : A;
-    const calculatedRatio = (
-      parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount)
-    );
+    const calculatedRatio =
+      parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount);
     // % difference between pool ratio and  calculated ratio
-    setPriceImpact(Math.abs(100 - (calculatedRatio*100) / supplyRatio))
+    setPriceImpact(Math.abs(100 - (calculatedRatio * 100) / supplyRatio));
 
     // 6 decimals without trailing zeros
-    const lpFeeStr = (parseFloat(A.amount) * LIQUIDITY_PROVIDER_FEE).toFixed(6)
-    setLpFee(parseFloat(lpFeeStr))
-  }, [A, B, slippage, lastTypedAccount, pool, enriched]);
+    const lpFeeStr = (parseFloat(A.amount) * LIQUIDITY_PROVIDER_FEE).toFixed(6);
+    setLpFee(parseFloat(lpFeeStr));
 
-  useEffect(() => {
-    if(priceAccount === B.mintAddress) {
-      setExchangeRate(parseFloat(B.amount) / parseFloat(A.amount))
+    if (priceAccount === B.mintAddress) {
+      setExchangeRate(parseFloat(B.amount) / parseFloat(A.amount));
     } else {
-      setExchangeRate(parseFloat(A.amount) / parseFloat(B.amount))
+      setExchangeRate(parseFloat(A.amount) / parseFloat(B.amount));
     }
-  }, [A, B, priceAccount])
+  }, [B, slippage, pool, enriched, priceAccount]);
 
   const handleSwapPriceInfo = () => {
-    if(priceAccount !== B.mintAddress) {
-      setPriceAccount(B.mintAddress)
+    if (priceAccount !== B.mintAddress) {
+      setPriceAccount(B.mintAddress);
     } else {
-      setPriceAccount(A.mintAddress)
+      setPriceAccount(A.mintAddress);
     }
-  }
-  return (!!parseFloat(B.amount) ?
-    <div className="pool-card" style={{width: "initial"}}>
+  };
+  return !!parseFloat(B.amount) ? (
+    <div className="pool-card" style={{ width: "initial" }}>
       <div className="pool-card-row">
-        <Text className="pool-card-cell" >
-          Price
-        </Text>
+        <Text className="pool-card-cell">Price</Text>
         <div className="pool-card-cell " title={exchangeRate.toString()}>
-           <Button
+          <Button
             shape="circle"
             size="middle"
             type="text"
             icon={<SwapOutlined />}
             onClick={handleSwapPriceInfo}
           >
-            { exchangeRate.toFixed(6) }&nbsp;
+            {exchangeRate.toFixed(6)}&nbsp;
             {priceAccount === B.mintAddress ? B.name : A.name} per&nbsp;
             {priceAccount === B.mintAddress ? A.name : B.name}&nbsp;
           </Button>
         </div>
       </div>
       <div className="pool-card-row">
-        <Text className="pool-card-cell" >
+        <Text className="pool-card-cell">
           <Popover
             trigger="hover"
             content={
               <div style={{ width: 300 }}>
-                You transaction will revert if there is a large, unfavorable price
-                movement before it is confirmed.
+                You transaction will revert if there is a large, unfavorable
+                price movement before it is confirmed.
               </div>
             }
           >
-            { maxMinLabel } <QuestionCircleOutlined />
+            Minimun Received <QuestionCircleOutlined />
           </Popover>
         </Text>
         <div className="pool-card-cell " title={amountOut.toString()}>
-        { amountOut.toFixed(6) } { B.name}
+          {amountOut.toFixed(6)} {B.name}
         </div>
       </div>
       <div className="pool-card-row">
-        <Text className="pool-card-cell" >
+        <Text className="pool-card-cell">
           <Popover
             trigger="hover"
             content={
               <div style={{ width: 300 }}>
-               The difference between the market price and
-               estimated price due to trade size.
+                The difference between the market price and estimated price due
+                to trade size.
               </div>
             }
           >
             Price Impact <QuestionCircleOutlined />
           </Popover>
         </Text>
-        <div className="pool-card-cell " title={priceImpact.toString()}>
-          { priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%" }
+        <div
+          className="pool-card-cell "
+          title={priceImpact.toString()}
+          style={{ color: colorWarning(priceImpact) }}
+        >
+          {priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%"}
         </div>
       </div>
       <div className="pool-card-row">
-        <Text className="pool-card-cell" >
+        <Text className="pool-card-cell">
           <Popover
             trigger="hover"
             content={
               <div style={{ width: 300 }}>
-               A portion of each trade ({LIQUIDITY_PROVIDER_FEE * 100}%)
-               goes to liquidity providers as a protocol incentive.
+                A portion of each trade ({LIQUIDITY_PROVIDER_FEE * 100}%) goes
+                to liquidity providers as a protocol incentive.
               </div>
             }
           >
@@ -308,9 +300,9 @@ export const TradeInfo = (props: {
           </Popover>
         </Text>
         <div className="pool-card-cell " title={lpFee.toString()}>
-         { lpFee } { A.name }
+          {lpFee} {A.name}
         </div>
       </div>
     </div>
-  : null);
-}
+  ) : null;
+};

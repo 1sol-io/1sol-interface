@@ -1,11 +1,7 @@
 import React from "react";
 import { Card, Select } from "antd";
 import { NumericInput } from "../numericInput";
-import {
-  getPoolName,
-  getTokenName,
-  isKnownMint,
-} from "../../utils/utils";
+import { getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
 import {
   useUserAccounts,
   useMint,
@@ -45,21 +41,26 @@ const TokenDisplay = (props: {
       <div
         title={mintAddress}
         key={mintAddress}
-        style={{ display: "flex", alignItems: "center", justifyContent: 'space-between' }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
       >
-        <div style={{ display: 'flex', alignItems: "center"  }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           {icon || <TokenIcon mintAddress={mintAddress} />}
           {name}
         </div>
-        {showBalance ?
+        {showBalance ? (
           <span
             title={balance.toString()}
             key={mintAddress}
             className="token-balance"
           >
-            &nbsp; {hasBalance && balance < 0.001 ? "<0.001" : balance.toFixed(3)}
+            &nbsp;{" "}
+            {hasBalance && balance < 0.001 ? "<0.001" : balance.toFixed(3)}
           </span>
-        : null}
+        ) : null}
       </div>
     </>
   );
@@ -149,11 +150,13 @@ export const CurrencyInput = (props: {
 
     return (
       <Option key={mint} value={mint} name={name}>
-        <TokenDisplay key={mint} 
-        mintAddress={mint} 
-        name={name} 
-        icon={icon}
-        showBalance={!pool} />
+        <TokenDisplay
+          key={mint}
+          mintAddress={mint}
+          name={name}
+          icon={icon}
+          showBalance={!pool}
+        />
       </Option>
     );
   });
