@@ -200,7 +200,7 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
               </div>
               <div className="small">
                 <ExplorerLink
-                  address={pool.pubkeys.holdingAccounts[0]}
+                  address={enriched.accounts[0]}
                   type="account"
                   style={small}
                   length={4}
@@ -212,7 +212,7 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
               </div>
               <div className="small">
                 <ExplorerLink
-                  address={pool.pubkeys.holdingAccounts[1]}
+                  address={enriched.accounts[1]}
                   type="account"
                   style={small}
                   length={4}
