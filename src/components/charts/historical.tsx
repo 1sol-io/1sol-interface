@@ -69,6 +69,7 @@ export const HistoricalVolume = React.memo(
           },
           xAxis: [
             {
+              inverse: true,
               name: "Date",
               nameLocation: "middle",
               type: "category",
@@ -87,8 +88,7 @@ export const HistoricalVolume = React.memo(
           ],
           series: [
             {
-              type: "bar",
-              barWidth: "50%",
+              type: "line",
               data: volumeData.map((d) => d.volume),
             },
           ],
@@ -157,6 +157,7 @@ export const HistoricalLiquidity = React.memo(
           },
           xAxis: [
             {
+              inverse: true,
               name: "Date",
               nameLocation: "middle",
               type: "category",
@@ -175,8 +176,7 @@ export const HistoricalLiquidity = React.memo(
           ],
           series: [
             {
-              type: "bar",
-              barWidth: "50%",
+              type: "line",
               data: liquidityData.map(
                 (d) => d.liquidityAinUsd + d.liquidityBinUsd
               ),
