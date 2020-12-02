@@ -438,17 +438,22 @@ function createEnrichedPools(
             );
             const apy0 =
               parseFloat(
-                ((baseVolume / daysSinceInception) * LIQUIDITY_PROVIDER_FEE * 356) as any
+                ((baseVolume / daysSinceInception) *
+                  LIQUIDITY_PROVIDER_FEE *
+                  356) as any
               ) / baseReserveUSD;
             const apy1 =
               parseFloat(
-                ((quoteVolume / daysSinceInception) * LIQUIDITY_PROVIDER_FEE * 356) as any
+                ((quoteVolume / daysSinceInception) *
+                  LIQUIDITY_PROVIDER_FEE *
+                  356) as any
               ) / quoteReserveUSD;
 
             apy = apy + Math.max(apy0, apy1);
 
             const apy24h0 =
-              parseFloat((volume24h * LIQUIDITY_PROVIDER_FEE * 356) as any) / baseReserveUSD;
+              parseFloat((volume24h * LIQUIDITY_PROVIDER_FEE * 356) as any) /
+              baseReserveUSD;
             apy24h = apy24h + apy24h0;
           }
         }

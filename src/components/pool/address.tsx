@@ -90,9 +90,7 @@ export const AccountsAddress = (props: {
   );
 };
 
-export const AdressesPopover = (props: {
-  pool?: PoolInfo;
-}) => {
+export const AdressesPopover = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
 
   return (
