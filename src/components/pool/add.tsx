@@ -327,7 +327,6 @@ export const YourPosition = (props: { pool?: PoolInfo }) => {
   );
 };
 
-
 export const AddToLiquidityView = () => {
   return (
     <>
@@ -357,4 +356,4 @@ export const AddToLiquidityView = () => {
       </Card>
     </>
   );
-}
+};

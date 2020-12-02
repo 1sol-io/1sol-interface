@@ -221,7 +221,7 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
     } else {
       setExchangeRate(parseFloat(A.amount) / parseFloat(B.amount));
     }
-  }, [B, slippage, pool, enriched, priceAccount]);
+  }, [A, B, slippage, pool, enriched, priceAccount]);
 
   const handleSwapPriceInfo = () => {
     if (priceAccount !== B.mintAddress) {
@@ -339,4 +339,4 @@ export const TradeView = () => {
       </Card>
     </>
   );
-}
+};
