@@ -12,7 +12,7 @@ import { SupplyOverview } from "./supplyOverview";
 
 const { Text } = Typography;
 
-export const PoolCard = (props: { pool: PoolInfo, account?: TokenAccount }) => {
+export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
   const pools = useMemo(() => [props.pool].filter((p) => p) as PoolInfo[], [
     props.pool,
   ]);
@@ -26,8 +26,8 @@ export const PoolCard = (props: { pool: PoolInfo, account?: TokenAccount }) => {
   const quoteMintAddress = pool.pubkeys.holdingMints[1].toBase58();
   const lpMint = useMint(pool.pubkeys.mint);
 
-  const ratio = (account?.info.amount.toNumber() || 0) /
-    (lpMint?.supply.toNumber() || 0);
+  const ratio =
+    (account?.info.amount.toNumber() || 0) / (lpMint?.supply.toNumber() || 0);
 
   if (!enriched) {
     return null;

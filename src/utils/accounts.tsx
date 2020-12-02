@@ -384,13 +384,12 @@ export function AccountsProvider({ children = null as any }) {
 
   useEffect(() => {
     setUserAccounts(
-      [
-        wrapNativeAccount(publicKey, nativeAccount),
-        ...tokenAccounts,
-      ].filter((a) => a !== undefined) as TokenAccount[]
+      [wrapNativeAccount(publicKey, nativeAccount), ...tokenAccounts].filter(
+        (a) => a !== undefined
+      ) as TokenAccount[]
     );
   }, [nativeAccount, publicKey, tokenAccounts]);
-  
+
   useEffect(() => {
     if (!connection || !publicKey) {
       setTokenAccounts([]);
@@ -404,7 +403,7 @@ export function AccountsProvider({ children = null as any }) {
 
       const dispose = accountEmitter.onAccount(() => {
         setTokenAccounts(selectUserAccounts());
-      })
+      });
 
       // This can return different types of accounts: token-account, mint, multisig
       // TODO: web3.js expose ability to filter. discuss filter syntax

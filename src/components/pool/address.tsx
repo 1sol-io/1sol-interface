@@ -3,6 +3,8 @@ import { Button, Col, Popover, Row } from "antd";
 import { PoolInfo } from "../../models";
 import { CopyOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { ExplorerLink } from "./../explorerLink";
+import { useConnectionConfig } from "../../utils/connection";
+import { getTokenName } from "../../utils/utils";
 
 const Address = (props: {
   address: string;
@@ -53,12 +55,20 @@ export const PoolAddress = (props: {
 export const AccountsAddress = (props: {
   pool?: PoolInfo;
   style?: React.CSSProperties;
-  aName?: string;
-  bName?: string;
 }) => {
   const { pool } = props;
+  const { tokenMap } = useConnectionConfig();
   const account1 = pool?.pubkeys.holdingAccounts[0];
   const account2 = pool?.pubkeys.holdingAccounts[1];
+  const mint1 = pool?.pubkeys.holdingMints[0];
+  const mint2 = pool?.pubkeys.holdingMints[1];
+  let aName, bName;
+  if (mint1) {
+    aName = getTokenName(tokenMap, mint1.toBase58());
+  }
+  if (mint2) {
+    bName = getTokenName(tokenMap, mint2.toBase58());
+  }
 
   return (
     <>
@@ -66,26 +76,22 @@ export const AccountsAddress = (props: {
         <Address
           address={account1.toBase58()}
           style={props.style}
-          label={props.aName}
+          label={aName}
         />
       )}
       {account2 && (
         <Address
           address={account2.toBase58()}
           style={props.style}
-          label={props.bName}
+          label={bName}
         />
       )}
     </>
   );
 };
 
-export const AdressesPopover = (props: {
-  pool?: PoolInfo;
-  aName?: string;
-  bName?: string;
-}) => {
-  const { pool, aName, bName } = props;
+export const AdressesPopover = (props: { pool?: PoolInfo }) => {
+  const { pool } = props;
 
   return (
     <Popover
@@ -95,7 +101,7 @@ export const AdressesPopover = (props: {
       content={
         <>
           <PoolAddress pool={pool} showLabel={true} label={"Pool"} />
-          <AccountsAddress pool={pool} aName={aName} bName={bName} />
+          <AccountsAddress pool={pool} />
         </>
       }
     >
