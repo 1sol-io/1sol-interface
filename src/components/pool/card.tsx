@@ -244,8 +244,8 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
         </>
       ) : (
         <>
-          <HistoricalLiquidity pool={pool} poolName="" />
-          <HistoricalVolume pool={pool} poolName="" />
+          <HistoricalLiquidity pool={pool} />
+          <HistoricalVolume pool={pool} />
         </>
       )}
     </Card>

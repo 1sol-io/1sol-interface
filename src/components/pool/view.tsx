@@ -33,7 +33,11 @@ export const PoolOverview = () => {
       />
       <div className="pool-grid">
         {owned.map((o) => (
-          <PoolCard pool={o.pool} account={o.account} />
+          <PoolCard
+            key={o.pool.pubkeys.account.toBase58()}
+            pool={o.pool}
+            account={o.account}
+          />
         ))}
         {!connected && <h3>Connect to a wallet to view your liquidity.</h3>}
       </div>
