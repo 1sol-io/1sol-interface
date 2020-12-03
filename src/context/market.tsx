@@ -472,6 +472,7 @@ function createEnrichedPools(
         id: index,
         name,
         names: mints.map((m) => getTokenName(tokenMap, m)),
+        accounts: [accountA?.pubkey, accountB?.pubkey],
         address: p.pubkeys.mint.toBase58(),
         link,
         mints,

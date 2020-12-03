@@ -169,70 +169,70 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
             </div>
           </div>
 
-          <div className="pool-card-row">
-            <Text type="secondary" className="pool-card-cell ">
-              Volume (24h):
-            </Text>
-            <div className="pool-card-cell ">
-              {formatUSD.format(enriched.volume24h)}
-            </div>
+        <div className="pool-card-row">
+          <Text type="secondary" className="pool-card-cell ">
+            Volume (24h):
+          </Text>
+          <div className="pool-card-cell ">
+            {formatUSD.format(enriched.volume24h)}
           </div>
-          <div className="pool-card-row">
-            <Text type="secondary" className="pool-card-cell ">
-              Fees (24h):
-            </Text>
-            <div className="pool-card-cell ">
-              {formatUSD.format(enriched.fees24h)}
-            </div>
+        </div>
+        <div className="pool-card-row">
+          <Text type="secondary" className="pool-card-cell ">
+            Fees (24h):
+          </Text>
+          <div className="pool-card-cell ">
+            {formatUSD.format(enriched.fees24h)}
           </div>
-          <div className="pool-card-row">
-            <Text type="secondary" className="pool-card-cell ">
-              Approx. APY (24h):
-            </Text>
-            <div className="pool-card-cell ">
-              {formatPct.format(enriched.apy24h)}
-            </div>
+        </div>
+        <div className="pool-card-row">
+          <Text type="secondary" className="pool-card-cell ">
+            Approx. APY (24h):
+          </Text>
+          <div className="pool-card-cell ">
+            {formatPct.format(enriched.apy24h)}
           </div>
-          <div className="pool-card-row">
-            <Text type="secondary" className="pool-card-cell ">
-              Address:
-            </Text>
-            <div className="pool-card-cell ">
-              <div className="left">
-                <div>
-                  <ExplorerLink
-                    address={enriched.address}
-                    type="account"
-                    length={4}
-                  />
-                </div>
-                <div className="small">
-                  <ExplorerLink
-                    address={pool.pubkeys.holdingAccounts[0]}
-                    type="account"
-                    style={small}
-                    length={4}
-                  />
-                  <Text type="secondary" style={small}>
-                    {" "}
-                    {enriched.names[0]}
-                  </Text>
-                </div>
-                <div className="small">
-                  <ExplorerLink
-                    address={pool.pubkeys.holdingAccounts[1]}
-                    type="account"
-                    style={small}
-                    length={4}
-                  />
-                  <Text type="secondary" style={small}>
-                    {" "}
-                    {enriched.names[1]}
-                  </Text>
-                </div>
+        </div>
+        <div className="pool-card-row">
+          <Text type="secondary" className="pool-card-cell ">
+            Address:
+          </Text>
+          <div className="pool-card-cell ">
+            <div className="left">
+              <div>
+                <ExplorerLink
+                  address={enriched.address}
+                  type="account"
+                  length={4}
+                />
+              </div>
+              <div className="small">
+                <ExplorerLink
+                  address={enriched.accounts[0]}
+                  type="account"
+                  style={small}
+                  length={4}
+                />
+                <Text type="secondary" style={small}>
+                  {" "}
+                  {enriched.names[0]}
+                </Text>
+              </div>
+              <div className="small">
+                <ExplorerLink
+                  address={enriched.accounts[1]}
+                  type="account"
+                  style={small}
+                  length={4}
+                />
+                <Text type="secondary" style={small}>
+                  {" "}
+                  {enriched.names[1]}
+                </Text>
               </div>
             </div>
           </div>
+        </div>
 
           <SupplyOverview pool={pool} />
           <div className="pool-card-row">

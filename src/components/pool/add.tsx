@@ -62,37 +62,37 @@ export const AddToLiquidity = () => {
   const executeAction = !connected
     ? wallet.connect
     : async () => {
-        if (A.account && B.account && A.mint && B.mint) {
-          setPendingTx(true);
-          const components = [
-            {
-              account: A.account,
-              mintAddress: A.mintAddress,
-              amount: A.convertAmount(),
-            },
-            {
-              account: B.account,
-              mintAddress: B.mintAddress,
-              amount: B.convertAmount(),
-            },
-          ];
+      if (A.account && B.account && A.mint && B.mint) {
+        setPendingTx(true);
+        const components = [
+          {
+            account: A.account,
+            mintAddress: A.mintAddress,
+            amount: A.convertAmount(),
+          },
+          {
+            account: B.account,
+            mintAddress: B.mintAddress,
+            amount: B.convertAmount(),
+          },
+        ];
 
-          addLiquidity(connection, wallet, components, slippage, pool, options)
-            .then(() => {
-              setPendingTx(false);
-            })
-            .catch((e) => {
-              console.log("Transaction failed", e);
-              notify({
-                description:
-                  "Please try again and approve transactions from your wallet",
-                message: "Adding liquidity cancelled.",
-                type: "error",
-              });
-              setPendingTx(false);
+        addLiquidity(connection, wallet, components, slippage, pool, options)
+          .then(() => {
+            setPendingTx(false);
+          })
+          .catch((e) => {
+            console.log("Transaction failed", e);
+            notify({
+              description:
+                "Please try again and approve transactions from your wallet",
+              message: "Adding liquidity cancelled.",
+              type: "error",
             });
-        }
-      };
+            setPendingTx(false);
+          });
+      }
+    };
 
   const hasSufficientBalance = A.sufficientBalance() && B.sufficientBalance();
 
@@ -111,21 +111,21 @@ export const AddToLiquidity = () => {
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Button>
   ) : (
-    <Dropdown.Button
-      className="add-button"
-      onClick={executeAction}
-      disabled={
-        connected &&
-        (pendingTx || !A.account || !B.account || A.account === B.account)
-      }
-      type="primary"
-      size="large"
-      overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
-    >
-      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
-      {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
-    </Dropdown.Button>
-  );
+      <Dropdown.Button
+        className="add-button"
+        onClick={executeAction}
+        disabled={
+          connected &&
+          (pendingTx || !A.account || !B.account || A.account === B.account)
+        }
+        type="primary"
+        size="large"
+        overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
+      >
+        {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
+        {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+      </Dropdown.Button>
+    );
 
   return (
     <>
@@ -176,29 +176,30 @@ export const AddToLiquidity = () => {
             B.setMint(item);
           }}
         />
+        {pool && (
+          <Button
+            className="add-button"
+            type="primary"
+            size="large"
+            onClick={executeAction}
+            disabled={
+              connected &&
+              (pendingTx ||
+                !A.account ||
+                !B.account ||
+                A.account === B.account ||
+                !hasSufficientBalance)
+            }
+          >
+            {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, tokenMap, A, B)}
+            {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+          </Button>
+        )}
+        {!pool && createPoolButton}
         {pool && <PoolPrice pool={pool} />}
         <SupplyOverview pool={pool} />
       </div>
-      {pool && (
-        <Button
-          className="add-button"
-          type="primary"
-          size="large"
-          onClick={executeAction}
-          disabled={
-            connected &&
-            (pendingTx ||
-              !A.account ||
-              !B.account ||
-              A.account === B.account ||
-              !hasSufficientBalance)
-          }
-        >
-          {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, tokenMap, A, B)}
-          {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
-        </Button>
-      )}
-      {!pool && createPoolButton}
+
       <YourPosition pool={pool} />
     </>
   );

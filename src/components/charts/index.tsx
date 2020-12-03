@@ -27,6 +27,7 @@ import {
 } from "../../utils/utils";
 import { PoolAddress } from "../pool/address";
 import { PoolCard } from "./../pool/card";
+import { MigrationModal } from "../migration";
 import { HistoricalLiquidity, HistoricalVolume } from "./historical";
 
 const { Text } = Typography;
@@ -361,6 +362,7 @@ export const ChartsView = React.memo(() => {
             })}
         </div>
       )}
+      <MigrationModal />
     </>
   );
 });
