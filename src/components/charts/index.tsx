@@ -307,8 +307,6 @@ export const ChartsView = React.memo(() => {
         }
       />
       <div className="info-header">
-        <h1>Liquidity: {formatUSD.format(totals.liquidity)}</h1>
-        <h1>Volume (24h): {formatUSD.format(totals.volume)}</h1>
         <Search
           className="search-input"
           placeholder="Filter"
@@ -337,10 +335,10 @@ export const ChartsView = React.memo(() => {
       </div>
       <Row gutter={16} style={{ padding: "0px 30px" }}>
         <Col span={12}>
-          <HistoricalLiquidity />
+          <HistoricalLiquidity current={formatUSD.format(totals.liquidity)} />
         </Col>
         <Col span={12}>
-          <HistoricalVolume />
+          <HistoricalVolume current={formatUSD.format(totals.volume)} />
         </Col>
       </Row>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />

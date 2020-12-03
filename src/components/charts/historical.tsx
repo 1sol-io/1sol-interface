@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Card, Spin } from "antd";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Card, Spin, Typography} from "antd";
 import "./styles.less";
 import echarts from "echarts";
 import { PoolInfo } from "../../models";
@@ -36,7 +36,9 @@ export const PoolLineChart = React.memo(
     api: string;
     chartName: string;
     current?: string;
-    getCalculatedNumber: (item: any) => number;
+    type?: string;
+    getComputedData: (item: any) => Array<number>;
+    getComputedTime: (item: any) => Array<string>;
   }) => {
     const { pool, api, limit, chartName, current } = props;
     const chartDiv = useRef<HTMLDivElement>(null);
@@ -45,6 +47,7 @@ export const PoolLineChart = React.memo(
 
     let apiFilter: string = "";
     let apiUrl: string = "";
+    const bonfidaTimer = useRef<number>(0);
     if (pool) {
       const baseMintAddress = pool.pubkeys.holdingMints[0].toBase58();
       const quoteMintAddress = pool.pubkeys.holdingMints[1].toBase58();
@@ -52,7 +55,7 @@ export const PoolLineChart = React.memo(
     }
     apiUrl = API_ENDPOINTS[api];
 
-    const bonfidaDataChartQuery = async () => {
+    const bonfidaDataChartQuery = useCallback(async () => {
       try {
         const resp = await window.fetch(`${apiUrl}${apiFilter}`);
         const data = await resp.json();
@@ -64,19 +67,17 @@ export const PoolLineChart = React.memo(
       } catch {
         // ignore
       }
-    };
+      bonfidaTimer.current = window.setTimeout(
+        () => bonfidaDataChartQuery(),
+        BONFIDA_POOL_INTERVAL
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // needs to only be called on mount an unmount
 
     const updateChart = (data: any) => {
       setLoading(false);
       if (echartsRef.current) {
         echartsRef.current.setOption({
-          title: {
-            text: `${chartName} ${current || ""}`,
-            color: "#fff",
-            textStyle: {
-              color: "#fff",
-            },
-          },
           textStyle: {
             color: "#fff",
           },
@@ -95,9 +96,7 @@ export const PoolLineChart = React.memo(
             {
               inverse: true,
               type: "category",
-              data: data.map((d: any) =>
-                formatShortDate.format(new Date(d.time))
-              ),
+              data: props.getComputedTime(data),
             },
           ],
           yAxis: [
@@ -109,8 +108,8 @@ export const PoolLineChart = React.memo(
           ],
           series: [
             {
-              type: "line",
-              data: data.map((d: any) => props.getCalculatedNumber(d)),
+              type: `${props.type || "line"}`,
+              data: props.getComputedData(data),
             },
           ],
         });
@@ -121,30 +120,34 @@ export const PoolLineChart = React.memo(
         echartsRef.current = echarts.init(chartDiv.current);
       }
       bonfidaDataChartQuery();
-      let bonfidaTimer = 0;
-      bonfidaTimer = window.setInterval(
-        () => bonfidaDataChartQuery(),
-        BONFIDA_POOL_INTERVAL
-      );
       return () => {
         echartsRef.current.dispose();
-        window.clearInterval(bonfidaTimer);
+        window.clearTimeout(bonfidaTimer.current);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // needs to only be called on mount an unmount
     return (
       <>
         {loading && <Spin tip="Loading..." />}
+        {!loading && (
+            <Typography.Title level={4}>
+              {chartName} {current || ""}
+            </Typography.Title>
+        )}
         <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       </>
     );
-  }
-);
+  });
 
 export const HistoricalVolume = React.memo(
   (props: { pool?: PoolInfo; current?: string }) => {
-    const getCalculatedNumber = (item: VolumeData) => {
-      return item.volume;
+    const getComputedData = (data: VolumeData[]) => {
+      return data.map(d => d.volume);
+    };
+    const getComputedTime = (data: VolumeData[]) => {
+      return data.map((d: any) =>
+        formatShortDate.format(new Date(d.time))
+      );
     };
     let name: string = "Volume";
     if (props.current) {
@@ -155,18 +158,41 @@ export const HistoricalVolume = React.memo(
         pool={props.pool}
         limit={props.pool ? 7 : 0}
         api="volume"
+        type="bar"
         chartName={name}
         current={props.current}
-        getCalculatedNumber={getCalculatedNumber}
+        getComputedData={getComputedData}
+        getComputedTime={getComputedTime}
       />
     );
   }
 );
 
+type GrupedData = {
+  [key: number]: number;
+};
+
 export const HistoricalLiquidity = React.memo(
   (props: { pool?: PoolInfo; current?: string }) => {
-    const getCalculatedNumber = (item: LiquidityData) => {
-      return item.liquidityAinUsd + item.liquidityBinUsd;
+    const groupByTime = (data: LiquidityData[]) => {
+      const groupedData: GrupedData = {};
+      for (const d of data) {
+        if (!groupedData[d.time]) {
+          groupedData[d.time] = 0;
+        }
+        groupedData[d.time] = groupedData[d.time] + d.liquidityAinUsd + d.liquidityBinUsd;
+      }
+      return groupedData
+    }
+    const getComputedData = (data: LiquidityData[]) => {
+      const groupedData = groupByTime(data);
+      return Object.values(groupedData);
+    };
+    const getComputedTime = (data: LiquidityData[]) => {
+      const groupedData = groupByTime(data);
+      return Object.keys(groupedData).map(key =>
+          formatShortDate.format(new Date(parseInt(key)))
+      )
     };
     let name: string = "Liquidity";
     if (props.current) {
@@ -175,18 +201,19 @@ export const HistoricalLiquidity = React.memo(
     return (
       <PoolLineChart
         pool={props.pool}
-        // zero for no limit
         limit={props.pool ? 7 : 0}
         api="liquidity"
+        type="line"
         chartName={name}
         current={props.current}
-        getCalculatedNumber={getCalculatedNumber}
+        getComputedData={getComputedData}
+        getComputedTime={getComputedTime}
       />
     );
   }
 );
 
-export const HitoricalPoolData = React.memo((props: { pool: PoolInfo }) => {
+export const HistoricalPoolData = React.memo((props: { pool: PoolInfo }) => {
   const { tokenMap } = useConnectionConfig();
   const pool = props.pool;
   const baseMintAddress = pool.pubkeys.holdingMints[0].toBase58();
