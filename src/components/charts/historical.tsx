@@ -94,8 +94,6 @@ export const PoolLineChart = React.memo(
           xAxis: [
             {
               inverse: true,
-              name: "Date",
-              nameLocation: "middle",
               type: "category",
               data: data.map((d: any) =>
                 formatShortDate.format(new Date(d.time))
@@ -132,55 +130,61 @@ export const PoolLineChart = React.memo(
         echartsRef.current.dispose();
         window.clearInterval(bonfidaTimer);
       };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // needs to only be called on mount an unmount
     return (
       <>
         {loading && <Spin tip="Loading..." />}
         <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       </>
-    )
+    );
   }
 );
 
-export const HistoricalVolume = React.memo((props: {
-  pool: PoolInfo;
-  current?: string;
-}) => {
-  const getCalculatedNumber = (item: VolumeData) => {
-    return item.volume;
-  };
-  return (
-    <PoolLineChart
-      pool={props.pool}
-      limit={props.pool ? 7 : 0}
-      api="volume"
-      chartName="Volume (24H)"
-      current={props.current}
-      getCalculatedNumber={getCalculatedNumber}
-    />
-  );
-});
+export const HistoricalVolume = React.memo(
+  (props: { pool?: PoolInfo; current?: string }) => {
+    const getCalculatedNumber = (item: VolumeData) => {
+      return item.volume;
+    };
+    let name: string = "Volume";
+    if (props.current) {
+      name = "Volume (24H)";
+    }
+    return (
+      <PoolLineChart
+        pool={props.pool}
+        limit={props.pool ? 7 : 0}
+        api="volume"
+        chartName={name}
+        current={props.current}
+        getCalculatedNumber={getCalculatedNumber}
+      />
+    );
+  }
+);
 
-export const HistoricalLiquidity = React.memo((props: {
-  pool: PoolInfo;
-  current?: string;
-}) => {
-  const getCalculatedNumber = (item: LiquidityData) => {
-    return item.liquidityAinUsd + item.liquidityBinUsd;
-  };
-  return (
-    <PoolLineChart
-      pool={props.pool}
-      // zero for no limit
-      limit={props.pool ? 7 : 0}
-      api="liquidity"
-      chartName="Total Liquidity"
-      current={props.current}
-      getCalculatedNumber={getCalculatedNumber}
-    />
-  );
-});
+export const HistoricalLiquidity = React.memo(
+  (props: { pool?: PoolInfo; current?: string }) => {
+    const getCalculatedNumber = (item: LiquidityData) => {
+      return item.liquidityAinUsd + item.liquidityBinUsd;
+    };
+    let name: string = "Liquidity";
+    if (props.current) {
+      name = "Total Liquidity";
+    }
+    return (
+      <PoolLineChart
+        pool={props.pool}
+        // zero for no limit
+        limit={props.pool ? 7 : 0}
+        api="liquidity"
+        chartName={name}
+        current={props.current}
+        getCalculatedNumber={getCalculatedNumber}
+      />
+    );
+  }
+);
 
 export const HitoricalPoolData = React.memo((props: { pool: PoolInfo }) => {
   const { tokenMap } = useConnectionConfig();

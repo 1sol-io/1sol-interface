@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button, Popover, Table, Tooltip, Typography } from "antd";
+import { Button, Col, Popover, Row, Table, Tooltip, Typography } from "antd";
 import { AppBar } from "./../appBar";
 import { Settings } from "../settings";
 import {
@@ -27,6 +27,7 @@ import {
 } from "../../utils/utils";
 import { PoolAddress } from "../pool/address";
 import { PoolCard } from "./../pool/card";
+import { HistoricalLiquidity, HistoricalVolume } from "./historical";
 
 const { Text } = Typography;
 
@@ -333,6 +334,14 @@ export const ChartsView = React.memo(() => {
           />
         </Tooltip>
       </div>
+      <Row gutter={16} style={{ padding: "0px 30px" }}>
+        <Col span={12}>
+          <HistoricalLiquidity />
+        </Col>
+        <Col span={12}>
+          <HistoricalVolume />
+        </Col>
+      </Row>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       {infoDisplayType === "Table" ? (
         <Table
