@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { Card } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { Card, Spin } from "antd";
 import "./styles.less";
 import echarts from "echarts";
 import { PoolInfo } from "../../models";
@@ -35,12 +35,13 @@ export const PoolLineChart = React.memo(
     limit?: number;
     api: string;
     chartName: string;
-    current?: number;
+    current?: string;
     getCalculatedNumber: (item: any) => number;
   }) => {
     const { pool, api, limit, chartName, current } = props;
     const chartDiv = useRef<HTMLDivElement>(null);
     const echartsRef = useRef<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     let apiFilter: string = "";
     let apiUrl: string = "";
@@ -59,7 +60,6 @@ export const PoolLineChart = React.memo(
         if (limit && finalData) {
           finalData = finalData.slice(0, limit);
         }
-
         updateChart(finalData);
       } catch {
         // ignore
@@ -67,10 +67,11 @@ export const PoolLineChart = React.memo(
     };
 
     const updateChart = (data: any) => {
+      setLoading(false);
       if (echartsRef.current) {
         echartsRef.current.setOption({
           title: {
-            text: `Historical ${chartName} ${current || ""}`,
+            text: `${chartName} ${current || ""}`,
             color: "#fff",
             textStyle: {
               color: "#fff",
@@ -103,7 +104,6 @@ export const PoolLineChart = React.memo(
           ],
           yAxis: [
             {
-              name: chartName,
               type: "value",
               scale: true,
               splitLine: false,
@@ -132,36 +132,51 @@ export const PoolLineChart = React.memo(
         echartsRef.current.dispose();
         window.clearInterval(bonfidaTimer);
       };
-    });
-    return <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // needs to only be called on mount an unmount
+    return (
+      <>
+        {loading && <Spin tip="Loading..." />}
+        <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
+      </>
+    )
   }
 );
 
-export const HistoricalVolume = React.memo((props: { pool: PoolInfo }) => {
+export const HistoricalVolume = React.memo((props: {
+  pool: PoolInfo;
+  current?: string;
+}) => {
   const getCalculatedNumber = (item: VolumeData) => {
     return item.volume;
   };
   return (
     <PoolLineChart
       pool={props.pool}
-      limit={7}
+      limit={props.pool ? 7 : 0}
       api="volume"
-      chartName="Volume"
+      chartName="Volume (24H)"
+      current={props.current}
       getCalculatedNumber={getCalculatedNumber}
     />
   );
 });
 
-export const HistoricalLiquidity = React.memo((props: { pool: PoolInfo }) => {
+export const HistoricalLiquidity = React.memo((props: {
+  pool: PoolInfo;
+  current?: string;
+}) => {
   const getCalculatedNumber = (item: LiquidityData) => {
     return item.liquidityAinUsd + item.liquidityBinUsd;
   };
   return (
     <PoolLineChart
       pool={props.pool}
-      limit={7}
+      // zero for no limit
+      limit={props.pool ? 7 : 0}
       api="liquidity"
-      chartName="Liquidity"
+      chartName="Total Liquidity"
+      current={props.current}
       getCalculatedNumber={getCalculatedNumber}
     />
   );
