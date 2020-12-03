@@ -10,7 +10,7 @@ import { formatNumber, formatPct, formatUSD } from "../../utils/utils";
 import { ExplorerLink } from "../explorerLink";
 import { SupplyOverview } from "./supplyOverview";
 import { HistoricalLiquidity, HistoricalVolume } from "../charts/historical";
-import { SwapOutlined } from "@ant-design/icons";
+import { LineChartOutlined, AlignLeftOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -114,7 +114,7 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
               shape="circle"
               size="middle"
               type="text"
-              icon={<SwapOutlined />}
+              icon={displayMode === "card" ? <LineChartOutlined /> : <AlignLeftOutlined />}
               onClick={handleSwitchMode}
             />
           </Popover>
