@@ -5,7 +5,16 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button, Col, Popover, Row, Table, Tooltip, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Popover,
+  Row,
+  Table,
+  Tooltip,
+  Typography,
+} from "antd";
 import { AppBar } from "./../appBar";
 import { Settings } from "../settings";
 import {
@@ -333,12 +342,16 @@ export const ChartsView = React.memo(() => {
           />
         </Tooltip>
       </div>
-      <Row gutter={16} style={{ padding: "0px 30px" }}>
+      <Row gutter={16} style={{ padding: "0px 30px", margin: "30px 0px" }}>
         <Col span={12}>
-          <HistoricalLiquidity current={formatUSD.format(totals.liquidity)} />
+          <Card>
+            <HistoricalLiquidity current={formatUSD.format(totals.liquidity)} />
+          </Card>
         </Col>
         <Col span={12}>
-          <HistoricalVolume current={formatUSD.format(totals.volume)} />
+          <Card>
+            <HistoricalVolume current={formatUSD.format(totals.volume)} />
+          </Card>
         </Col>
       </Row>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />

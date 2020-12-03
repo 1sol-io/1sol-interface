@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Card, Spin, Typography} from "antd";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Card, Spin, Typography } from "antd";
 import "./styles.less";
 import echarts from "echarts";
 import { PoolInfo } from "../../models";
@@ -130,24 +130,23 @@ export const PoolLineChart = React.memo(
       <>
         {loading && <Spin tip="Loading..." />}
         {!loading && (
-            <Typography.Title level={4}>
-              {chartName} {current || ""}
-            </Typography.Title>
+          <Typography.Title level={4}>
+            {chartName} {current || ""}
+          </Typography.Title>
         )}
         <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       </>
     );
-  });
+  }
+);
 
 export const HistoricalVolume = React.memo(
   (props: { pool?: PoolInfo; current?: string }) => {
     const getComputedData = (data: VolumeData[]) => {
-      return data.map(d => d.volume);
+      return data.map((d) => d.volume);
     };
     const getComputedTime = (data: VolumeData[]) => {
-      return data.map((d: any) =>
-        formatShortDate.format(new Date(d.time))
-      );
+      return data.map((d: any) => formatShortDate.format(new Date(d.time)));
     };
     let name: string = "Volume";
     if (props.current) {
@@ -180,19 +179,20 @@ export const HistoricalLiquidity = React.memo(
         if (!groupedData[d.time]) {
           groupedData[d.time] = 0;
         }
-        groupedData[d.time] = groupedData[d.time] + d.liquidityAinUsd + d.liquidityBinUsd;
+        groupedData[d.time] =
+          groupedData[d.time] + d.liquidityAinUsd + d.liquidityBinUsd;
       }
-      return groupedData
-    }
+      return groupedData;
+    };
     const getComputedData = (data: LiquidityData[]) => {
       const groupedData = groupByTime(data);
       return Object.values(groupedData);
     };
     const getComputedTime = (data: LiquidityData[]) => {
       const groupedData = groupByTime(data);
-      return Object.keys(groupedData).map(key =>
-          formatShortDate.format(new Date(parseInt(key)))
-      )
+      return Object.keys(groupedData).map((key) =>
+        formatShortDate.format(new Date(parseInt(key)))
+      );
     };
     let name: string = "Liquidity";
     if (props.current) {
