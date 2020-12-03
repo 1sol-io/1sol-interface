@@ -5,6 +5,7 @@ import { AddToLiquidity } from "./pool/add";
 import { Settings } from "./settings";
 import { SettingOutlined } from "@ant-design/icons";
 import { AppBar } from "./appBar";
+import { MigrationModal } from "./migration";
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -63,6 +64,7 @@ export const ExchangeView = (props: {}) => {
       >
         {tabList.find((t) => t.key === activeTab)?.render()}
       </Card>
+      <MigrationModal />
     </>
   );
 };

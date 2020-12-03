@@ -1,22 +1,17 @@
 import React, { useMemo } from "react";
 import { ConfigProvider, Empty } from "antd";
 import { useOwnedPools } from "../../utils/pools";
-import { RemoveLiquidity } from "./remove";
 import { useMint } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
-import { useCurrencyPairState } from "../../utils/currencyPair";
 import "./quickView.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatUSD } from "../../utils/utils";
-import { useHistory, useLocation } from "react-router-dom";
 
 const PoolItem = (props: {
   item: { pool: PoolInfo; isFeeAccount: boolean; account: TokenAccount };
   poolDetails: any;
 }) => {
-  const { A, B } = useCurrencyPairState();
-  const history = useHistory();
   const item = props.item;
   const mint = useMint(item.account.info.mint.toBase58());
   const amount =
@@ -33,24 +28,13 @@ const PoolItem = (props: {
     return null;
   }
 
-  const setPair = () => {
-    // navigate to pool info
-    A.setMint(props.item.pool.pubkeys.holdingMints[0]?.toBase58());
-    B.setMint(props.item.pool.pubkeys.holdingMints[1]?.toBase58());
-
-    history.push({
-      pathname: "/pool",
-    });
-  };
-
   const sorted = item.pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();
 
   if (item) {
     return (
       <div
         className="pool-item-row"
-        onClick={setPair}
-        title={`LP Token: ${props.item.pool.pubkeys.mint.toBase58()}`}
+        title={`LP Token: ${props.item.pool.pubkeys.mint.toBase58()}, account: ${props.item.account.pubkey.toBase58()}`}
       >
         <PoolIcon
           mintA={sorted[0]}
@@ -65,7 +49,6 @@ const PoolItem = (props: {
         <div className="pool-item-type" title="Fee account">
           {item.isFeeAccount ? " (F) " : " "}
         </div>
-        <RemoveLiquidity instance={item} />
       </div>
     );
   }
@@ -73,8 +56,8 @@ const PoolItem = (props: {
   return null;
 };
 
-export const PoolAccounts = () => {
-  const pools = useOwnedPools();
+export const PoolAccounts = (props: { legacy: boolean }) => {
+  const pools = useOwnedPools(props.legacy);
   const userPools = useMemo(() => {
     return pools.map((p) => p.pool);
   }, [pools]);

@@ -1,4 +1,4 @@
-import { Button, Popover, Spin, Typography } from "antd";
+import { Button, Popover, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   useConnection,
@@ -8,7 +8,6 @@ import {
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
 import {
-  LoadingOutlined,
   SwapOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
@@ -28,13 +27,6 @@ import { PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
 
 const { Text } = Typography;
-
-const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
-// TODO:
-// Compute price breakdown with/without fee
-// Show slippage
-// Show fee information
 
 export const TradeEntry = () => {
   const { wallet, connected } = useWallet();
@@ -145,6 +137,7 @@ export const TradeEntry = () => {
         className="trade-button"
         type="primary"
         size="large"
+        loading={pendingTx}
         onClick={connected ? handleSwap : wallet.connect}
         style={{ width: "100%" }}
         disabled={
@@ -170,7 +163,6 @@ export const TradeEntry = () => {
           B,
           true
         )}
-        {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
       <TradeInfo pool={pool} />
     </>
