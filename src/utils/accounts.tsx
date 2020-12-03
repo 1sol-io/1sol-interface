@@ -489,14 +489,16 @@ export const getMultipleAccounts = async (
   const array = result
     .map(
       (a) =>
-        a.array.filter(acc => !!acc).map((acc) => {
-          const { data, ...rest } = acc;
-          const obj = {
-            ...rest,
-            data: Buffer.from(data[0], "base64"),
-          } as AccountInfo<Buffer>;
-          return obj;
-        }) as AccountInfo<Buffer>[]
+        a.array
+          .filter((acc) => !!acc)
+          .map((acc) => {
+            const { data, ...rest } = acc;
+            const obj = {
+              ...rest,
+              data: Buffer.from(data[0], "base64"),
+            } as AccountInfo<Buffer>;
+            return obj;
+          }) as AccountInfo<Buffer>[]
     )
     .flat();
   return { keys, array };
