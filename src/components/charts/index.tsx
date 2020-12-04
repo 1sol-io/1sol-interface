@@ -5,7 +5,16 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button, Popover, Table, Tooltip, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Popover,
+  Row,
+  Table,
+  Tooltip,
+  Typography,
+} from "antd";
 import { AppBar } from "./../appBar";
 import { Settings } from "../settings";
 import {
@@ -28,6 +37,7 @@ import {
 import { PoolAddress } from "../pool/address";
 import { PoolCard } from "./../pool/card";
 import { MigrationModal } from "../migration";
+import { HistoricalLiquidity, HistoricalVolume } from "./historical";
 
 const { Text } = Typography;
 
@@ -306,8 +316,6 @@ export const ChartsView = React.memo(() => {
         }
       />
       <div className="info-header">
-        <h1>Liquidity: {formatUSD.format(totals.liquidity)}</h1>
-        <h1>Volume (24h): {formatUSD.format(totals.volume)}</h1>
         <Search
           className="search-input"
           placeholder="Filter"
@@ -334,6 +342,18 @@ export const ChartsView = React.memo(() => {
           />
         </Tooltip>
       </div>
+      <Row gutter={16} style={{ padding: "0px 30px", margin: "30px 0px" }}>
+        <Col span={12}>
+          <Card>
+            <HistoricalLiquidity current={formatUSD.format(totals.liquidity)} />
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card>
+            <HistoricalVolume current={formatUSD.format(totals.volume)} />
+          </Card>
+        </Col>
+      </Row>
       <div ref={chartDiv} style={{ height: "250px", width: "100%" }} />
       {infoDisplayType === "Table" ? (
         <Table
