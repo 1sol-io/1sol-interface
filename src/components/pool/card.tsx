@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Button, Card, Popover, Typography } from "antd";
-import { RemoveLiquidity } from "./remove";
+import { RemoveLiquidityEntry } from "./remove";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
@@ -38,9 +38,16 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
     return null;
   }
 
-  const handleSwitchMode = () => {
+  const handleSwitchChartMode = () => {
     if (displayMode === "card") {
       setDisplayMode("chart");
+    } else {
+      setDisplayMode("card");
+    }
+  };
+  const handleSwitchViewMode = () => {
+    if (displayMode === "card") {
+      setDisplayMode("remove");
     } else {
       setDisplayMode("card");
     }
@@ -110,24 +117,34 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
               displayMode === "card" ? "historical" : "current"
             } data`}
           >
-            <Button
-              shape="circle"
-              size="middle"
-              type="text"
-              icon={
-                displayMode === "card" ? (
-                  <LineChartOutlined />
-                ) : (
-                  <AlignLeftOutlined />
-                )
-              }
-              onClick={handleSwitchMode}
-            />
+            {displayMode === "remove" ? (
+              <Button
+                shape="circle"
+                size="middle"
+                type="text"
+                icon={<AlignLeftOutlined />}
+                onClick={() => setDisplayMode("card")}
+              />
+            ) : (
+              <Button
+                shape="circle"
+                size="middle"
+                type="text"
+                icon={
+                  displayMode === "card" ? (
+                    <LineChartOutlined />
+                  ) : (
+                    <AlignLeftOutlined />
+                  )
+                }
+                onClick={handleSwitchChartMode}
+              />
+            )}
           </Popover>
         </>
       }
     >
-      {displayMode === "card" ? (
+      {displayMode === "card" && (
         <>
           {userInfo}
           <div className="pool-card-row">
@@ -238,11 +255,12 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
           <div className="pool-card-row">
             {/* {item && <Button type="default" onClick={setPair}>Add</Button>} */}
             {props.account && (
-              <RemoveLiquidity instance={{ pool, account: props.account }} />
+              <Button onClick={handleSwitchViewMode}>Remove</Button>
             )}
           </div>
         </>
-      ) : (
+      )}
+      {displayMode === "chart" && (
         <>
           <HistoricalLiquidity
             pool={pool}
@@ -253,6 +271,9 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
             current={formatUSD.format(enriched.volume24h)}
           />
         </>
+      )}
+      {displayMode === "remove" && account && (
+        <RemoveLiquidityEntry instance={{ pool: pool, account: account }} />
       )}
     </Card>
   );
