@@ -20,12 +20,30 @@ export interface LiquidityComponent {
   mintAddress: string;
 }
 
+export enum CurveType {
+  ConstantProduct = 0,
+  ConstantPrice = 1,
+  ConstantProductWithOffset = 2
+}
+
 export interface PoolConfig {
-  curveType: 0 | 1;
-  tradeFeeNumerator: number;
-  tradeFeeDenominator: number;
-  ownerTradeFeeNumerator: number;
-  ownerTradeFeeDenominator: number;
-  ownerWithdrawFeeNumerator: number;
-  ownerWithdrawFeeDenominator: number;
+  curveType: CurveType;
+  fees: {
+    tradeFeeNumerator: number;
+    tradeFeeDenominator: number;
+    ownerTradeFeeNumerator: number;
+    ownerTradeFeeDenominator: number;
+    ownerWithdrawFeeNumerator: number;
+    ownerWithdrawFeeDenominator: number;
+    hostFeeNumerator: number;
+    hostFeeDenominator: number;
+  };
+
+  curve: {
+    constant_product?: {},
+    constant_price?: {},
+    offset?: {
+      token_b_offset: number;
+    },
+  }
 }

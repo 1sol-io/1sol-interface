@@ -30,7 +30,8 @@ import {
   TokenSwapLayout,
   depositInstruction,
   withdrawInstruction,
-  TokenSwapLayoutLegacyV0,
+  TokenSwapLayoutLegacyV0 as TokenSwapLayoutV0,
+  TokenSwapLayoutV1,
   swapInstruction,
   PoolConfig,
 } from "./../models";
@@ -83,7 +84,6 @@ export const removeLiquidity = async (
     AccountLayout.span
   );
 
-  // TODO: check if one of to accounts needs to be native sol ... if yes unwrap it ...
   const toAccounts: PublicKey[] = [
     await findOrCreateAccountByMint(
       wallet.publicKey,
@@ -195,7 +195,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0]?.toBase58() ===
-    components[0].account.info.mint.toBase58()
+      components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -250,14 +250,14 @@ export const swap = async (
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-        wallet.publicKey,
-        SWAP_HOST_FEE_ADDRESS,
-        instructions,
-        cleanupInstructions,
-        accountRentExempt,
-        pool.pubkeys.mint,
-        signers
-      )
+      wallet.publicKey,
+      SWAP_HOST_FEE_ADDRESS,
+      instructions,
+      cleanupInstructions,
+      accountRentExempt,
+      pool.pubkeys.mint,
+      signers
+    )
     : undefined;
 
   // swap
@@ -349,19 +349,26 @@ export const usePools = () => {
         .filter(
           (item) =>
             item.account.data.length === TokenSwapLayout.span ||
-            item.account.data.length === TokenSwapLayoutLegacyV0.span
+            item.account.data.length === TokenSwapLayoutV1.span ||
+            item.account.data.length === TokenSwapLayoutV0.span
         )
         .map((item) => {
           let result = {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => {},
+            init: async () => { },
           };
 
+          const layout = item.account.data.length === TokenSwapLayout.span ?
+            TokenSwapLayout :
+            item.account.data.length === TokenSwapLayoutV1.span ?
+              TokenSwapLayoutV1 :
+              TokenSwapLayoutV0;
+
           // handling of legacy layout can be removed soon...
-          if (item.account.data.length === TokenSwapLayoutLegacyV0.span) {
-            result.data = TokenSwapLayoutLegacyV0.decode(item.account.data);
+          if (layout === TokenSwapLayoutV0) {
+            result.data = layout.decode(item.account.data);
             let pool = toPoolInfo(result, swapId);
             pool.legacy = isLegacy;
             poolsArray.push(pool as PoolInfo);
@@ -386,7 +393,7 @@ export const usePools = () => {
               }
             };
           } else {
-            result.data = TokenSwapLayout.decode(item.account.data);
+            result.data = layout.decode(item.account.data);
             let pool = toPoolInfo(result, swapId);
             pool.legacy = isLegacy;
             pool.pubkeys.feeAccount = new PublicKey(result.data.feeAccount);
@@ -422,7 +429,9 @@ export const usePools = () => {
             if (obj.data.length === AccountLayout.span) {
               return cache.addAccount(pubKey, obj);
             } else if (obj.data.length === MintLayout.span) {
-              return cache.addMint(pubKey, obj);
+              if(!cache.getMint(pubKey)) {
+                return cache.addMint(pubKey, obj);
+              }
             }
 
             return obj;
@@ -446,10 +455,10 @@ export const usePools = () => {
       programIds().swap,
       async (info) => {
         const id = (info.accountId as unknown) as string;
-        if (info.accountInfo.data.length === TokenSwapLayout.span) {
+        if (info.accountInfo.data.length === programIds().swapLayout.span) {
           const account = info.accountInfo;
           const updated = {
-            data: TokenSwapLayout.decode(account.data),
+            data: programIds().swapLayout.decode(account.data),
             account: account,
             pubkey: new PublicKey(id),
           };
@@ -495,7 +504,6 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
     (async () => {
       // reset pool during query
       setPool(undefined);
-
       let matchingPool = pools
         .filter((p) => !p.legacy)
         .filter((p) =>
@@ -896,12 +904,12 @@ async function _addLiquidityNewPool(
   let instructions: TransactionInstruction[] = [];
   let cleanupInstructions: TransactionInstruction[] = [];
 
-  const liquidityTokenAccount = new Account();
+  const liquidityTokenMint = new Account();
   // Create account for pool liquidity token
   instructions.push(
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey,
-      newAccountPubkey: liquidityTokenAccount.publicKey,
+      newAccountPubkey: liquidityTokenMint.publicKey,
       lamports: await connection.getMinimumBalanceForRentExemption(
         MintLayout.span
       ),
@@ -921,7 +929,7 @@ async function _addLiquidityNewPool(
   instructions.push(
     Token.createInitMintInstruction(
       programIds().token,
-      liquidityTokenAccount.publicKey,
+      liquidityTokenMint.publicKey,
       LIQUIDITY_TOKEN_PRECISION,
       // pass control of liquidity mint to swap program
       authority,
@@ -961,7 +969,7 @@ async function _addLiquidityNewPool(
     instructions,
     wallet.publicKey,
     accountRentExempt,
-    liquidityTokenAccount.publicKey,
+    liquidityTokenMint.publicKey,
     wallet.publicKey,
     AccountLayout.span
   );
@@ -972,14 +980,14 @@ async function _addLiquidityNewPool(
     instructions,
     wallet.publicKey,
     accountRentExempt,
-    liquidityTokenAccount.publicKey,
+    liquidityTokenMint.publicKey,
     SWAP_PROGRAM_OWNER_FEE_ADDRESS || wallet.publicKey,
     AccountLayout.span
   );
 
   // create all accounts in one transaction
   let tx = await sendTransaction(connection, wallet, instructions, [
-    liquidityTokenAccount,
+    liquidityTokenMint,
     depositorAccount,
     feeAccount,
     ...holdingAccounts,
@@ -1007,9 +1015,9 @@ async function _addLiquidityNewPool(
       fromPubkey: wallet.publicKey,
       newAccountPubkey: tokenSwapAccount.publicKey,
       lamports: await connection.getMinimumBalanceForRentExemption(
-        TokenSwapLayout.span
+        programIds().swapLayout.span
       ),
-      space: TokenSwapLayout.span,
+      space: programIds().swapLayout.span,
       programId: programIds().swap,
     })
   );
@@ -1047,19 +1055,13 @@ async function _addLiquidityNewPool(
       authority,
       holdingAccounts[0].publicKey,
       holdingAccounts[1].publicKey,
-      liquidityTokenAccount.publicKey,
+      liquidityTokenMint.publicKey,
       feeAccount.publicKey,
       depositorAccount.publicKey,
       programIds().token,
       programIds().swap,
       nonce,
-      options.curveType,
-      options.tradeFeeNumerator,
-      options.tradeFeeDenominator,
-      options.ownerTradeFeeNumerator,
-      options.ownerTradeFeeDenominator,
-      options.ownerWithdrawFeeNumerator,
-      options.ownerWithdrawFeeDenominator
+      options,
     )
   );
 
