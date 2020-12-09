@@ -394,6 +394,8 @@ export const usePools = () => {
             };
           } else {
             result.data = layout.decode(item.account.data);
+
+            console.log(result.data);
             let pool = toPoolInfo(result, swapId);
             pool.legacy = isLegacy;
             pool.pubkeys.feeAccount = new PublicKey(result.data.feeAccount);

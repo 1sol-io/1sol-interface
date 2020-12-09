@@ -50,9 +50,6 @@ export const AddToLiquidity = () => {
   const { tokenMap } = useConnectionConfig();
   const [options, setOptions] = useState<PoolConfig>({
     curveType: CurveType.ConstantProduct,
-    curve: {
-      constant_product: {},
-    },
     fees: {
       tradeFeeNumerator: 25,
       tradeFeeDenominator: DEFAULT_DENOMINATOR,

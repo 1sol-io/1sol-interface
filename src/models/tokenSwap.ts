@@ -2,7 +2,7 @@ import { Numberu64 } from "@solana/spl-token-swap";
 import { PublicKey, Account, TransactionInstruction } from "@solana/web3.js";
 import * as BufferLayout from "buffer-layout";
 import { programIds } from "../utils/ids";
-import { PoolConfig } from "./pool";
+import { CurveType, PoolConfig } from "./pool";
 
 export { TokenSwap } from "@solana/spl-token-swap";
 
@@ -114,7 +114,7 @@ export const createInitSwapInstruction = (
   {
     const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
     if (isLatestLayout) {
-      const commandDataLayout = BufferLayout.struct([
+      const fields = [
         BufferLayout.u8('instruction'),
         BufferLayout.u8('nonce'),
         BufferLayout.nu64("tradeFeeNumerator"),
@@ -126,15 +126,25 @@ export const createInitSwapInstruction = (
         BufferLayout.nu64('hostFeeNumerator'),
         BufferLayout.nu64('hostFeeDenominator'),
         BufferLayout.u8("curveType"),
-        BufferLayout.blob(32, "padding"),
-      ]);
+      ];
+
+      if(config.curveType === CurveType.ConstantProductWithOffset) {
+        fields.push(BufferLayout.nu64('token_b_offset'),);
+        fields.push(BufferLayout.blob(24, "padding"));
+      } else {
+        fields.push(BufferLayout.blob(32, "padding"));
+      }
+
+      const commandDataLayout = BufferLayout.struct(fields);
       
+      const { fees, ...rest } = config;
+
       const encodeLength = commandDataLayout.encode(
         {
           instruction: 0, // InitializeSwap instruction
           nonce,
-          ...config.fees,
-          ...config
+          ...fees,
+          ...rest
         },
         data
       );

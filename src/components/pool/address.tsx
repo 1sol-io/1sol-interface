@@ -98,6 +98,10 @@ export const AccountsAddress = (props: {
 export const AdressesPopover = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
 
+  if(!pool) {
+    return null;
+  }
+
   return (
     <Popover
       placement="topRight"

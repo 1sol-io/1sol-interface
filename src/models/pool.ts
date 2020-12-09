@@ -39,11 +39,5 @@ export interface PoolConfig {
     hostFeeDenominator: number;
   };
 
-  curve: {
-    constant_product?: {},
-    constant_price?: {},
-    offset?: {
-      token_b_offset: number;
-    },
-  }
+  token_b_offset?: number;
 }

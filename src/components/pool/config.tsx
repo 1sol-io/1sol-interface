@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, Select } from "antd";
 import { NumericInput } from "../numericInput";
 import "./add.less";
-import { PoolConfig } from "../../models";
+import { CurveType, PoolConfig } from "../../models";
 import { ENABLE_FEES_INPUT } from "./../../utils/ids";
 
 const Option = Select.Option;
@@ -71,11 +71,7 @@ const OffsetParameters = (props: {
 
             props.setOptions({
               ...props.options,
-              curve: {
-                offset: {
-                  token_b_offset: parseInt(x),
-                }
-              }
+              token_b_offset: parseInt(x),
             })
           }}
         />
@@ -163,19 +159,7 @@ export const PoolConfigCard = (props: {
             onChange={(val) =>
               props.setOptions({
                 ...props.options,
-                curve: val === "0" ?
-                  {
-                    constant_product: {}
-                  } :
-                  val === "1" ?
-                    {
-                      constant_price: {}
-                    } :
-                    {
-                      offset: {
-                        token_b_offset: 0,
-                      }
-                    }
+                curveType: parseInt(val),
               })
             }
           >
@@ -184,7 +168,7 @@ export const PoolConfigCard = (props: {
             <Option value="2">Offset Constant Product</Option>
           </Select>
         </>
-        {props.options.curve.offset !== undefined && <OffsetParameters {...props} />}
+        {props.options.curveType === CurveType.ConstantProductWithOffset && <OffsetParameters {...props} />}
       </div>
     </Card>
   );
