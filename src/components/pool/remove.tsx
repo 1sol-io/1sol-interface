@@ -1,16 +1,16 @@
-import React, {useMemo, useState} from "react";
-import {Button, Card, Col, Row, Slider, Typography} from "antd";
+import React, { useMemo, useState } from "react";
+import { Button, Card, Col, Row, Slider, Typography } from "antd";
 
-import {removeLiquidity} from "../../utils/pools";
+import { removeLiquidity } from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import { useConnection } from "../../utils/connection";
 import { PoolInfo, TokenAccount } from "../../models";
 import { notify } from "../../utils/notifications";
 import { TokenIcon } from "../tokenIcon";
-import {YourPosition} from "./add";
-import {useEnrichedPools} from "../../context/market";
-import {useMint} from "../../utils/accounts";
-import {formatPriceNumber} from "../../utils/utils";
+import { YourPosition } from "./add";
+import { useEnrichedPools } from "../../context/market";
+import { useMint } from "../../utils/accounts";
+import { formatPriceNumber } from "../../utils/utils";
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
@@ -59,9 +59,7 @@ export const RemoveLiquidityEntry = (props: {
   const { account, pool } = props.instance;
   const [liquidityPercentage, setLiquidityPercentage] = useState(100);
 
-  const pools = useMemo(() => [pool].filter((p) => p) as PoolInfo[], [
-    pool,
-  ]);
+  const pools = useMemo(() => [pool].filter((p) => p) as PoolInfo[], [pool]);
   const enriched = useEnrichedPools(pools)[0];
   const lpMint = useMint(pool?.pubkeys.mint);
 
@@ -85,15 +83,11 @@ export const RemoveLiquidityEntry = (props: {
         >
           <div className="pool-card" style={{ width: "initial" }}>
             <div className="pool-card-row">
-              <div className="pool-card-cell">
-                Amount
-              </div>
+              <div className="pool-card-cell">Amount</div>
             </div>
             <div className="pool-card-row">
               <div className="pool-card-cell">
-                <Typography.Text
-                  style={{ fontSize: "42px" }}
-                >
+                <Typography.Text style={{ fontSize: "42px" }}>
                   {liquidityPercentage}%
                 </Typography.Text>
               </div>
@@ -119,7 +113,9 @@ export const RemoveLiquidityEntry = (props: {
                 <Button onClick={() => setLiquidityPercentage(75)}>75%</Button>
               </Col>
               <Col span={6}>
-                <Button onClick={() => setLiquidityPercentage(100)}>100%</Button>
+                <Button onClick={() => setLiquidityPercentage(100)}>
+                  100%
+                </Button>
               </Col>
             </Row>
           </div>
@@ -133,22 +129,26 @@ export const RemoveLiquidityEntry = (props: {
           <div className="pool-card" style={{ width: "initial" }}>
             <div className="pool-card-row">
               <div className="pool-card-cell">
-                {formatPriceNumber.format(ratio * enriched.liquidityA * (liquidityPercentage/100))}
+                {formatPriceNumber.format(
+                  ratio * enriched.liquidityA * (liquidityPercentage / 100)
+                )}
               </div>
-              <div className="pool-card-cell" >
+              <div className="pool-card-cell">
                 <div style={{ display: "flex", alignItems: "center" }}>
-                  <TokenIcon mintAddress={baseMintAddress}/>
+                  <TokenIcon mintAddress={baseMintAddress} />
                   <h3 style={{ margin: 0 }}>{enriched?.name}</h3>
                 </div>
               </div>
             </div>
             <div className="pool-card-row">
               <div className="pool-card-cell">
-                {formatPriceNumber.format(ratio * enriched.liquidityA * (liquidityPercentage/100))}
+                {formatPriceNumber.format(
+                  ratio * enriched.liquidityA * (liquidityPercentage / 100)
+                )}
               </div>
               <div className="pool-card-cell">
                 <div style={{ display: "flex", alignItems: "center" }}>
-                  <TokenIcon mintAddress={quoteMintAddress}/>
+                  <TokenIcon mintAddress={quoteMintAddress} />
                   <h3 style={{ margin: 0 }}>{enriched.names[1]}</h3>
                 </div>
               </div>
@@ -156,9 +156,13 @@ export const RemoveLiquidityEntry = (props: {
           </div>
         </Card>
       </div>
-      {account && <RemoveLiquidity instance={{pool: pool, account: account}} removeRatio={liquidityPercentage/100} />}
+      {account && (
+        <RemoveLiquidity
+          instance={{ pool: pool, account: account }}
+          removeRatio={liquidityPercentage / 100}
+        />
+      )}
       <YourPosition pool={pool} />
     </>
-  )
-}
-
+  );
+};
