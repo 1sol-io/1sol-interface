@@ -62,6 +62,9 @@ export const AddToLiquidity = () => {
     }
   });
 
+
+  console.log(options.curveType);
+
   const executeAction = !connected
     ? wallet.connect
     : async () => {
@@ -79,6 +82,13 @@ export const AddToLiquidity = () => {
             amount: B.convertAmount(),
           },
         ];
+
+        // use input from B as offset during pool init for curve with offset
+        if (options.curveType === CurveType.ConstantProductWithOffset
+          && !pool) {
+            options.token_b_offset = components[1].amount;
+            components[1].amount = 0;
+        }
 
         addLiquidity(connection, wallet, components, slippage, pool, options)
           .then(() => {
@@ -100,22 +110,22 @@ export const AddToLiquidity = () => {
   const hasSufficientBalance = A.sufficientBalance() && B.sufficientBalance();
 
   const createPoolButton = (
-      <Dropdown.Button
-        className="add-button"
-        onClick={executeAction}
-        trigger={["click"]}
-        disabled={
-          connected &&
-          (pendingTx || !A.account || !B.account || A.account === B.account)
-        }
-        type="primary"
-        size="large"
-        overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
-      >
-        {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
-        {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
-      </Dropdown.Button>
-    );
+    <Dropdown.Button
+      className="add-button"
+      onClick={executeAction}
+      trigger={["click"]}
+      disabled={
+        connected &&
+        (pendingTx || !A.account || !B.account || A.account === B.account)
+      }
+      type="primary"
+      size="large"
+      overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
+    >
+      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
+      {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+    </Dropdown.Button>
+  );
 
   return (
     <>
@@ -152,7 +162,7 @@ export const AddToLiquidity = () => {
         />
         <div>+</div>
         <CurrencyInput
-          title="Input"
+          title={options.curveType === CurveType.ConstantProductWithOffset ? "Offset" : "Input"}
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.Add);
             if (B.amount !== val) {

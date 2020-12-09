@@ -66,7 +66,8 @@ export const TokenSwapLayoutV1: typeof BufferLayout.Structure = BufferLayout.str
 const CURVE_NODE = BufferLayout.union(BufferLayout.u8(), BufferLayout.blob(32), 'curve')
 CURVE_NODE.addVariant(0, BufferLayout.struct([]), 'constant_product');
 CURVE_NODE.addVariant(1, BufferLayout.struct([]), 'constant_price');
-CURVE_NODE.addVariant(2, BufferLayout.struct([
+CURVE_NODE.addVariant(2, BufferLayout.struct([]), 'stable');
+CURVE_NODE.addVariant(3, BufferLayout.struct([
   BufferLayout.nu64('token_b_offset')]
   ), 'offset');
 
@@ -130,6 +131,9 @@ export const createInitSwapInstruction = (
 
       if(config.curveType === CurveType.ConstantProductWithOffset) {
         fields.push(BufferLayout.nu64('token_b_offset'),);
+        fields.push(BufferLayout.blob(24, "padding"));
+      } else if(config.curveType === CurveType.ConstantPrice) {
+        fields.push(BufferLayout.nu64('token_b_price'),);
         fields.push(BufferLayout.blob(24, "padding"));
       } else {
         fields.push(BufferLayout.blob(32, "padding"));

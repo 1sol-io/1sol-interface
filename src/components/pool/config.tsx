@@ -46,14 +46,14 @@ const FeeInput = (props: {
   );
 };
 
-const OffsetParameters = (props: {
+const PriceParameters = (props: {
   options: PoolConfig;
   setOptions: (config: PoolConfig) => void;
 }) => {
   const [value, setValue] = useState('0');
   return <>
     <>
-      <span>Supply offset:</span>
+      <span>Token B constant price:</span>
       <div style={{ padding: "3px 10px 3px 3px", border: "1px solid #434343" }}>
         <NumericInput
           className="slippage-input"
@@ -71,7 +71,7 @@ const OffsetParameters = (props: {
 
             props.setOptions({
               ...props.options,
-              token_b_offset: parseInt(x),
+              token_b_price: parseInt(x),
             })
           }}
         />
@@ -163,12 +163,12 @@ export const PoolConfigCard = (props: {
               })
             }
           >
-            <Option value="0">Constant Product</Option>
-            <Option value="1">Constant Price</Option>
-            <Option value="2">Offset Constant Product</Option>
+            <Option value={CurveType.ConstantProduct.toString()}>Constant Product</Option>
+            <Option value={CurveType.ConstantPrice.toString()}>Constant Price</Option>
+            <Option value={CurveType.ConstantProductWithOffset.toString()}>Offset Constant Product</Option>
           </Select>
         </>
-        {props.options.curveType === CurveType.ConstantProductWithOffset && <OffsetParameters {...props} />}
+        {props.options.curveType === CurveType.ConstantPrice && <PriceParameters {...props} />}
       </div>
     </Card>
   );
