@@ -13,7 +13,7 @@ import {
 import { useMint, useAccountByMint } from "./accounts";
 import { MintInfo } from "@solana/spl-token";
 import { useConnection, useConnectionConfig } from "./connection";
-import { TokenAccount } from "../models";
+import { CurveType, PoolConfig, TokenAccount, DEFAULT_DENOMINATOR } from "../models";
 import { convert, getTokenIcon, getTokenName, KnownToken } from "./utils";
 import { useHistory, useLocation } from "react-router-dom";
 import bs58 from "bs58";
@@ -37,6 +37,8 @@ export interface CurrencyPairContextState {
   lastTypedAccount: string;
   setLastTypedAccount: (mintAddress: string) => void;
   setPoolOperation: (swapDirection: PoolOperation) => void;
+  options: PoolConfig;
+  setOptions: (config: PoolConfig) => void;
 }
 
 const CurrencyPairContext = React.createContext<CurrencyPairContextState | null>(
@@ -47,7 +49,7 @@ const convertAmount = (amount: string, mint?: MintInfo) => {
   return parseFloat(amount) * Math.pow(10, mint?.decimals || 0);
 };
 
-export const useCurrencyLeg = (defaultMint?: string) => {
+export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
   const { tokenMap } = useConnectionConfig();
   const [amount, setAmount] = useState("");
   const [mintAddress, setMintAddress] = useState(defaultMint || "");
@@ -66,9 +68,9 @@ export const useCurrencyLeg = (defaultMint?: string) => {
       setMint: setMintAddress,
       convertAmount: () => convertAmount(amount, mint),
       sufficientBalance: () =>
-        account !== undefined && convert(account, mint) >= parseFloat(amount),
+       account !== undefined && (convert(account, mint) >= parseFloat(amount) || config.curveType === CurveType.ConstantProductWithOffset),
     }),
-    [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress]
+    [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress, config]
   );
 };
 
@@ -83,13 +85,27 @@ export function CurrencyPairProvider({ children = null as any }) {
     PoolOperation.Add
   );
 
-  const base = useCurrencyLeg();
+  const [options, setOptions] = useState<PoolConfig>({
+    curveType: CurveType.ConstantProduct,
+    fees: {
+      tradeFeeNumerator: 25,
+      tradeFeeDenominator: DEFAULT_DENOMINATOR,
+      ownerTradeFeeNumerator: 4,
+      ownerTradeFeeDenominator: DEFAULT_DENOMINATOR,
+      ownerWithdrawFeeNumerator: 0,
+      ownerWithdrawFeeDenominator: DEFAULT_DENOMINATOR,
+      hostFeeNumerator: 1,
+      hostFeeDenominator: DEFAULT_DENOMINATOR,
+    }
+  });
+
+  const base = useCurrencyLeg(options);
   const mintAddressA = base.mintAddress;
   const setMintAddressA = base.setMint;
   const amountA = base.amount;
   const setAmountA = base.setAmount;
 
-  const quote = useCurrencyLeg();
+  const quote = useCurrencyLeg(options);
   const mintAddressB = quote.mintAddress;
   const setMintAddressB = quote.setMint;
   const amountB = quote.amount;
@@ -216,6 +232,8 @@ export function CurrencyPairProvider({ children = null as any }) {
         lastTypedAccount,
         setLastTypedAccount,
         setPoolOperation,
+        options,
+        setOptions,
       }}
     >
       {children}

@@ -371,12 +371,14 @@ function createEnrichedPools(
       const mints = (p.pubkeys.holdingMints || [])
         .map((a) => a.toBase58())
         .sort();
-      const indexA = mints[0] === p.pubkeys.holdingMints[0]?.toBase58() ? 0 : 1;
-      const indexB = indexA === 0 ? 1 : 0;
-      const accountA = cache.getAccount(p.pubkeys.holdingAccounts[indexA]);
       const mintA = cache.getMint(mints[0]);
-      const accountB = cache.getAccount(p.pubkeys.holdingAccounts[indexB]);
       const mintB = cache.getMint(mints[1]);
+
+      const account0 = cache.getAccount(p.pubkeys.holdingAccounts[0]);
+      const account1 = cache.getAccount(p.pubkeys.holdingAccounts[1]);
+
+      const accountA = account0?.info.mint.toBase58() === mints[0] ? account0 : account1;
+      const accountB = account1?.info.mint.toBase58() === mints[1] ? account1 : account0;
 
       const baseMid = getMidPrice(
         marketByMint.get(mints[0])?.marketInfo.address.toBase58() || "",

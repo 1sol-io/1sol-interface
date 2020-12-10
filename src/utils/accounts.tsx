@@ -228,6 +228,7 @@ export const cache = {
 
     query = getMintInfo(connection, id).then((data) => {
       pendingAccountCalls.delete(address);
+
       mintCache.set(address, data);
       return data;
     }) as Promise<MintInfo>;
@@ -247,7 +248,8 @@ export const cache = {
   },
   addMint: (pubKey: PublicKey, obj: AccountInfo<Buffer>) => {
     const mint = deserializeMint(obj.data);
-    mintCache.set(pubKey.toBase58(), mint);
+    const id = pubKey.toBase58();
+    mintCache.set(id, mint);
     return mint;
   },
 };
@@ -327,6 +329,10 @@ const UseNativeAccount = () => {
   }, [setNativeAccount, wallet, wallet.publicKey, connection]);
 
   useEffect(() => {
+    if (!wallet.publicKey) {
+      return;
+    }
+
     const account = wrapNativeAccount(wallet.publicKey, nativeAccount);
     if(!account) {
       return;

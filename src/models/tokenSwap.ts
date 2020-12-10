@@ -1,6 +1,8 @@
 import { Numberu64 } from "@solana/spl-token-swap";
 import { PublicKey, Account, TransactionInstruction } from "@solana/web3.js";
 import * as BufferLayout from "buffer-layout";
+import { programIds } from "../utils/ids";
+import { CurveType, PoolConfig } from "./pool";
 
 export { TokenSwap } from "@solana/spl-token-swap";
 
@@ -18,6 +20,17 @@ export const uint64 = (property: string = "uint64"): Object => {
   return BufferLayout.blob(8, property);
 };
 
+const FEE_LAYOUT = BufferLayout.struct([
+  BufferLayout.nu64("tradeFeeNumerator"),
+  BufferLayout.nu64("tradeFeeDenominator"),
+  BufferLayout.nu64("ownerTradeFeeNumerator"),
+  BufferLayout.nu64("ownerTradeFeeDenominator"),
+  BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+  BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+  BufferLayout.nu64('hostFeeNumerator'),
+  BufferLayout.nu64('hostFeeDenominator'),
+], 'fees');
+
 export const TokenSwapLayoutLegacyV0 = BufferLayout.struct([
   BufferLayout.u8("isInitialized"),
   BufferLayout.u8("nonce"),
@@ -28,7 +41,7 @@ export const TokenSwapLayoutLegacyV0 = BufferLayout.struct([
   uint64("feesDenominator"),
 ]);
 
-export const TokenSwapLayout: typeof BufferLayout.Structure = BufferLayout.struct(
+export const TokenSwapLayoutV1: typeof BufferLayout.Structure = BufferLayout.struct(
   [
     BufferLayout.u8("isInitialized"),
     BufferLayout.u8("nonce"),
@@ -50,6 +63,30 @@ export const TokenSwapLayout: typeof BufferLayout.Structure = BufferLayout.struc
   ]
 );
 
+const CURVE_NODE = BufferLayout.union(BufferLayout.u8(), BufferLayout.blob(32), 'curve')
+CURVE_NODE.addVariant(0, BufferLayout.struct([]), 'constant_product');
+CURVE_NODE.addVariant(1, BufferLayout.struct([]), 'constant_price');
+CURVE_NODE.addVariant(2, BufferLayout.struct([]), 'stable');
+CURVE_NODE.addVariant(3, BufferLayout.struct([
+  BufferLayout.nu64('token_b_offset')]
+  ), 'offset');
+
+export const TokenSwapLayout: typeof BufferLayout.Structure = BufferLayout.struct(
+  [
+    BufferLayout.u8("isInitialized"),
+    BufferLayout.u8("nonce"),
+    publicKey("tokenProgramId"),
+    publicKey("tokenAccountA"),
+    publicKey("tokenAccountB"),
+    publicKey("tokenPool"),
+    publicKey("mintA"),
+    publicKey("mintB"),
+    publicKey("feeAccount"),
+    FEE_LAYOUT,
+    CURVE_NODE,
+  ]
+);
+
 export const createInitSwapInstruction = (
   tokenSwapAccount: Account,
   authority: PublicKey,
@@ -57,17 +94,11 @@ export const createInitSwapInstruction = (
   tokenAccountB: PublicKey,
   tokenPool: PublicKey,
   feeAccount: PublicKey,
-  tokenAccountPool: PublicKey,
+  destinationAccount: PublicKey,
   tokenProgramId: PublicKey,
   swapProgramId: PublicKey,
   nonce: number,
-  curveType: number,
-  tradeFeeNumerator: number,
-  tradeFeeDenominator: number,
-  ownerTradeFeeNumerator: number,
-  ownerTradeFeeDenominator: number,
-  ownerWithdrawFeeNumerator: number,
-  ownerWithdrawFeeDenominator: number
+  config: PoolConfig,
 ): TransactionInstruction => {
   const keys = [
     { pubkey: tokenSwapAccount.publicKey, isSigner: false, isWritable: true },
@@ -76,40 +107,85 @@ export const createInitSwapInstruction = (
     { pubkey: tokenAccountB, isSigner: false, isWritable: false },
     { pubkey: tokenPool, isSigner: false, isWritable: true },
     { pubkey: feeAccount, isSigner: false, isWritable: false },
-    { pubkey: tokenAccountPool, isSigner: false, isWritable: true },
+    { pubkey: destinationAccount, isSigner: false, isWritable: true },
     { pubkey: tokenProgramId, isSigner: false, isWritable: false },
   ];
 
-  const commandDataLayout = BufferLayout.struct([
-    BufferLayout.u8("instruction"),
-    BufferLayout.u8("nonce"),
-    BufferLayout.u8("curveType"),
-    BufferLayout.nu64("tradeFeeNumerator"),
-    BufferLayout.nu64("tradeFeeDenominator"),
-    BufferLayout.nu64("ownerTradeFeeNumerator"),
-    BufferLayout.nu64("ownerTradeFeeDenominator"),
-    BufferLayout.nu64("ownerWithdrawFeeNumerator"),
-    BufferLayout.nu64("ownerWithdrawFeeDenominator"),
-    BufferLayout.blob(16, "padding"),
-  ]);
   let data = Buffer.alloc(1024);
   {
-    const encodeLength = commandDataLayout.encode(
-      {
-        instruction: 0, // InitializeSwap instruction
-        nonce,
-        curveType,
-        tradeFeeNumerator,
-        tradeFeeDenominator,
-        ownerTradeFeeNumerator,
-        ownerTradeFeeDenominator,
-        ownerWithdrawFeeNumerator,
-        ownerWithdrawFeeDenominator,
-      },
-      data
-    );
-    data = data.slice(0, encodeLength);
+    const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
+    if (isLatestLayout) {
+      const fields = [
+        BufferLayout.u8('instruction'),
+        BufferLayout.u8('nonce'),
+        BufferLayout.nu64("tradeFeeNumerator"),
+        BufferLayout.nu64("tradeFeeDenominator"),
+        BufferLayout.nu64("ownerTradeFeeNumerator"),
+        BufferLayout.nu64("ownerTradeFeeDenominator"),
+        BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+        BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+        BufferLayout.nu64('hostFeeNumerator'),
+        BufferLayout.nu64('hostFeeDenominator'),
+        BufferLayout.u8("curveType"),
+      ];
+
+      if(config.curveType === CurveType.ConstantProductWithOffset) {
+        fields.push(BufferLayout.nu64('token_b_offset'),);
+        fields.push(BufferLayout.blob(24, "padding"));
+      } else if(config.curveType === CurveType.ConstantPrice) {
+        fields.push(BufferLayout.nu64('token_b_price'),);
+        fields.push(BufferLayout.blob(24, "padding"));
+      } else {
+        fields.push(BufferLayout.blob(32, "padding"));
+      }
+
+      const commandDataLayout = BufferLayout.struct(fields);
+      
+      const { fees, ...rest } = config;
+
+      const encodeLength = commandDataLayout.encode(
+        {
+          instruction: 0, // InitializeSwap instruction
+          nonce,
+          ...fees,
+          ...rest
+        },
+        data
+      );
+      data = data.slice(0, encodeLength);
+    } else {
+      const commandDataLayout = BufferLayout.struct([
+        BufferLayout.u8("instruction"),
+        BufferLayout.u8("nonce"),
+        BufferLayout.u8("curveType"),
+        BufferLayout.nu64("tradeFeeNumerator"),
+        BufferLayout.nu64("tradeFeeDenominator"),
+        BufferLayout.nu64("ownerTradeFeeNumerator"),
+        BufferLayout.nu64("ownerTradeFeeDenominator"),
+        BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+        BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+        BufferLayout.blob(16, "padding"),
+      ]);
+
+      const encodeLength = commandDataLayout.encode(
+        {
+          instruction: 0, // InitializeSwap instruction
+          nonce,
+          curveType: config.curveType,
+          tradeFeeNumerator: config.fees.tradeFeeNumerator,
+          tradeFeeDenominator: config.fees.tradeFeeDenominator,
+          ownerTradeFeeNumerator: config.fees.ownerTradeFeeNumerator,
+          ownerTradeFeeDenominator: config.fees.ownerTradeFeeDenominator,
+          ownerWithdrawFeeNumerator: config.fees.ownerWithdrawFeeNumerator,
+          ownerWithdrawFeeDenominator: config.fees.ownerWithdrawFeeDenominator,
+        },
+        data
+      );
+      data = data.slice(0, encodeLength);
+    }
   }
+
+
   return new TransactionInstruction({
     keys,
     programId: swapProgramId,

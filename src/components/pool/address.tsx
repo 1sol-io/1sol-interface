@@ -56,8 +56,13 @@ export const AccountsAddress = (props: {
   pool?: PoolInfo;
   style?: React.CSSProperties;
 }) => {
-  const { pool } = props;
   const { tokenMap } = useConnectionConfig();
+  const { pool } = props;
+
+  if(!pool) {
+    return null;
+  }
+
   const account1 = pool?.pubkeys.holdingAccounts[0];
   const account2 = pool?.pubkeys.holdingAccounts[1];
   const mint1 = pool?.pubkeys.holdingMints[0];
@@ -92,6 +97,10 @@ export const AccountsAddress = (props: {
 
 export const AdressesPopover = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
+
+  if(!pool) {
+    return null;
+  }
 
   return (
     <Popover

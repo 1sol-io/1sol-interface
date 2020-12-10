@@ -102,7 +102,9 @@ export function convert(
     typeof account === "number" ? account : account.info.amount?.toNumber();
 
   const precision = Math.pow(10, mint?.decimals || 0);
-  return (amount / precision) * rate;
+  let result = (amount / precision) * rate;
+
+  return result;
 }
 
 var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];

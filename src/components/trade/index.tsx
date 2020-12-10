@@ -1,4 +1,4 @@
-import { Button, Card, Popover, Typography } from "antd";
+import { Button, Card, Popover, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   useConnection,
@@ -8,6 +8,7 @@ import {
 import { useWallet } from "../../utils/wallet";
 import { CurrencyInput } from "../currencyInput";
 import {
+  LoadingOutlined,
   SwapOutlined,
   QuestionCircleOutlined,
   SettingOutlined,
@@ -31,6 +32,8 @@ import { Settings } from "../settings";
 import { MigrationModal } from "../migration";
 
 const { Text } = Typography;
+
+const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 export const TradeEntry = () => {
   const { wallet, connected } = useWallet();
@@ -141,7 +144,6 @@ export const TradeEntry = () => {
         className="trade-button"
         type="primary"
         size="large"
-        loading={pendingTx}
         onClick={connected ? handleSwap : wallet.connect}
         style={{ width: "100%" }}
         disabled={
@@ -167,6 +169,7 @@ export const TradeEntry = () => {
           B,
           true
         )}
+        {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
       <TradeInfo pool={pool} />
     </>
