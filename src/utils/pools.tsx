@@ -865,7 +865,8 @@ export async function calculateDependentAmount(
 
   const constantPrice = pool.raw?.data?.curve?.constantPrice;
   if (constantPrice) {
-    depAdjustedAmount = amount * constantPrice.token_b_price;
+    debugger;
+    depAdjustedAmount = amount * depPrecision / constantPrice.token_b_price;
   } else {
     switch (+op) {
       case PoolOperation.Add:
