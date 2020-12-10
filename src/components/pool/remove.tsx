@@ -4,7 +4,7 @@ import {Button, Card, Col, Row, Slider, Spin, Typography} from "antd";
 import {removeLiquidity} from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import {useConnection, useConnectionConfig} from "../../utils/connection";
-import {PoolInfo, TokenAccount, TokenSwapLayout} from "../../models";
+import {PoolInfo, TokenAccount} from "../../models";
 import { notify } from "../../utils/notifications";
 import { TokenIcon } from "../tokenIcon";
 import { YourPosition } from "./add";
@@ -13,36 +13,24 @@ import { formatPriceNumber } from "../../utils/utils";
 import {PoolCurrencyInput} from "../currencyInput";
 import {LoadingOutlined} from "@ant-design/icons";
 import {generateRemoveLabel} from "../labels";
-import {programIds} from "../../utils/ids";
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
-  lastTyped: string;
   removeRatio: number;
-  removeAmount: number;
 }) => {
   const { account, pool } = props.instance;
-  const { removeRatio, removeAmount, lastTyped } = props;
+  const {  removeRatio } = props;
   const [pendingTx, setPendingTx] = useState(false);
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const { tokenMap } = useConnectionConfig();
-  const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
-  let liquidityAmount: number = account.info.amount.toNumber() * removeRatio;
-  if (isLatestLayout) {
-    liquidityAmount = lastTyped === "slider" ? liquidityAmount : removeAmount;
-  }
-
+  let liquidityAmount: number = removeRatio * account.info.amount.toNumber();
   const hasSufficientBalance = liquidityAmount <= account.info.amount.toNumber();
 
   const onRemove = async () => {
     try {
       setPendingTx(true);
-      if (isLatestLayout && ["slider", "pool"].indexOf(lastTyped) >= 0) {
-        // new instruction
-      } else {
-        await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
-      }
+      await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
     } catch {
       notify({
         description:
@@ -128,13 +116,13 @@ export const RemoveLiquidityEntry = (props: {
       }
       case "tokenA": {
         setInputsDescription({
-          pool: "Output (Estimated)",
+          pool: "Input",
           poolAmount: (
             formatPriceNumber.format(
               ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
             )
           ),
-          tokenA: "Input",
+          tokenA: "Output (Estimated)",
           tokenAAmount: inputInfo.amount,
           tokenB: "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
@@ -145,7 +133,7 @@ export const RemoveLiquidityEntry = (props: {
       }
       case "tokenB": {
         setInputsDescription({
-          pool: "Output (Estimated)",
+          pool: "Input",
           poolAmount: (
             formatPriceNumber.format(
               ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
@@ -155,7 +143,7 @@ export const RemoveLiquidityEntry = (props: {
           tokenAAmount: formatPriceNumber.format(
             ratio * (enriched?.liquidityA || 0) * (inputInfo.liquidityPercentage / 100)
           ),
-          tokenB: "Input",
+          tokenB: "Output (Estimated)",
           tokenBAmount: inputInfo.amount,
         })
         break
@@ -390,9 +378,7 @@ export const RemoveLiquidityEntry = (props: {
       {account && (
         <RemoveLiquidity
           instance={{ pool: pool, account: account }}
-          removeRatio={inputInfo.liquidityPercentage / 100}
-          removeAmount={parseFloat(inputInfo.amount)}
-          lastTyped={inputInfo.lastTyped}
+          removeRatio={inputInfo.liquidityPercentage/100}
         />
       )}
       <YourPosition pool={pool} />
