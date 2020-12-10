@@ -248,15 +248,15 @@ export const PoolCurrencyInput = (props: {
   let name: string;
   let icon: JSX.Element;
   if (pool) {
-      name = getPoolName(tokenMap, pool);
-      const sorted = pool.pubkeys.holdingMints
-        .map((a: PublicKey) => a.toBase58())
-        .sort();
-      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
-    } else {
-      name = getTokenName(tokenMap, mint, true, 3);
-      icon = <TokenIcon mintAddress={mint} />;
-    }
+    name = getPoolName(tokenMap, pool);
+    const sorted = pool.pubkeys.holdingMints
+      .map((a: PublicKey) => a.toBase58())
+      .sort();
+    icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
+  } else {
+    name = getTokenName(tokenMap, mint, true, 3);
+    icon = <TokenIcon mintAddress={mint} />;
+  }
   return (
     <Card
       className="ccy-input"
@@ -268,9 +268,7 @@ export const PoolCurrencyInput = (props: {
         {balance && (
           <div
             className="ccy-input-header-right"
-            onClick={(e) =>
-              props.onInputChange && props.onInputChange(balance)
-            }
+            onClick={(e) => props.onInputChange && props.onInputChange(balance)}
           >
             Balance: {balance.toFixed(6)}
           </div>
@@ -294,14 +292,9 @@ export const PoolCurrencyInput = (props: {
         />
 
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          <TokenDisplay
-            key={mint}
-            mintAddress={mint}
-            name={name}
-            icon={icon}
-          />
+          <TokenDisplay key={mint} mintAddress={mint} name={name} icon={icon} />
         </div>
       </div>
     </Card>
   );
-}
+};

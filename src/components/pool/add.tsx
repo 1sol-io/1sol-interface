@@ -45,7 +45,7 @@ export const AddToLiquidity = () => {
     setLastTypedAccount,
     setPoolOperation,
     options,
-    setOptions
+    setOptions,
   } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
@@ -54,44 +54,46 @@ export const AddToLiquidity = () => {
   const executeAction = !connected
     ? wallet.connect
     : async () => {
-      if (A.account && B.account && A.mint && B.mint) {
-        setPendingTx(true);
-        const components = [
-          {
-            account: A.account,
-            mintAddress: A.mintAddress,
-            amount: A.convertAmount(),
-          },
-          {
-            account: B.account,
-            mintAddress: B.mintAddress,
-            amount: B.convertAmount(),
-          },
-        ];
+        if (A.account && B.account && A.mint && B.mint) {
+          setPendingTx(true);
+          const components = [
+            {
+              account: A.account,
+              mintAddress: A.mintAddress,
+              amount: A.convertAmount(),
+            },
+            {
+              account: B.account,
+              mintAddress: B.mintAddress,
+              amount: B.convertAmount(),
+            },
+          ];
 
-        // use input from B as offset during pool init for curve with offset
-        if (options.curveType === CurveType.ConstantProductWithOffset
-          && !pool) {
+          // use input from B as offset during pool init for curve with offset
+          if (
+            options.curveType === CurveType.ConstantProductWithOffset &&
+            !pool
+          ) {
             options.token_b_offset = components[1].amount;
             components[1].amount = 0;
-        }
+          }
 
-        addLiquidity(connection, wallet, components, slippage, pool, options)
-          .then(() => {
-            setPendingTx(false);
-          })
-          .catch((e) => {
-            console.log("Transaction failed", e);
-            notify({
-              description:
-                "Please try again and approve transactions from your wallet",
-              message: "Adding liquidity cancelled.",
-              type: "error",
+          addLiquidity(connection, wallet, components, slippage, pool, options)
+            .then(() => {
+              setPendingTx(false);
+            })
+            .catch((e) => {
+              console.log("Transaction failed", e);
+              notify({
+                description:
+                  "Please try again and approve transactions from your wallet",
+                message: "Adding liquidity cancelled.",
+                type: "error",
+              });
+              setPendingTx(false);
             });
-            setPendingTx(false);
-          });
-      }
-    };
+        }
+      };
 
   const hasSufficientBalance = A.sufficientBalance() && B.sufficientBalance();
 
@@ -148,7 +150,11 @@ export const AddToLiquidity = () => {
         />
         <div>+</div>
         <CurrencyInput
-          title={options.curveType === CurveType.ConstantProductWithOffset ? "Offset" : "Input"}
+          title={
+            options.curveType === CurveType.ConstantProductWithOffset
+              ? "Offset"
+              : "Input"
+          }
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.Add);
             if (B.amount !== val) {
@@ -177,7 +183,13 @@ export const AddToLiquidity = () => {
                 !hasSufficientBalance)
             }
           >
-            {generateActionLabel(ADD_LIQUIDITY_LABEL, connected, tokenMap, A, B)}
+            {generateActionLabel(
+              ADD_LIQUIDITY_LABEL,
+              connected,
+              tokenMap,
+              A,
+              B
+            )}
             {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
           </Button>
         )}

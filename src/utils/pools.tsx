@@ -167,8 +167,12 @@ export const removeLiquidity = async (
   });
 
   return [
-    accountA.info.mint.equals(WRAPPED_SOL_MINT) ? wallet.publicKey as PublicKey : toAccounts[0],
-    accountB.info.mint.equals(WRAPPED_SOL_MINT) ? wallet.publicKey as PublicKey : toAccounts[1],
+    accountA.info.mint.equals(WRAPPED_SOL_MINT)
+      ? (wallet.publicKey as PublicKey)
+      : toAccounts[0],
+    accountB.info.mint.equals(WRAPPED_SOL_MINT)
+      ? (wallet.publicKey as PublicKey)
+      : toAccounts[1],
   ];
 };
 
@@ -195,7 +199,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0]?.toBase58() ===
-      components[0].account.info.mint.toBase58()
+    components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -250,14 +254,14 @@ export const swap = async (
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-      wallet.publicKey,
-      SWAP_HOST_FEE_ADDRESS,
-      instructions,
-      cleanupInstructions,
-      accountRentExempt,
-      pool.pubkeys.mint,
-      signers
-    )
+        wallet.publicKey,
+        SWAP_HOST_FEE_ADDRESS,
+        instructions,
+        cleanupInstructions,
+        accountRentExempt,
+        pool.pubkeys.mint,
+        signers
+      )
     : undefined;
 
   // swap
@@ -357,14 +361,15 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => { },
+            init: async () => {},
           };
 
-          const layout = item.account.data.length === TokenSwapLayout.span ?
-            TokenSwapLayout :
-            item.account.data.length === TokenSwapLayoutV1.span ?
-              TokenSwapLayoutV1 :
-              TokenSwapLayoutV0;
+          const layout =
+            item.account.data.length === TokenSwapLayout.span
+              ? TokenSwapLayout
+              : item.account.data.length === TokenSwapLayoutV1.span
+              ? TokenSwapLayoutV1
+              : TokenSwapLayoutV0;
 
           // handling of legacy layout can be removed soon...
           if (layout === TokenSwapLayoutV0) {
@@ -430,7 +435,7 @@ export const usePools = () => {
             if (obj.data.length === AccountLayout.span) {
               return cache.addAccount(pubKey, obj);
             } else if (obj.data.length === MintLayout.span) {
-              if(!cache.getMint(pubKey)) {
+              if (!cache.getMint(pubKey)) {
                 return cache.addMint(pubKey, obj);
               }
             }
@@ -829,7 +834,7 @@ export async function calculateDependentAmount(
 
   let offsetAmount = 0;
   const offsetCurve = pool.raw?.data?.curve?.offset;
-  if(offsetCurve) {
+  if (offsetCurve) {
     offsetAmount = offsetCurve.token_b_offset;
     amountB = amountB + offsetAmount;
   }
@@ -852,35 +857,38 @@ export async function calculateDependentAmount(
   );
   const indAdjustedAmount = amount * indPrecision;
 
-  let indBasketQuantity = isFirstIndependent
-    ? amountA
-    : amountB;
+  let indBasketQuantity = isFirstIndependent ? amountA : amountB;
 
-  let depBasketQuantity = isFirstIndependent
-    ? amountB
-    : amountA;
+  let depBasketQuantity = isFirstIndependent ? amountB : amountA;
 
   var depAdjustedAmount;
-  switch (+op) {
-    case PoolOperation.Add:
-      depAdjustedAmount =
-        (depBasketQuantity / indBasketQuantity) * indAdjustedAmount;
-      break;
-    case PoolOperation.SwapGivenProceeds:
-      depAdjustedAmount = estimateInputFromProceeds(
-        depBasketQuantity,
-        indBasketQuantity,
-        indAdjustedAmount
-      );
-      break;
-    case PoolOperation.SwapGivenInput:
-      depAdjustedAmount = estimateProceedsFromInput(
-        indBasketQuantity,
-        depBasketQuantity,
-        indAdjustedAmount
-      );
-      break;
+
+  const constantPrice = pool.raw?.data?.curve?.constantPrice;
+  if (constantPrice) {
+    depAdjustedAmount = amount * constantPrice.token_b_price;
+  } else {
+    switch (+op) {
+      case PoolOperation.Add:
+        depAdjustedAmount =
+          (depBasketQuantity / indBasketQuantity) * indAdjustedAmount;
+        break;
+      case PoolOperation.SwapGivenProceeds:
+        depAdjustedAmount = estimateInputFromProceeds(
+          depBasketQuantity,
+          indBasketQuantity,
+          indAdjustedAmount
+        );
+        break;
+      case PoolOperation.SwapGivenInput:
+        depAdjustedAmount = estimateProceedsFromInput(
+          indBasketQuantity,
+          depBasketQuantity,
+          indAdjustedAmount
+        );
+        break;
+    }
   }
+
   if (typeof depAdjustedAmount === "string") {
     return depAdjustedAmount;
   }
@@ -1072,7 +1080,7 @@ async function _addLiquidityNewPool(
       programIds().token,
       programIds().swap,
       nonce,
-      options,
+      options
     )
   );
 

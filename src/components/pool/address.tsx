@@ -59,7 +59,7 @@ export const AccountsAddress = (props: {
   const { tokenMap } = useConnectionConfig();
   const { pool } = props;
 
-  if(!pool) {
+  if (!pool) {
     return null;
   }
 
@@ -98,7 +98,7 @@ export const AccountsAddress = (props: {
 export const AdressesPopover = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
 
-  if(!pool) {
+  if (!pool) {
     return null;
   }
 

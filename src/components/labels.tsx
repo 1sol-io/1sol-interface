@@ -1,6 +1,6 @@
 import { CurrencyContextState } from "../utils/currencyPair";
 import { getTokenName, KnownTokenMap, getPoolName } from "../utils/utils";
-import {PoolInfo} from "../models";
+import { PoolInfo } from "../models";
 
 export const CREATE_POOL_LABEL = "Create Liquidity Pool";
 export const INSUFFICIENT_FUNDS_LABEL = (tokenName: string) =>
@@ -53,5 +53,5 @@ export const generateRemoveLabel = (
     ? ENTER_AMOUNT_LABEL
     : !hasSufficientBalance
     ? INSUFFICIENT_FUNDS_LABEL(getPoolName(tokenMap, pool))
-    : REMOVE_LIQUIDITY_LABEL
+    : REMOVE_LIQUIDITY_LABEL;
 };

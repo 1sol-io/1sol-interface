@@ -48,34 +48,38 @@ const PriceParameters = (props: {
   options: PoolConfig;
   setOptions: (config: PoolConfig) => void;
 }) => {
-  const [value, setValue] = useState('0');
-  return <>
+  const [value, setValue] = useState("0");
+  return (
     <>
-      <span>Token B constant price:</span>
-      <div style={{ padding: "3px 10px 3px 3px", border: "1px solid #434343" }}>
-        <NumericInput
-          className="slippage-input"
-          size="small"
-          value={value}
-          style={{
-            width: 50,
-            fontSize: 14,
-            boxShadow: "none",
-            borderColor: "transparent",
-            outline: "transpaernt",
-          }}
-          onChange={(x: any) => {
-            setValue(x);
+      <>
+        <span>Token B constant price:</span>
+        <div
+          style={{ padding: "3px 10px 3px 3px", border: "1px solid #434343" }}
+        >
+          <NumericInput
+            className="slippage-input"
+            size="small"
+            value={value}
+            style={{
+              width: 50,
+              fontSize: 14,
+              boxShadow: "none",
+              borderColor: "transparent",
+              outline: "transpaernt",
+            }}
+            onChange={(x: any) => {
+              setValue(x);
 
-            props.setOptions({
-              ...props.options,
-              token_b_price: parseInt(x),
-            })
-          }}
-        />
-      </div>
+              props.setOptions({
+                ...props.options,
+                token_b_price: parseInt(x),
+              });
+            }}
+          />
+        </div>
+      </>
     </>
-  </>;
+  );
 };
 
 export const PoolConfigCard = (props: {
@@ -91,59 +95,61 @@ export const PoolConfigCard = (props: {
     ownerWithdrawFeeDenominator,
   } = props.options.fees;
 
-  const feesInput = (<>
+  const feesInput = (
     <>
-      <span>LPs Trading Fee:</span>
-      <FeeInput
-        numerator={tradeFeeNumerator}
-        denominator={tradeFeeDenominator}
-        set={(numerator, denominator) =>
-          props.setOptions({
-            ...props.options,
-            fees: {
-              ...props.options.fees,
-              tradeFeeNumerator: numerator,
-              tradeFeeDenominator: denominator,
-            }
-          })
-        }
-      />
+      <>
+        <span>LPs Trading Fee:</span>
+        <FeeInput
+          numerator={tradeFeeNumerator}
+          denominator={tradeFeeDenominator}
+          set={(numerator, denominator) =>
+            props.setOptions({
+              ...props.options,
+              fees: {
+                ...props.options.fees,
+                tradeFeeNumerator: numerator,
+                tradeFeeDenominator: denominator,
+              },
+            })
+          }
+        />
+      </>
+      <>
+        <span>Owner Trading Fee:</span>
+        <FeeInput
+          numerator={ownerTradeFeeNumerator}
+          denominator={ownerTradeFeeDenominator}
+          set={(numerator, denominator) =>
+            props.setOptions({
+              ...props.options,
+              fees: {
+                ...props.options.fees,
+                ownerTradeFeeNumerator: numerator,
+                ownerTradeFeeDenominator: denominator,
+              },
+            })
+          }
+        />
+      </>
+      <>
+        <span>Withdraw Fee:</span>
+        <FeeInput
+          numerator={ownerWithdrawFeeNumerator}
+          denominator={ownerWithdrawFeeDenominator}
+          set={(numerator, denominator) =>
+            props.setOptions({
+              ...props.options,
+              fees: {
+                ...props.options.fees,
+                ownerWithdrawFeeNumerator: numerator,
+                ownerWithdrawFeeDenominator: denominator,
+              },
+            })
+          }
+        />
+      </>
     </>
-    <>
-      <span>Owner Trading Fee:</span>
-      <FeeInput
-        numerator={ownerTradeFeeNumerator}
-        denominator={ownerTradeFeeDenominator}
-        set={(numerator, denominator) =>
-          props.setOptions({
-            ...props.options,
-            fees: {
-              ...props.options.fees,
-              ownerTradeFeeNumerator: numerator,
-              ownerTradeFeeDenominator: denominator,
-            }
-          })
-        }
-      />
-    </>
-    <>
-      <span>Withdraw Fee:</span>
-      <FeeInput
-        numerator={ownerWithdrawFeeNumerator}
-        denominator={ownerWithdrawFeeDenominator}
-        set={(numerator, denominator) =>
-          props.setOptions({
-            ...props.options,
-            fees: {
-              ...props.options.fees,
-              ownerWithdrawFeeNumerator: numerator,
-              ownerWithdrawFeeDenominator: denominator,
-            }
-          })
-        }
-      />
-    </>
-  </>)
+  );
 
   return (
     <Card title="Pool configuration">
@@ -161,12 +167,20 @@ export const PoolConfigCard = (props: {
               })
             }
           >
-            <Option value={CurveType.ConstantProduct.toString()}>Constant Product</Option>
-            <Option value={CurveType.ConstantPrice.toString()}>Constant Price</Option>
-            <Option value={CurveType.ConstantProductWithOffset.toString()}>Offset Constant Product</Option>
+            <Option value={CurveType.ConstantProduct.toString()}>
+              Constant Product
+            </Option>
+            <Option value={CurveType.ConstantPrice.toString()}>
+              Constant Price
+            </Option>
+            <Option value={CurveType.ConstantProductWithOffset.toString()}>
+              Offset Constant Product
+            </Option>
           </Select>
         </>
-        {props.options.curveType === CurveType.ConstantPrice && <PriceParameters {...props} />}
+        {props.options.curveType === CurveType.ConstantPrice && (
+          <PriceParameters {...props} />
+        )}
       </div>
     </Card>
   );

@@ -1,31 +1,32 @@
-import React, {useEffect, useState} from "react";
-import {Button, Card, Col, Row, Slider, Spin, Typography} from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Card, Col, Row, Slider, Spin, Typography } from "antd";
 
-import {removeLiquidity} from "../../utils/pools";
+import { removeLiquidity } from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
-import {useConnection, useConnectionConfig} from "../../utils/connection";
-import {PoolInfo, TokenAccount} from "../../models";
+import { useConnection, useConnectionConfig } from "../../utils/connection";
+import { PoolInfo, TokenAccount } from "../../models";
 import { notify } from "../../utils/notifications";
 import { TokenIcon } from "../tokenIcon";
 import { YourPosition } from "./add";
 import { useMint } from "../../utils/accounts";
 import { formatPriceNumber } from "../../utils/utils";
-import {PoolCurrencyInput} from "../currencyInput";
-import {LoadingOutlined} from "@ant-design/icons";
-import {generateRemoveLabel} from "../labels";
+import { PoolCurrencyInput } from "../currencyInput";
+import { LoadingOutlined } from "@ant-design/icons";
+import { generateRemoveLabel } from "../labels";
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
   removeRatio: number;
 }) => {
   const { account, pool } = props.instance;
-  const {  removeRatio } = props;
+  const { removeRatio } = props;
   const [pendingTx, setPendingTx] = useState(false);
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const { tokenMap } = useConnectionConfig();
   let liquidityAmount: number = removeRatio * account.info.amount.toNumber();
-  const hasSufficientBalance = liquidityAmount <= account.info.amount.toNumber();
+  const hasSufficientBalance =
+    liquidityAmount <= account.info.amount.toNumber();
 
   const onRemove = async () => {
     try {
@@ -50,11 +51,24 @@ export const RemoveLiquidity = (props: {
       type="primary"
       size="large"
       onClick={onRemove}
-      disabled={connected &&
-        (pendingTx || !hasSufficientBalance || !account || !liquidityAmount)}
+      disabled={
+        connected &&
+        (pendingTx || !hasSufficientBalance || !account || !liquidityAmount)
+      }
     >
-      {generateRemoveLabel(connected, liquidityAmount, pool, tokenMap, hasSufficientBalance)}
-      {pendingTx && <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} className="add-spinner" />}
+      {generateRemoveLabel(
+        connected,
+        liquidityAmount,
+        pool,
+        tokenMap,
+        hasSufficientBalance
+      )}
+      {pendingTx && (
+        <Spin
+          indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+          className="add-spinner"
+        />
+      )}
     </Button>
   );
 };
@@ -64,7 +78,7 @@ export const RemoveLiquidityEntry = (props: {
   enriched: any;
 }) => {
   const { account, pool } = props.instance;
-  const { enriched } = props
+  const { enriched } = props;
   const [inputType, setInputType] = useState("slider");
 
   const lpMint = useMint(pool?.pubkeys.mint);
@@ -85,11 +99,15 @@ export const RemoveLiquidityEntry = (props: {
     ),
     tokenA: "Output (estimated)",
     tokenAAmount: formatPriceNumber.format(
-      ratio * (enriched?.liquidityA || 0) * (inputInfo.liquidityPercentage / 100)
+      ratio *
+        (enriched?.liquidityA || 0) *
+        (inputInfo.liquidityPercentage / 100)
     ),
     tokenB: "Output (estimated)",
     tokenBAmount: formatPriceNumber.format(
-      ratio * (enriched?.liquidityB || 0) * (inputInfo.liquidityPercentage / 100)
+      ratio *
+        (enriched?.liquidityB || 0) *
+        (inputInfo.liquidityPercentage / 100)
     ),
   });
 
@@ -98,78 +116,92 @@ export const RemoveLiquidityEntry = (props: {
       case "pool": {
         setInputsDescription({
           pool: "Input",
-          poolAmount: inputInfo.amount !== "initial" ? inputInfo.amount : (
-            formatPriceNumber.format(
-              ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
-            )
-          ),
+          poolAmount:
+            inputInfo.amount !== "initial"
+              ? inputInfo.amount
+              : formatPriceNumber.format(
+                  ratio *
+                    (enriched?.supply || 0) *
+                    (inputInfo.liquidityPercentage / 100)
+                ),
           tokenA: "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityA || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityA || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenB: "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityB || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityB || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
-        })
+        });
         break;
       }
       case "tokenA": {
         setInputsDescription({
           pool: "Input",
-          poolAmount: (
-            formatPriceNumber.format(
-              ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
-            )
+          poolAmount: formatPriceNumber.format(
+            ratio *
+              (enriched?.supply || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenA: "Output (Estimated)",
           tokenAAmount: inputInfo.amount,
           tokenB: "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityB || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityB || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
-        })
+        });
         break;
       }
       case "tokenB": {
         setInputsDescription({
           pool: "Input",
-          poolAmount: (
-            formatPriceNumber.format(
-              ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
-            )
+          poolAmount: formatPriceNumber.format(
+            ratio *
+              (enriched?.supply || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenA: "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityA || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityA || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenB: "Output (Estimated)",
           tokenBAmount: inputInfo.amount,
-        })
-        break
+        });
+        break;
       }
       case "slider": {
         setInputsDescription({
           pool: "Input",
-          poolAmount: (
-            formatPriceNumber.format(
-              ratio * (enriched?.supply || 0) * (inputInfo.liquidityPercentage / 100)
-            )
+          poolAmount: formatPriceNumber.format(
+            ratio *
+              (enriched?.supply || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenA: "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityA || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityA || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
           tokenB: "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
-            ratio * (enriched?.liquidityB || 0) * (inputInfo.liquidityPercentage / 100)
+            ratio *
+              (enriched?.liquidityB || 0) *
+              (inputInfo.liquidityPercentage / 100)
           ),
-        })
-        break
+        });
+        break;
       }
     }
-
-  }, [inputInfo, enriched, ratio, inputInfo.liquidityPercentage])
+  }, [inputInfo, enriched, ratio, inputInfo.liquidityPercentage]);
 
   if (!pool || !enriched) {
     return null;
@@ -181,30 +213,30 @@ export const RemoveLiquidityEntry = (props: {
     switch (inputSource) {
       case "pool": {
         setInputInfo({
-          liquidityPercentage: val * 100 / ( enriched.supply * ratio ),
+          liquidityPercentage: (val * 100) / (enriched.supply * ratio),
           amount: val,
-          lastTyped: "pool"
-        })
+          lastTyped: "pool",
+        });
         break;
       }
       case "tokenA": {
         setInputInfo({
-          liquidityPercentage: val * 100 / ( enriched.liquidityA * ratio ),
+          liquidityPercentage: (val * 100) / (enriched.liquidityA * ratio),
           amount: val,
-          lastTyped: "tokenA"
-        })
+          lastTyped: "tokenA",
+        });
         break;
       }
       case "tokenB": {
         setInputInfo({
-          liquidityPercentage: val * 100 / ( enriched.liquidityB * ratio ),
+          liquidityPercentage: (val * 100) / (enriched.liquidityB * ratio),
           amount: val,
-          lastTyped: "tokenB"
-        })
+          lastTyped: "tokenB",
+        });
         break;
       }
     }
-  }
+  };
 
   return (
     <>
@@ -239,46 +271,67 @@ export const RemoveLiquidityEntry = (props: {
                   tipFormatter={(amount?: number) => `${amount}%`}
                   min={0}
                   max={100}
-                  onChange={(amount: number) => setInputInfo({
+                  onChange={(amount: number) =>
+                    setInputInfo({
                       ...inputInfo,
                       liquidityPercentage: amount,
-                      lastTyped: "slider"
-                    }
-                  )}
+                      lastTyped: "slider",
+                    })
+                  }
                 />
               </div>
               <Row>
                 <Col span={6}>
-                  <Button onClick={() => setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 25,
-                      lastTyped: "slider"
-                    })}
-                  >25%</Button>
+                  <Button
+                    onClick={() =>
+                      setInputInfo({
+                        ...inputInfo,
+                        liquidityPercentage: 25,
+                        lastTyped: "slider",
+                      })
+                    }
+                  >
+                    25%
+                  </Button>
                 </Col>
                 <Col span={6}>
-                  <Button onClick={() => setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 50,
-                      lastTyped: "slider"
-                    })}
-                  >50%</Button>
+                  <Button
+                    onClick={() =>
+                      setInputInfo({
+                        ...inputInfo,
+                        liquidityPercentage: 50,
+                        lastTyped: "slider",
+                      })
+                    }
+                  >
+                    50%
+                  </Button>
                 </Col>
                 <Col span={6}>
-                  <Button onClick={() => setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 75,
-                      lastTyped: "slider"
-                    })}
-                  >75%</Button>
+                  <Button
+                    onClick={() =>
+                      setInputInfo({
+                        ...inputInfo,
+                        liquidityPercentage: 75,
+                        lastTyped: "slider",
+                      })
+                    }
+                  >
+                    75%
+                  </Button>
                 </Col>
                 <Col span={6}>
-                  <Button onClick={() => setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 100,
-                      lastTyped: "slider"
-                    })}
-                  >100%</Button>
+                  <Button
+                    onClick={() =>
+                      setInputInfo({
+                        ...inputInfo,
+                        liquidityPercentage: 100,
+                        lastTyped: "slider",
+                      })
+                    }
+                  >
+                    100%
+                  </Button>
                 </Col>
               </Row>
             </div>
@@ -293,7 +346,9 @@ export const RemoveLiquidityEntry = (props: {
               <div className="pool-card-row">
                 <div className="pool-card-cell">
                   {formatPriceNumber.format(
-                    ratio * enriched.liquidityA * (inputInfo.liquidityPercentage / 100)
+                    ratio *
+                      enriched.liquidityA *
+                      (inputInfo.liquidityPercentage / 100)
                   )}
                 </div>
                 <div className="pool-card-cell">
@@ -306,7 +361,9 @@ export const RemoveLiquidityEntry = (props: {
               <div className="pool-card-row">
                 <div className="pool-card-cell">
                   {formatPriceNumber.format(
-                    ratio * enriched.liquidityB * (inputInfo.liquidityPercentage / 100)
+                    ratio *
+                      enriched.liquidityB *
+                      (inputInfo.liquidityPercentage / 100)
                   )}
                 </div>
                 <div className="pool-card-cell">
@@ -332,9 +389,7 @@ export const RemoveLiquidityEntry = (props: {
               <div className="pool-card-row">
                 <div className="pool-card-cell">Amount Estimated</div>
                 <div className="pool-card-cell">
-                  <Button onClick={() => setInputType("slider")}>
-                    Simple
-                  </Button>
+                  <Button onClick={() => setInputType("slider")}>Simple</Button>
                 </div>
               </div>
               <div className="pool-card-row">
@@ -352,46 +407,67 @@ export const RemoveLiquidityEntry = (props: {
                 tipFormatter={(amount?: number) => `${amount}%`}
                 min={0}
                 max={100}
-                onChange={(amount: number) => setInputInfo({
+                onChange={(amount: number) =>
+                  setInputInfo({
                     ...inputInfo,
                     liquidityPercentage: amount,
-                    lastTyped: "slider"
-                  }
-                )}
+                    lastTyped: "slider",
+                  })
+                }
               />
             </div>
             <Row>
               <Col span={6}>
-                <Button onClick={() => setInputInfo({
-                    ...inputInfo,
-                    liquidityPercentage: 25,
-                    lastTyped: "slider"
-                  })}
-                >25%</Button>
+                <Button
+                  onClick={() =>
+                    setInputInfo({
+                      ...inputInfo,
+                      liquidityPercentage: 25,
+                      lastTyped: "slider",
+                    })
+                  }
+                >
+                  25%
+                </Button>
               </Col>
               <Col span={6}>
-                <Button onClick={() => setInputInfo({
-                    ...inputInfo,
-                    liquidityPercentage: 50,
-                    lastTyped: "slider"
-                  })}
-                >50%</Button>
+                <Button
+                  onClick={() =>
+                    setInputInfo({
+                      ...inputInfo,
+                      liquidityPercentage: 50,
+                      lastTyped: "slider",
+                    })
+                  }
+                >
+                  50%
+                </Button>
               </Col>
               <Col span={6}>
-                <Button onClick={() => setInputInfo({
-                    ...inputInfo,
-                    liquidityPercentage: 75,
-                    lastTyped: "slider"
-                  })}
-                >75%</Button>
+                <Button
+                  onClick={() =>
+                    setInputInfo({
+                      ...inputInfo,
+                      liquidityPercentage: 75,
+                      lastTyped: "slider",
+                    })
+                  }
+                >
+                  75%
+                </Button>
               </Col>
               <Col span={6}>
-                <Button onClick={() => setInputInfo({
-                    ...inputInfo,
-                    liquidityPercentage: 100,
-                    lastTyped: "slider"
-                  })}
-                >100%</Button>
+                <Button
+                  onClick={() =>
+                    setInputInfo({
+                      ...inputInfo,
+                      liquidityPercentage: 100,
+                      lastTyped: "slider",
+                    })
+                  }
+                >
+                  100%
+                </Button>
               </Col>
             </Row>
           </Card>
@@ -427,7 +503,7 @@ export const RemoveLiquidityEntry = (props: {
       {account && (
         <RemoveLiquidity
           instance={{ pool: pool, account: account }}
-          removeRatio={inputInfo.liquidityPercentage/100}
+          removeRatio={inputInfo.liquidityPercentage / 100}
         />
       )}
       <YourPosition pool={pool} />

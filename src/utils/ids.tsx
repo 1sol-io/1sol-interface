@@ -47,8 +47,7 @@ export const PROGRAM_IDS = [
         pubkey: new PublicKey("2n2dsFSgmPcZ8jkmBZLGUM2nzuFqcBGQ3JEEj6RJJcEg"),
         layout: TokenSwapLayoutV1,
       },
-      legacy: [
-      ],
+      legacy: [],
     }),
   },
   {
@@ -58,9 +57,7 @@ export const PROGRAM_IDS = [
         pubkey: new PublicKey("6Cust2JhvweKLh4CVo1dt21s2PJ86uNGkziudpkNPaCj"),
         layout: TokenSwapLayout,
       },
-      legacy: [
-        new PublicKey("BSfTAcBdqmvX5iE2PW88WFNNp2DHhLUaBKk5WrnxVkcJ"),
-      ],
+      legacy: [new PublicKey("BSfTAcBdqmvX5iE2PW88WFNNp2DHhLUaBKk5WrnxVkcJ")],
     }),
   },
   {

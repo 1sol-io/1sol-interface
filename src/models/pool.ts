@@ -26,7 +26,7 @@ export enum CurveType {
   ConstantProduct = 0,
   ConstantPrice = 1,
   Stable = 2,
-  ConstantProductWithOffset = 3
+  ConstantProductWithOffset = 3,
 }
 
 export interface PoolConfig {

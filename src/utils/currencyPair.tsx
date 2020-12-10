@@ -13,7 +13,12 @@ import {
 import { useMint, useAccountByMint } from "./accounts";
 import { MintInfo } from "@solana/spl-token";
 import { useConnection, useConnectionConfig } from "./connection";
-import { CurveType, PoolConfig, TokenAccount, DEFAULT_DENOMINATOR } from "../models";
+import {
+  CurveType,
+  PoolConfig,
+  TokenAccount,
+  DEFAULT_DENOMINATOR,
+} from "../models";
 import { convert, getTokenIcon, getTokenName, KnownToken } from "./utils";
 import { useHistory, useLocation } from "react-router-dom";
 import bs58 from "bs58";
@@ -68,9 +73,20 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
       setMint: setMintAddress,
       convertAmount: () => convertAmount(amount, mint),
       sufficientBalance: () =>
-       account !== undefined && (convert(account, mint) >= parseFloat(amount) || config.curveType === CurveType.ConstantProductWithOffset),
+        account !== undefined &&
+        (convert(account, mint) >= parseFloat(amount) ||
+          config.curveType === CurveType.ConstantProductWithOffset),
     }),
-    [mintAddress, account, mint, amount, tokenMap, setAmount, setMintAddress, config]
+    [
+      mintAddress,
+      account,
+      mint,
+      amount,
+      tokenMap,
+      setAmount,
+      setMintAddress,
+      config,
+    ]
   );
 };
 
@@ -96,7 +112,7 @@ export function CurrencyPairProvider({ children = null as any }) {
       ownerWithdrawFeeDenominator: DEFAULT_DENOMINATOR,
       hostFeeNumerator: 1,
       hostFeeDenominator: DEFAULT_DENOMINATOR,
-    }
+    },
   });
 
   const base = useCurrencyLeg(options);
