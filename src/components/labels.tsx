@@ -1,5 +1,6 @@
 import { CurrencyContextState } from "../utils/currencyPair";
-import { getTokenName, KnownTokenMap } from "../utils/utils";
+import { getTokenName, KnownTokenMap, getPoolName } from "../utils/utils";
+import {PoolInfo} from "../models";
 
 export const CREATE_POOL_LABEL = "Create Liquidity Pool";
 export const INSUFFICIENT_FUNDS_LABEL = (tokenName: string) =>
@@ -11,6 +12,7 @@ export const SWAP_LABEL = "Swap";
 export const CONNECT_LABEL = "Connect Wallet";
 export const SELECT_TOKEN_LABEL = "Select a token";
 export const ENTER_AMOUNT_LABEL = "Enter an amount";
+export const REMOVE_LIQUIDITY_LABEL = "Remove Liquidity";
 
 export const generateActionLabel = (
   action: string,
@@ -35,4 +37,21 @@ export const generateActionLabel = (
     : ignoreToBalance || B.sufficientBalance()
     ? action
     : INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, B.mintAddress));
+};
+
+export const generateRemoveLabel = (
+  connected: boolean,
+  amount: number,
+  pool: PoolInfo,
+  tokenMap: KnownTokenMap,
+  hasSufficientBalance: boolean,
+  ignoreToBalance: boolean = false
+) => {
+  return !connected
+    ? CONNECT_LABEL
+    : !amount
+    ? ENTER_AMOUNT_LABEL
+    : !hasSufficientBalance
+    ? INSUFFICIENT_FUNDS_LABEL(getPoolName(tokenMap, pool))
+    : REMOVE_LIQUIDITY_LABEL
 };

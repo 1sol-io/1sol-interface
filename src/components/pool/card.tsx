@@ -273,7 +273,10 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
         </>
       )}
       {displayMode === "remove" && account && (
-        <RemoveLiquidityEntry instance={{ pool: pool, account: account }} />
+        <RemoveLiquidityEntry
+          instance={{ pool: pool, account: account }}
+          enriched={enriched}
+        />
       )}
     </Card>
   );
