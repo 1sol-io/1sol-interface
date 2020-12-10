@@ -232,3 +232,76 @@ export const CurrencyInput = (props: {
     </Card>
   );
 };
+
+export const PoolCurrencyInput = (props: {
+  mint: string;
+  amount?: string;
+  title?: string;
+  pool?: PoolInfo;
+  onInputChange?: (val: number) => void;
+  onMintChange?: (account: string) => void;
+  balance?: number;
+}) => {
+  const { balance, pool, mint } = props;
+  const { tokenMap } = useConnectionConfig();
+
+  let name: string;
+  let icon: JSX.Element;
+  if (pool) {
+      name = getPoolName(tokenMap, pool);
+      const sorted = pool.pubkeys.holdingMints
+        .map((a: PublicKey) => a.toBase58())
+        .sort();
+      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
+    } else {
+      name = getTokenName(tokenMap, mint, true, 3);
+      icon = <TokenIcon mintAddress={mint} />;
+    }
+  return (
+    <Card
+      className="ccy-input"
+      style={{ borderRadius: 20 }}
+      bodyStyle={{ padding: 0 }}
+    >
+      <div className="ccy-input-header">
+        <div className="ccy-input-header-left">{props.title}</div>
+        {balance && (
+          <div
+            className="ccy-input-header-right"
+            onClick={(e) =>
+              props.onInputChange && props.onInputChange(balance)
+            }
+          >
+            Balance: {balance.toFixed(6)}
+          </div>
+        )}
+      </div>
+      <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
+        <NumericInput
+          value={props.amount}
+          onChange={(val: any) => {
+            if (props.onInputChange) {
+              props.onInputChange(val);
+            }
+          }}
+          style={{
+            fontSize: 20,
+            boxShadow: "none",
+            borderColor: "transparent",
+            outline: "transpaernt",
+          }}
+          placeholder="0.00"
+        />
+
+        <div className="ccy-input-header-right" style={{ display: "felx" }}>
+          <TokenDisplay
+            key={mint}
+            mintAddress={mint}
+            name={name}
+            icon={icon}
+          />
+        </div>
+      </div>
+    </Card>
+  );
+}
