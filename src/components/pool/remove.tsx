@@ -75,7 +75,7 @@ export const RemoveLiquidityEntry = (props: {
   const [inputInfo, setInputInfo] = useState({
     amount: "initial",
     lastTyped: "pool",
-    liquidityPercentage: 0,
+    liquidityPercentage: 100,
   });
 
   const [inputsDescription, setInputsDescription] = useState({
