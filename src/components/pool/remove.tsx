@@ -4,7 +4,7 @@ import {Button, Card, Col, Row, Slider, Spin, Typography} from "antd";
 import {removeLiquidity} from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import {useConnection, useConnectionConfig} from "../../utils/connection";
-import { PoolInfo, TokenAccount } from "../../models";
+import {PoolInfo, TokenAccount, TokenSwapLayout} from "../../models";
 import { notify } from "../../utils/notifications";
 import { TokenIcon } from "../tokenIcon";
 import { YourPosition } from "./add";
@@ -13,6 +13,7 @@ import { formatPriceNumber } from "../../utils/utils";
 import {PoolCurrencyInput} from "../currencyInput";
 import {LoadingOutlined} from "@ant-design/icons";
 import {generateRemoveLabel} from "../labels";
+import {programIds} from "../../utils/ids";
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
@@ -26,13 +27,22 @@ export const RemoveLiquidity = (props: {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const { tokenMap } = useConnectionConfig();
-  let liquidityAmount = lastTyped === "slider" ? account.info.amount.toNumber() * removeRatio : removeAmount;
+  const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
+  let liquidityAmount: number = account.info.amount.toNumber() * removeRatio;
+  if (isLatestLayout) {
+    liquidityAmount = lastTyped === "slider" ? liquidityAmount : removeAmount;
+  }
+
   const hasSufficientBalance = liquidityAmount <= account.info.amount.toNumber();
 
   const onRemove = async () => {
     try {
       setPendingTx(true);
-      //await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
+      if (isLatestLayout && ["slider", "pool"].indexOf(lastTyped) >= 0) {
+        // new instruction
+      } else {
+        await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
+      }
     } catch {
       notify({
         description:
