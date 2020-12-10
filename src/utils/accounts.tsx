@@ -329,6 +329,10 @@ const UseNativeAccount = () => {
   }, [setNativeAccount, wallet, wallet.publicKey, connection]);
 
   useEffect(() => {
+    if (!wallet.publicKey) {
+      return;
+    }
+
     const account = wrapNativeAccount(wallet.publicKey, nativeAccount);
     if(!account) {
       return;

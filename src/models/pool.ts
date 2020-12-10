@@ -1,6 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { TokenAccount } from "./account";
 
+export const DEFAULT_DENOMINATOR = 10_000;
+
 export interface PoolInfo {
   pubkeys: {
     program: PublicKey;

@@ -395,7 +395,6 @@ export const usePools = () => {
           } else {
             result.data = layout.decode(item.account.data);
 
-            console.log(result.data);
             let pool = toPoolInfo(result, swapId);
             pool.legacy = isLegacy;
             pool.pubkeys.feeAccount = new PublicKey(result.data.feeAccount);
@@ -812,16 +811,27 @@ export async function calculateDependentAmount(
     connection,
     pool.pubkeys.holdingAccounts[0]
   );
+  const amountA = accountA.info.amount.toNumber();
+
   const accountB = await cache.queryAccount(
     connection,
     pool.pubkeys.holdingAccounts[1]
   );
+  let amountB = accountB.info.amount.toNumber();
+
   if (!poolMint.mintAuthority) {
     throw new Error("Mint doesnt have authority");
   }
 
   if (poolMint.supply.eqn(0)) {
     return;
+  }
+
+  let offsetAmount = 0;
+  const offsetCurve = pool.raw?.data?.curve?.offset;
+  if(offsetCurve) {
+    offsetAmount = offsetCurve.token_b_offset;
+    amountB = amountB + offsetAmount;
   }
 
   const mintA = await cache.queryMint(connection, accountA.info.mint);
@@ -842,14 +852,13 @@ export async function calculateDependentAmount(
   );
   const indAdjustedAmount = amount * indPrecision;
 
-  let indBasketQuantity = (isFirstIndependent
-    ? accountA
-    : accountB
-  ).info.amount.toNumber();
-  let depBasketQuantity = (isFirstIndependent
-    ? accountB
-    : accountA
-  ).info.amount.toNumber();
+  let indBasketQuantity = isFirstIndependent
+    ? amountA
+    : amountB;
+
+  let depBasketQuantity = isFirstIndependent
+    ? amountB
+    : amountA;
 
   var depAdjustedAmount;
   switch (+op) {

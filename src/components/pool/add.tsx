@@ -16,9 +16,9 @@ import { LoadingOutlined, SettingOutlined } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
 import { CurrencyInput } from "../currencyInput";
-import { DEFAULT_DENOMINATOR, PoolConfigCard } from "./config";
+import { PoolConfigCard } from "./config";
 import "./add.less";
-import { CurveType, PoolConfig, PoolInfo } from "../../models";
+import { CurveType, PoolInfo } from "../../models";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import {
   CREATE_POOL_LABEL,
@@ -44,26 +44,12 @@ export const AddToLiquidity = () => {
     B,
     setLastTypedAccount,
     setPoolOperation,
+    options,
+    setOptions
   } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
-  const [options, setOptions] = useState<PoolConfig>({
-    curveType: CurveType.ConstantProduct,
-    fees: {
-      tradeFeeNumerator: 25,
-      tradeFeeDenominator: DEFAULT_DENOMINATOR,
-      ownerTradeFeeNumerator: 4,
-      ownerTradeFeeDenominator: DEFAULT_DENOMINATOR,
-      ownerWithdrawFeeNumerator: 0,
-      ownerWithdrawFeeDenominator: DEFAULT_DENOMINATOR,
-      hostFeeNumerator: 1,
-      hostFeeDenominator: DEFAULT_DENOMINATOR,
-    }
-  });
-
-
-  console.log(options.curveType);
 
   const executeAction = !connected
     ? wallet.connect
