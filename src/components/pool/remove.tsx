@@ -75,7 +75,7 @@ export const RemoveLiquidityEntry = (props: {
   const [inputInfo, setInputInfo] = useState({
     amount: "initial",
     lastTyped: "pool",
-    liquidityPercentage: 0,
+    liquidityPercentage: 100,
   });
 
   const [inputsDescription, setInputsDescription] = useState({
@@ -345,6 +345,55 @@ export const RemoveLiquidityEntry = (props: {
                 </div>
               </div>
             </div>
+            <div className="pool-card-row">
+              <Slider
+                style={{ width: "100%" }}
+                value={inputInfo.liquidityPercentage}
+                tipFormatter={(amount?: number) => `${amount}%`}
+                min={0}
+                max={100}
+                onChange={(amount: number) => setInputInfo({
+                    ...inputInfo,
+                    liquidityPercentage: amount,
+                    lastTyped: "slider"
+                  }
+                )}
+              />
+            </div>
+            <Row>
+              <Col span={6}>
+                <Button onClick={() => setInputInfo({
+                    ...inputInfo,
+                    liquidityPercentage: 25,
+                    lastTyped: "slider"
+                  })}
+                >25%</Button>
+              </Col>
+              <Col span={6}>
+                <Button onClick={() => setInputInfo({
+                    ...inputInfo,
+                    liquidityPercentage: 50,
+                    lastTyped: "slider"
+                  })}
+                >50%</Button>
+              </Col>
+              <Col span={6}>
+                <Button onClick={() => setInputInfo({
+                    ...inputInfo,
+                    liquidityPercentage: 75,
+                    lastTyped: "slider"
+                  })}
+                >75%</Button>
+              </Col>
+              <Col span={6}>
+                <Button onClick={() => setInputInfo({
+                    ...inputInfo,
+                    liquidityPercentage: 100,
+                    lastTyped: "slider"
+                  })}
+                >100%</Button>
+              </Col>
+            </Row>
           </Card>
           <PoolCurrencyInput
             mint={pool.pubkeys.mint.toBase58()}
