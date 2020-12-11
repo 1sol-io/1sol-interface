@@ -53,7 +53,7 @@ export const AddToLiquidity = () => {
 
   const executeAction = !connected
     ? wallet.connect
-    existexist    : async (instance?: PoolInfo) => {
+    : async (instance?: PoolInfo) => {
         if (A.account && B.account && A.mint && B.mint) {
           setPendingTx(true);
           const components = [
