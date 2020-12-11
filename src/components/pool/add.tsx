@@ -53,7 +53,7 @@ export const AddToLiquidity = () => {
 
   const executeAction = !connected
     ? wallet.connect
-    : async () => {
+    existexist    : async (instance?: PoolInfo) => {
         if (A.account && B.account && A.mint && B.mint) {
           setPendingTx(true);
           const components = [
@@ -72,13 +72,13 @@ export const AddToLiquidity = () => {
           // use input from B as offset during pool init for curve with offset
           if (
             options.curveType === CurveType.ConstantProductWithOffset &&
-            !pool
+            !instance
           ) {
             options.token_b_offset = components[1].amount;
             components[1].amount = 0;
           }
 
-          addLiquidity(connection, wallet, components, slippage, pool, options)
+          addLiquidity(connection, wallet, components, slippage, instance, options)
             .then(() => {
               setPendingTx(false);
             })
@@ -97,20 +97,49 @@ export const AddToLiquidity = () => {
 
   const hasSufficientBalance = A.sufficientBalance() && B.sufficientBalance();
 
-  const createPoolButton = (
+  const createPoolButton = pool &&
+    <Button
+      className="add-button"
+      type="primary"
+      size="large"
+      onClick={() => executeAction()}
+      disabled={
+        connected &&
+        (pendingTx ||
+          !A.account ||
+          !B.account ||
+          A.account === B.account ||
+          !hasSufficientBalance)
+      }
+    >
+      {generateActionLabel(
+        CREATE_POOL_LABEL,
+        connected,
+        tokenMap,
+        A,
+        B
+      )}
+      {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+    </Button>;
+
+  const addLiquidityButton = (
     <Dropdown.Button
       className="add-button"
-      onClick={executeAction}
+      onClick={() => executeAction(pool)}
       trigger={["click"]}
       disabled={
         connected &&
-        (pendingTx || !A.account || !B.account || A.account === B.account)
+        (pendingTx ||
+          !A.account ||
+          !B.account ||
+          A.account === B.account ||
+          !hasSufficientBalance)
       }
       type="primary"
       size="large"
-      overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
+      overlay={<PoolConfigCard options={options} setOptions={setOptions} action={createPoolButton} />}
     >
-      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
+      {generateActionLabel(pool ? ADD_LIQUIDITY_LABEL : CREATE_POOL_LABEL, connected, tokenMap, A, B)}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
@@ -168,32 +197,7 @@ export const AddToLiquidity = () => {
             B.setMint(item);
           }}
         />
-        {(pool || !connected) && (
-          <Button
-            className="add-button"
-            type="primary"
-            size="large"
-            onClick={executeAction}
-            disabled={
-              connected &&
-              (pendingTx ||
-                !A.account ||
-                !B.account ||
-                A.account === B.account ||
-                !hasSufficientBalance)
-            }
-          >
-            {generateActionLabel(
-              ADD_LIQUIDITY_LABEL,
-              connected,
-              tokenMap,
-              A,
-              B
-            )}
-            {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
-          </Button>
-        )}
-        {!pool && connected && createPoolButton}
+        {addLiquidityButton}
         {pool && <PoolPrice pool={pool} />}
         <SupplyOverview pool={pool} />
       </div>

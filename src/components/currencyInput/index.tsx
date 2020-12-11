@@ -58,7 +58,7 @@ const TokenDisplay = (props: {
             className="token-balance"
           >
             &nbsp;{" "}
-            {hasBalance && balance < 0.001 ? "<0.001" : balance.toFixed(3)}
+            {hasBalance ? balance < 0.001 ? "<0.001" : balance.toFixed(3) : '-'}
           </span>
         ) : null}
       </div>

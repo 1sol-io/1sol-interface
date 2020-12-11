@@ -85,6 +85,7 @@ const PriceParameters = (props: {
 export const PoolConfigCard = (props: {
   options: PoolConfig;
   setOptions: (config: PoolConfig) => void;
+  action?: JSX.Element;
 }) => {
   const {
     tradeFeeNumerator,
@@ -182,6 +183,7 @@ export const PoolConfigCard = (props: {
           <PriceParameters {...props} />
         )}
       </div>
+      {props.action}
     </Card>
   );
 };
