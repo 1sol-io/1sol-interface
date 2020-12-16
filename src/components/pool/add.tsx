@@ -4,7 +4,7 @@ import {
   usePoolForBasket,
   PoolOperation,
 } from "../../utils/pools";
-import { Button, Card, Col, Dropdown, Popover, Row } from "antd";
+import {Button, Card, Col, Dropdown, Popover, Row, Select} from "antd";
 import { useWallet } from "../../utils/wallet";
 import {
   useConnection,
@@ -15,11 +15,11 @@ import { Spin } from "antd";
 import { LoadingOutlined, SettingOutlined } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
-import { CurrencyInput } from "../currencyInput";
+import {CurrencyInput, TokenDisplay} from "../currencyInput";
 import { PoolConfigCard } from "./config";
 import "./add.less";
 import { CurveType, PoolInfo } from "../../models";
-import { useCurrencyPairState } from "../../utils/currencyPair";
+import {CurrencyContextState, useCurrencyPairState} from "../../utils/currencyPair";
 import {
   CREATE_POOL_LABEL,
   ADD_LIQUIDITY_LABEL,
@@ -34,11 +34,13 @@ import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+const { Option } = Select;
 
 export const AddToLiquidity = () => {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const [pendingTx, setPendingTx] = useState(false);
+  const [depositType, setDepositType] = useState("both");
   const {
     A,
     B,
@@ -47,6 +49,7 @@ export const AddToLiquidity = () => {
     options,
     setOptions,
   } = useCurrencyPairState();
+  const [depositToken, setDepositToken] = useState<string>(A.mintAddress);
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
@@ -96,7 +99,19 @@ export const AddToLiquidity = () => {
       };
 
   const hasSufficientBalance = A.sufficientBalance() && B.sufficientBalance();
-
+  const getDepositToken = () => {
+    if (!depositToken) {
+      return undefined;
+    }
+    return depositToken === A.mintAddress ? A : B;
+  }
+  const handleToggleDepositType = () => {
+    if (depositType === "both") {
+      setDepositType("one");
+    } else {
+      setDepositType("both");
+    }
+  }
   const createPoolButton = pool &&
     <Button
       className="add-button"
@@ -143,7 +158,6 @@ export const AddToLiquidity = () => {
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
-
   return (
     <>
       <div className="input-card">
@@ -161,42 +175,108 @@ export const AddToLiquidity = () => {
         >
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
-
-        <CurrencyInput
-          title="Input"
-          onInputChange={(val: any) => {
-            setPoolOperation(PoolOperation.Add);
-            if (A.amount !== val) {
-              setLastTypedAccount(A.mintAddress);
+        <div className="space-evenly-row">
+          <Button
+            onClick={handleToggleDepositType}
+          >
+            Deposit {depositType === "both" ? "One Token" : "Both Tokens"}
+          </Button>
+          { depositType === "one" && (
+            <Select
+            size="large"
+            showSearch
+            style={{ minWidth: 150 }}
+            placeholder="CCY"
+            value={getDepositToken()?.mintAddress}
+            onChange={(item) => {
+              if (getDepositToken()?.mintAddress !== item) {
+                if (getDepositToken()?.mintAddress !== A.mintAddress) {
+                  setDepositToken(A.mintAddress)
+                } else  {
+                  setDepositToken(B.mintAddress)
+                }
+              }
+            }}
+            filterOption={(input, option) =>
+              option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }
-            A.setAmount(val);
-          }}
-          amount={A.amount}
-          mint={A.mintAddress}
-          onMintChange={(item) => {
-            A.setMint(item);
-          }}
-        />
-        <div>+</div>
-        <CurrencyInput
-          title={
-            options.curveType === CurveType.ConstantProductWithOffset
-              ? "Offset"
-              : "Input"
-          }
-          onInputChange={(val: any) => {
-            setPoolOperation(PoolOperation.Add);
-            if (B.amount !== val) {
-              setLastTypedAccount(B.mintAddress);
-            }
-            B.setAmount(val);
-          }}
-          amount={B.amount}
-          mint={B.mintAddress}
-          onMintChange={(item) => {
-            B.setMint(item);
-          }}
-        />
+          >
+            {[A, B].map(item => {
+              return (
+                <Option
+                  key={item.mintAddress}
+                  value={item.mintAddress}
+                  name={item.name}
+                  title={item.mintAddress}
+                >
+                  <TokenDisplay
+                    key={item.mintAddress}
+                    name={item.name}
+                    mintAddress={item.mintAddress}
+                    showBalance={true}
+                  />
+                </Option>
+              )
+            })}
+          </Select>
+        )}
+        </div>
+        { depositType === "both" && (
+          <>
+            <CurrencyInput
+              title="Input"
+              onInputChange={(val: any) => {
+                setPoolOperation(PoolOperation.Add);
+                if (A.amount !== val) {
+                  setLastTypedAccount(A.mintAddress);
+                }
+                A.setAmount(val);
+              }}
+              amount={A.amount}
+              mint={A.mintAddress}
+              onMintChange={(item) => {
+                A.setMint(item);
+              }}
+            />
+            <div>+</div>
+            <CurrencyInput
+              title={
+                options.curveType === CurveType.ConstantProductWithOffset
+                  ? "Offset"
+                  : "Input"
+              }
+              onInputChange={(val: any) => {
+                setPoolOperation(PoolOperation.Add);
+                if (B.amount !== val) {
+                  setLastTypedAccount(B.mintAddress);
+                }
+                B.setAmount(val);
+              }}
+              amount={B.amount}
+              mint={B.mintAddress}
+              onMintChange={(item) => {
+                B.setMint(item);
+              }}
+            />
+          </>
+        )}
+        { depositType === "one" &&
+          depositToken && (
+            <CurrencyInput
+              title="Input"
+              onInputChange={(val: any) => {
+                setPoolOperation(PoolOperation.Add);
+                const dToken = getDepositToken();
+                if (dToken && dToken.amount !== val) {
+                  setLastTypedAccount(dToken.mintAddress);
+                }
+                getDepositToken()?.setAmount(val);
+              }}
+              amount={getDepositToken()?.amount}
+              mint={getDepositToken()?.mintAddress}
+              hideSelect={true}
+            />)
+        }
         {addLiquidityButton}
         {pool && <PoolPrice pool={pool} />}
         <SupplyOverview pool={pool} />

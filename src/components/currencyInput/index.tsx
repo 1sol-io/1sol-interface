@@ -16,7 +16,7 @@ import { PoolInfo, TokenAccount } from "../../models";
 
 const { Option } = Select;
 
-const TokenDisplay = (props: {
+export const TokenDisplay = (props: {
   name: string;
   mintAddress: string;
   icon?: JSX.Element;
@@ -70,6 +70,7 @@ export const CurrencyInput = (props: {
   mint?: string;
   amount?: string;
   title?: string;
+  hideSelect?: boolean;
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
 }) => {
@@ -208,26 +209,27 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
-
-        <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          <Select
-            size="large"
-            showSearch
-            style={{ minWidth: 150 }}
-            placeholder="CCY"
-            value={props.mint}
-            onChange={(item) => {
-              if (props.onMintChange) {
-                props.onMintChange(item);
+        { !props.hideSelect && (
+          <div className="ccy-input-header-right" style={{ display: "felx" }}>
+            <Select
+              size="large"
+              showSearch
+              style={{ minWidth: 150 }}
+              placeholder="CCY"
+              value={props.mint}
+              onChange={(item) => {
+                if (props.onMintChange) {
+                  props.onMintChange(item);
+                }
+              }}
+              filterOption={(input, option) =>
+                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
-            }}
-            filterOption={(input, option) =>
-              option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {[...renderPopularTokens, ...renderAdditionalTokens]}
-          </Select>
-        </div>
+            >
+              {[...renderPopularTokens, ...renderAdditionalTokens]}
+            </Select>
+          </div>
+        )}
       </div>
     </Card>
   );
