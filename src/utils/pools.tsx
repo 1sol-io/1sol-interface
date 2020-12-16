@@ -34,6 +34,7 @@ import {
   TokenSwapLayoutV1,
   swapInstruction,
   PoolConfig,
+  depositExactOneInstruction,
 } from "./../models";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
@@ -307,7 +308,12 @@ export const addLiquidity = async (
   depositType: string = "both"
 ) => {
   if (depositType === "one" && pool) {
-    console.log(components);
+    await _addLiquidityExactOneExistingPool(
+      pool,
+      components[0],
+      connection,
+      wallet
+    );
   } else if (!pool) {
     if (!options) {
       throw new Error("Options are required to create new pool.");
@@ -691,7 +697,7 @@ async function _addLiquidityExistingPool(
     )
   );
 
-  // depoist
+  // deposit
   instructions.push(
     depositInstruction(
       pool.pubkeys.account,
@@ -707,6 +713,127 @@ async function _addLiquidityExistingPool(
       liquidity,
       amount0,
       amount1
+    )
+  );
+
+  let tx = await sendTransaction(
+    connection,
+    wallet,
+    instructions.concat(cleanupInstructions),
+    signers
+  );
+
+  notify({
+    message: "Pool Funded. Happy trading.",
+    type: "success",
+    description: `Transaction - ${tx}`,
+  });
+}
+
+async function _addLiquidityExactOneExistingPool(
+  pool: PoolInfo,
+  component: LiquidityComponent,
+  connection: Connection,
+  wallet: any
+) {
+  notify({
+    message: "Adding Liquidity...",
+    description: "Please review transactions to approve.",
+    type: "warn",
+  });
+
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
+  if (!poolMint.mintAuthority) {
+    throw new Error("Mint doesnt have authority");
+  }
+
+  if (!pool.pubkeys.feeAccount) {
+    throw new Error("Invald fee account");
+  }
+
+  const accountA = await cache.queryAccount(
+    connection,
+    pool.pubkeys.holdingAccounts[0]
+  );
+  const accountB = await cache.queryAccount(
+    connection,
+    pool.pubkeys.holdingAccounts[1]
+  );
+
+  const from = component;
+
+  if (!from.account) {
+    throw new Error("Missing account info.");
+  }
+  const reserve =
+    accountA.info.mint.toBase58() === from.mintAddress
+      ? accountA.info.amount.toNumber()
+      : accountB.info.amount.toNumber();
+
+  const supply = poolMint.supply.toNumber();
+  const authority = poolMint.mintAuthority;
+
+  // Uniswap whitepaper: https://uniswap.org/whitepaper.pdf
+  // see: https://uniswap.org/docs/v2/advanced-topics/pricing/
+  // as well as native uniswap v2 oracle: https://uniswap.org/docs/v2/core-concepts/oracles/
+  const amount = from.amount;
+
+  const liquidityToken = (amount * (1 - SLIPPAGE) * supply) / reserve;
+
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+
+  const signers: Account[] = [];
+
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
+  const fromKey = getWrappedAccount(
+    instructions,
+    cleanupInstructions,
+    from.account,
+    wallet.publicKey,
+    amount + accountRentExempt,
+    signers
+  );
+
+  let toAccount = findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    instructions,
+    [],
+    accountRentExempt,
+    pool.pubkeys.mint,
+    signers,
+    new Set<string>([pool.pubkeys.feeAccount.toBase58()])
+  );
+
+  // create approval for transfer transactions
+  instructions.push(
+    Token.createApproveInstruction(
+      programIds().token,
+      fromKey,
+      authority,
+      wallet.publicKey,
+      [],
+      amount
+    )
+  );
+
+  // deposit
+  instructions.push(
+    depositExactOneInstruction(
+      pool.pubkeys.account,
+      authority,
+      fromKey,
+      pool.pubkeys.holdingAccounts[0],
+      pool.pubkeys.holdingAccounts[1],
+      pool.pubkeys.mint,
+      toAccount,
+      pool.pubkeys.program,
+      programIds().token,
+      amount,
+      liquidityToken
     )
   );
 

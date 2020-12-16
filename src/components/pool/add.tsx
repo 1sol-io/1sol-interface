@@ -61,8 +61,8 @@ export const AddToLiquidity = () => {
     ? wallet.connect
     : async (instance?: PoolInfo) => {
         const currentDepositToken = getDepositToken();
-        // isLatestLayout
         if (
+          isLatestLayout &&
           depositType === "one" &&
           currentDepositToken?.account &&
           currentDepositToken.mint
@@ -235,8 +235,7 @@ export const AddToLiquidity = () => {
         >
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
-        {/*isLatestLayout && pool && */}
-        {true && (
+        {isLatestLayout && pool && (
           <div className="space-evenly-row">
             <Button onClick={handleToggleDepositType}>
               Deposit {depositType === "both" ? "One Token" : "Both Tokens"}
