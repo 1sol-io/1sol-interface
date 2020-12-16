@@ -58,7 +58,11 @@ export const TokenDisplay = (props: {
             className="token-balance"
           >
             &nbsp;{" "}
-            {hasBalance ? balance < 0.001 ? "<0.001" : balance.toFixed(3) : '-'}
+            {hasBalance
+              ? balance < 0.001
+                ? "<0.001"
+                : balance.toFixed(3)
+              : "-"}
           </span>
         ) : null}
       </div>
@@ -209,7 +213,7 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
-        { !props.hideSelect && (
+        {!props.hideSelect && (
           <div className="ccy-input-header-right" style={{ display: "felx" }}>
             <Select
               size="large"

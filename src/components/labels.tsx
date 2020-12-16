@@ -59,7 +59,7 @@ export const generateRemoveLabel = (
 export const generateExactOneLabel = (
   connected: boolean,
   tokenMap: KnownTokenMap,
-  token?: CurrencyContextState,
+  token?: CurrencyContextState
 ) => {
   return !connected
     ? CONNECT_LABEL
@@ -70,4 +70,4 @@ export const generateExactOneLabel = (
     : !token.sufficientBalance()
     ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, token.mintAddress))
     : ADD_LIQUIDITY_LABEL;
-}
+};

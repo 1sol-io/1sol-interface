@@ -304,10 +304,10 @@ export const addLiquidity = async (
   slippage: number,
   pool?: PoolInfo,
   options?: PoolConfig,
-  depositType: string = "both",
+  depositType: string = "both"
 ) => {
   if (depositType === "one" && pool) {
-    console.log(components)
+    console.log(components);
   } else if (!pool) {
     if (!options) {
       throw new Error("Options are required to create new pool.");
@@ -581,7 +581,7 @@ async function _addLiquidityExistingPool(
   pool: PoolInfo,
   components: LiquidityComponent[],
   connection: Connection,
-  wallet: any,
+  wallet: any
 ) {
   notify({
     message: "Adding Liquidity...",
@@ -869,7 +869,7 @@ export async function calculateDependentAmount(
   const constantPrice = pool.raw?.data?.curve?.constantPrice;
   if (constantPrice) {
     debugger;
-    depAdjustedAmount = amount * depPrecision / constantPrice.token_b_price;
+    depAdjustedAmount = (amount * depPrecision) / constantPrice.token_b_price;
   } else {
     switch (+op) {
       case PoolOperation.Add:

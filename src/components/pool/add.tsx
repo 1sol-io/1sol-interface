@@ -4,7 +4,7 @@ import {
   usePoolForBasket,
   PoolOperation,
 } from "../../utils/pools";
-import {Button, Card, Col, Dropdown, Popover, Row, Select} from "antd";
+import { Button, Card, Col, Dropdown, Popover, Row, Select } from "antd";
 import { useWallet } from "../../utils/wallet";
 import {
   useConnection,
@@ -15,15 +15,16 @@ import { Spin } from "antd";
 import { LoadingOutlined, SettingOutlined } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
-import {CurrencyInput, TokenDisplay} from "../currencyInput";
+import { CurrencyInput, TokenDisplay } from "../currencyInput";
 import { PoolConfigCard } from "./config";
 import "./add.less";
-import {CurveType, PoolInfo, TokenSwapLayout} from "../../models";
-import {useCurrencyPairState} from "../../utils/currencyPair";
+import { CurveType, PoolInfo, TokenSwapLayout } from "../../models";
+import { useCurrencyPairState } from "../../utils/currencyPair";
 import {
   CREATE_POOL_LABEL,
   ADD_LIQUIDITY_LABEL,
-  generateActionLabel, generateExactOneLabel,
+  generateActionLabel,
+  generateExactOneLabel,
 } from "../labels";
 import { AdressesPopover } from "./address";
 import { formatPriceNumber } from "../../utils/utils";
@@ -32,7 +33,7 @@ import { useEnrichedPools } from "../../context/market";
 import { PoolIcon } from "../tokenIcon";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
-import {programIds} from "../../utils/ids";
+import { programIds } from "../../utils/ids";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 const { Option } = Select;
@@ -61,7 +62,11 @@ export const AddToLiquidity = () => {
     : async (instance?: PoolInfo) => {
         const currentDepositToken = getDepositToken();
         // isLatestLayout
-        if (depositType === "one" && currentDepositToken?.account && currentDepositToken.mint) {
+        if (
+          depositType === "one" &&
+          currentDepositToken?.account &&
+          currentDepositToken.mint
+        ) {
           // add instructions
           setPendingTx(true);
           const components = [
@@ -71,7 +76,15 @@ export const AddToLiquidity = () => {
               amount: currentDepositToken.convertAmount(),
             },
           ];
-          addLiquidity(connection, wallet, components, slippage, instance, options, depositType)
+          addLiquidity(
+            connection,
+            wallet,
+            components,
+            slippage,
+            instance,
+            options,
+            depositType
+          )
             .then(() => {
               setPendingTx(false);
             })
@@ -85,8 +98,7 @@ export const AddToLiquidity = () => {
               });
               setPendingTx(false);
             });
-        }
-        else if (A.account && B.account && A.mint && B.mint) {
+        } else if (A.account && B.account && A.mint && B.mint) {
           setPendingTx(true);
           const components = [
             {
@@ -110,7 +122,14 @@ export const AddToLiquidity = () => {
             components[1].amount = 0;
           }
 
-          addLiquidity(connection, wallet, components, slippage, instance, options)
+          addLiquidity(
+            connection,
+            wallet,
+            components,
+            slippage,
+            instance,
+            options
+          )
             .then(() => {
               setPendingTx(false);
             })
@@ -133,15 +152,15 @@ export const AddToLiquidity = () => {
       return undefined;
     }
     return depositToken === A.mintAddress ? A : B;
-  }
+  };
   const handleToggleDepositType = () => {
     if (depositType === "both") {
       setDepositType("one");
     } else {
       setDepositType("both");
     }
-  }
-  const createPoolButton = pool &&
+  };
+  const createPoolButton = pool && (
     <Button
       className="add-button"
       type="primary"
@@ -156,15 +175,10 @@ export const AddToLiquidity = () => {
           !hasSufficientBalance)
       }
     >
-      {generateActionLabel(
-        CREATE_POOL_LABEL,
-        connected,
-        tokenMap,
-        A,
-        B
-      )}
+      {generateActionLabel(CREATE_POOL_LABEL, connected, tokenMap, A, B)}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
-    </Button>;
+    </Button>
+  );
 
   const addLiquidityButton = (
     <Dropdown.Button
@@ -172,26 +186,35 @@ export const AddToLiquidity = () => {
       onClick={() => executeAction(pool)}
       trigger={["click"]}
       disabled={
-        connected && (
-          depositType === "both" ?
-          (pendingTx ||
+        connected &&
+        (depositType === "both"
+          ? pendingTx ||
             !A.account ||
             !B.account ||
             A.account === B.account ||
-            !hasSufficientBalance) : (
-              !getDepositToken()?.account ||
-                !getDepositToken()?.sufficientBalance()
-            ))
+            !hasSufficientBalance
+          : !getDepositToken()?.account ||
+            !getDepositToken()?.sufficientBalance())
       }
       type="primary"
       size="large"
-      overlay={<PoolConfigCard options={options} setOptions={setOptions} action={createPoolButton} />}
+      overlay={
+        <PoolConfigCard
+          options={options}
+          setOptions={setOptions}
+          action={createPoolButton}
+        />
+      }
     >
-      { depositType === "both" ? (
-        generateActionLabel(pool ? ADD_LIQUIDITY_LABEL : CREATE_POOL_LABEL, connected, tokenMap, A, B)
-      ) : (
-        generateExactOneLabel(connected, tokenMap, getDepositToken())
-      )}
+      {depositType === "both"
+        ? generateActionLabel(
+            pool ? ADD_LIQUIDITY_LABEL : CREATE_POOL_LABEL,
+            connected,
+            tokenMap,
+            A,
+            B
+          )
+        : generateExactOneLabel(connected, tokenMap, getDepositToken())}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
@@ -213,55 +236,53 @@ export const AddToLiquidity = () => {
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
         {/*isLatestLayout && pool && */}
-        { true && (
+        {true && (
           <div className="space-evenly-row">
-          <Button
-            onClick={handleToggleDepositType}
-          >
-            Deposit {depositType === "both" ? "One Token" : "Both Tokens"}
-          </Button>
-          { depositType === "one" && (
-            <Select
-            size="large"
-            showSearch
-            style={{ minWidth: 150 }}
-            placeholder="CCY"
-            value={getDepositToken()?.mintAddress}
-            onChange={(item) => {
-              if (getDepositToken()?.mintAddress !== item) {
-                if (getDepositToken()?.mintAddress !== A.mintAddress) {
-                  setDepositToken(A.mintAddress)
-                } else  {
-                  setDepositToken(B.mintAddress)
+            <Button onClick={handleToggleDepositType}>
+              Deposit {depositType === "both" ? "One Token" : "Both Tokens"}
+            </Button>
+            {depositType === "one" && (
+              <Select
+                size="large"
+                showSearch
+                style={{ minWidth: 150 }}
+                placeholder="CCY"
+                value={getDepositToken()?.mintAddress}
+                onChange={(item) => {
+                  if (getDepositToken()?.mintAddress !== item) {
+                    if (getDepositToken()?.mintAddress !== A.mintAddress) {
+                      setDepositToken(A.mintAddress);
+                    } else {
+                      setDepositToken(B.mintAddress);
+                    }
+                  }
+                }}
+                filterOption={(input, option) =>
+                  option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
-              }
-            }}
-            filterOption={(input, option) =>
-              option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {[A, B].map(item => {
-              return (
-                <Option
-                  key={item.mintAddress}
-                  value={item.mintAddress}
-                  name={item.name}
-                  title={item.mintAddress}
-                >
-                  <TokenDisplay
-                    key={item.mintAddress}
-                    name={item.name}
-                    mintAddress={item.mintAddress}
-                    showBalance={true}
-                  />
-                </Option>
-              )
-            })}
-          </Select>
+              >
+                {[A, B].map((item) => {
+                  return (
+                    <Option
+                      key={item.mintAddress}
+                      value={item.mintAddress}
+                      name={item.name}
+                      title={item.mintAddress}
+                    >
+                      <TokenDisplay
+                        key={item.mintAddress}
+                        name={item.name}
+                        mintAddress={item.mintAddress}
+                        showBalance={true}
+                      />
+                    </Option>
+                  );
+                })}
+              </Select>
+            )}
+          </div>
         )}
-        </div>
-        )}
-        { depositType === "both" && (
+        {depositType === "both" && (
           <>
             <CurrencyInput
               title="Input"
@@ -300,23 +321,22 @@ export const AddToLiquidity = () => {
             />
           </>
         )}
-        { depositType === "one" &&
-          depositToken && (
-            <CurrencyInput
-              title="Input"
-              onInputChange={(val: any) => {
-                setPoolOperation(PoolOperation.Add);
-                const dToken = getDepositToken();
-                if (dToken && dToken.amount !== val) {
-                  setLastTypedAccount(dToken.mintAddress);
-                }
-                getDepositToken()?.setAmount(val);
-              }}
-              amount={getDepositToken()?.amount}
-              mint={getDepositToken()?.mintAddress}
-              hideSelect={true}
-            />)
-        }
+        {depositType === "one" && depositToken && (
+          <CurrencyInput
+            title="Input"
+            onInputChange={(val: any) => {
+              setPoolOperation(PoolOperation.Add);
+              const dToken = getDepositToken();
+              if (dToken && dToken.amount !== val) {
+                setLastTypedAccount(dToken.mintAddress);
+              }
+              getDepositToken()?.setAmount(val);
+            }}
+            amount={getDepositToken()?.amount}
+            mint={getDepositToken()?.mintAddress}
+            hideSelect={true}
+          />
+        )}
         {addLiquidityButton}
         {pool && <PoolPrice pool={pool} />}
         <SupplyOverview pool={pool} />
