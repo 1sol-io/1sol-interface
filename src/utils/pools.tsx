@@ -303,9 +303,12 @@ export const addLiquidity = async (
   components: LiquidityComponent[],
   slippage: number,
   pool?: PoolInfo,
-  options?: PoolConfig
+  options?: PoolConfig,
+  depositType: string = "both",
 ) => {
-  if (!pool) {
+  if (depositType === "one" && pool) {
+    console.log(components)
+  } else if (!pool) {
     if (!options) {
       throw new Error("Options are required to create new pool.");
     }
@@ -578,7 +581,7 @@ async function _addLiquidityExistingPool(
   pool: PoolInfo,
   components: LiquidityComponent[],
   connection: Connection,
-  wallet: any
+  wallet: any,
 ) {
   notify({
     message: "Adding Liquidity...",

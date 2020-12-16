@@ -19,7 +19,7 @@ import {CurrencyInput, TokenDisplay} from "../currencyInput";
 import { PoolConfigCard } from "./config";
 import "./add.less";
 import {CurveType, PoolInfo, TokenSwapLayout} from "../../models";
-import {CurrencyContextState, useCurrencyPairState} from "../../utils/currencyPair";
+import {useCurrencyPairState} from "../../utils/currencyPair";
 import {
   CREATE_POOL_LABEL,
   ADD_LIQUIDITY_LABEL,
@@ -60,10 +60,33 @@ export const AddToLiquidity = () => {
     ? wallet.connect
     : async (instance?: PoolInfo) => {
         const currentDepositToken = getDepositToken();
-        if (isLatestLayout && currentDepositToken?.account && currentDepositToken.mint) {
+        // isLatestLayout
+        if (depositType === "one" && currentDepositToken?.account && currentDepositToken.mint) {
           // add instructions
+          setPendingTx(true);
+          const components = [
+            {
+              account: currentDepositToken.account,
+              mintAddress: currentDepositToken.mintAddress,
+              amount: currentDepositToken.convertAmount(),
+            },
+          ];
+          addLiquidity(connection, wallet, components, slippage, instance, options, depositType)
+            .then(() => {
+              setPendingTx(false);
+            })
+            .catch((e) => {
+              console.log("Transaction failed", e);
+              notify({
+                description:
+                  "Please try again and approve transactions from your wallet",
+                message: "Adding liquidity cancelled.",
+                type: "error",
+              });
+              setPendingTx(false);
+            });
         }
-        if (A.account && B.account && A.mint && B.mint) {
+        else if (A.account && B.account && A.mint && B.mint) {
           setPendingTx(true);
           const components = [
             {
@@ -189,7 +212,8 @@ export const AddToLiquidity = () => {
         >
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
-        { isLatestLayout && pool && (
+        {/*isLatestLayout && pool && */}
+        { true && (
           <div className="space-evenly-row">
           <Button
             onClick={handleToggleDepositType}
