@@ -18,12 +18,12 @@ import { SupplyOverview } from "./supplyOverview";
 import {CurrencyInput, TokenDisplay} from "../currencyInput";
 import { PoolConfigCard } from "./config";
 import "./add.less";
-import { CurveType, PoolInfo } from "../../models";
+import {CurveType, PoolInfo, TokenSwapLayout} from "../../models";
 import {CurrencyContextState, useCurrencyPairState} from "../../utils/currencyPair";
 import {
   CREATE_POOL_LABEL,
   ADD_LIQUIDITY_LABEL,
-  generateActionLabel,
+  generateActionLabel, generateExactOneLabel,
 } from "../labels";
 import { AdressesPopover } from "./address";
 import { formatPriceNumber } from "../../utils/utils";
@@ -32,6 +32,7 @@ import { useEnrichedPools } from "../../context/market";
 import { PoolIcon } from "../tokenIcon";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
+import {programIds} from "../../utils/ids";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 const { Option } = Select;
@@ -53,6 +54,7 @@ export const AddToLiquidity = () => {
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
+  const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
 
   const executeAction = !connected
     ? wallet.connect
@@ -143,18 +145,26 @@ export const AddToLiquidity = () => {
       onClick={() => executeAction(pool)}
       trigger={["click"]}
       disabled={
-        connected &&
-        (pendingTx ||
-          !A.account ||
-          !B.account ||
-          A.account === B.account ||
-          !hasSufficientBalance)
+        connected && (
+          depositType === "both" ?
+          (pendingTx ||
+            !A.account ||
+            !B.account ||
+            A.account === B.account ||
+            !hasSufficientBalance) : (
+              !getDepositToken()?.account ||
+                !getDepositToken()?.sufficientBalance()
+            ))
       }
       type="primary"
       size="large"
       overlay={<PoolConfigCard options={options} setOptions={setOptions} action={createPoolButton} />}
     >
-      {generateActionLabel(pool ? ADD_LIQUIDITY_LABEL : CREATE_POOL_LABEL, connected, tokenMap, A, B)}
+      { depositType === "both" ? (
+        generateActionLabel(pool ? ADD_LIQUIDITY_LABEL : CREATE_POOL_LABEL, connected, tokenMap, A, B)
+      ) : (
+        generateExactOneLabel(connected, tokenMap, getDepositToken())
+      )}
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
@@ -175,7 +185,9 @@ export const AddToLiquidity = () => {
         >
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
-        <div className="space-evenly-row">
+        {/*{isLatestLayout && pool}*/}
+        { true && (
+          <div className="space-evenly-row">
           <Button
             onClick={handleToggleDepositType}
           >
@@ -221,6 +233,7 @@ export const AddToLiquidity = () => {
           </Select>
         )}
         </div>
+        )}
         { depositType === "both" && (
           <>
             <CurrencyInput
