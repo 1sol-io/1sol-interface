@@ -59,6 +59,10 @@ export const AddToLiquidity = () => {
   const executeAction = !connected
     ? wallet.connect
     : async (instance?: PoolInfo) => {
+        const currentDepositToken = getDepositToken();
+        if (isLatestLayout && currentDepositToken?.account && currentDepositToken.mint) {
+          // add instructions
+        }
         if (A.account && B.account && A.mint && B.mint) {
           setPendingTx(true);
           const components = [
@@ -185,8 +189,7 @@ export const AddToLiquidity = () => {
         >
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
-        {/*{isLatestLayout && pool}*/}
-        { true && (
+        { isLatestLayout && pool && (
           <div className="space-evenly-row">
           <Button
             onClick={handleToggleDepositType}
