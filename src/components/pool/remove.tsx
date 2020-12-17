@@ -1,29 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Col, Row, Slider, Spin, Typography } from "antd";
+import {Button, Card, Col, Popover, Row, Select, Slider, Spin, Typography} from "antd";
 
 import { removeLiquidity } from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import { useConnection, useConnectionConfig } from "../../utils/connection";
-import { PoolInfo, TokenAccount } from "../../models";
+import {PoolInfo, TokenAccount, TokenSwapLayout} from "../../models";
 import { notify } from "../../utils/notifications";
-import { TokenIcon } from "../tokenIcon";
+import {PoolIcon, TokenIcon} from "../tokenIcon";
 import { YourPosition } from "./add";
 import { useMint } from "../../utils/accounts";
-import { formatPriceNumber } from "../../utils/utils";
-import { PoolCurrencyInput } from "../currencyInput";
-import { LoadingOutlined } from "@ant-design/icons";
+import {formatPriceNumber, getPoolName, getTokenName} from "../../utils/utils";
+import {PoolCurrencyInput, TokenDisplay} from "../currencyInput";
+import {LoadingOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import { generateRemoveLabel } from "../labels";
+import {programIds} from "../../utils/ids";
+import {PublicKey} from "@solana/web3.js";
+const { Option } = Select;
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
   removeRatio: number;
+  withdrawType: string;
+  amount?: number;
 }) => {
   const { account, pool } = props.instance;
-  const { removeRatio } = props;
+  const { removeRatio, withdrawType, amount } = props;
   const [pendingTx, setPendingTx] = useState(false);
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const { tokenMap } = useConnectionConfig();
+
+  const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
+
   let liquidityAmount: number = removeRatio * account.info.amount.toNumber();
   const hasSufficientBalance =
     liquidityAmount <= account.info.amount.toNumber();
@@ -31,7 +39,11 @@ export const RemoveLiquidity = (props: {
   const onRemove = async () => {
     try {
       setPendingTx(true);
-      await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
+      if (withdrawType === "one" && isLatestLayout){
+        //await removeExactOneLiquidity(connection, wallet, account, liquidityAmount, amount, pool)
+      } else {
+        await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
+      }
     } catch {
       notify({
         description:
@@ -80,11 +92,20 @@ export const RemoveLiquidityEntry = (props: {
   const { account, pool } = props.instance;
   const { enriched } = props;
   const [inputType, setInputType] = useState("slider");
-
+  const { tokenMap } = useConnectionConfig();
+  const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
   const lpMint = useMint(pool?.pubkeys.mint);
+
+  const [withdrawType, setWithdrawType] = useState("both");
+  const [withdrawToken, setWithdrawToken] = useState<string>(
+    pool?.pubkeys.mint.toBase58()
+  );
 
   const ratio =
     (account?.info.amount.toNumber() || 0) / (lpMint?.supply.toNumber() || 1);
+
+  const baseMintAddress = enriched.mints[0];
+  const quoteMintAddress = enriched.mints[1];
 
   const [inputInfo, setInputInfo] = useState({
     amount: "initial",
@@ -111,11 +132,12 @@ export const RemoveLiquidityEntry = (props: {
     ),
   });
 
+
   useEffect(() => {
     switch (inputInfo.lastTyped) {
       case "pool": {
         setInputsDescription({
-          pool: "Input",
+          pool: withdrawType === "both" ? "Input" : "Output (Estimated)",
           poolAmount:
             inputInfo.amount !== "initial"
               ? inputInfo.amount
@@ -124,13 +146,13 @@ export const RemoveLiquidityEntry = (props: {
                     (enriched?.supply || 0) *
                     (inputInfo.liquidityPercentage / 100)
                 ),
-          tokenA: "Output (Estimated)",
+          tokenA: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityA || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenB: "Output (Estimated)",
+          tokenB: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityB || 0) *
@@ -141,15 +163,15 @@ export const RemoveLiquidityEntry = (props: {
       }
       case "tokenA": {
         setInputsDescription({
-          pool: "Input",
+          pool: withdrawType === "both" ? "Input" : "Output (Estimated)",
           poolAmount: formatPriceNumber.format(
             ratio *
               (enriched?.supply || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenA: "Output (Estimated)",
+          tokenA: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenAAmount: inputInfo.amount,
-          tokenB: "Output (Estimated)",
+          tokenB: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityB || 0) *
@@ -160,38 +182,38 @@ export const RemoveLiquidityEntry = (props: {
       }
       case "tokenB": {
         setInputsDescription({
-          pool: "Input",
+          pool: withdrawType === "both" ? "Input" : "Output (Estimated)",
           poolAmount: formatPriceNumber.format(
             ratio *
               (enriched?.supply || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenA: "Output (Estimated)",
+          tokenA: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityA || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenB: "Output (Estimated)",
+          tokenB: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenBAmount: inputInfo.amount,
         });
         break;
       }
       case "slider": {
         setInputsDescription({
-          pool: "Input",
+          pool: withdrawType === "both" ? "Input" : "Output (Estimated)",
           poolAmount: formatPriceNumber.format(
             ratio *
               (enriched?.supply || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenA: "Output (Estimated)",
+          tokenA: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenAAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityA || 0) *
               (inputInfo.liquidityPercentage / 100)
           ),
-          tokenB: "Output (Estimated)",
+          tokenB: withdrawType === "one" ? "Input" : "Output (Estimated)",
           tokenBAmount: formatPriceNumber.format(
             ratio *
               (enriched?.liquidityB || 0) *
@@ -201,13 +223,29 @@ export const RemoveLiquidityEntry = (props: {
         break;
       }
     }
-  }, [inputInfo, enriched, ratio, inputInfo.liquidityPercentage]);
+  }, [inputInfo, enriched, ratio, inputInfo.liquidityPercentage, withdrawType]);
+
+  useEffect(() => {
+    if (withdrawType === "one") {
+      if (withdrawToken === baseMintAddress && inputInfo.amount !== inputsDescription.tokenAAmount) {
+        setInputInfo({
+          ...inputInfo,
+          lastTyped: "tokenA",
+          amount: inputsDescription.tokenAAmount
+        })
+      }else if (withdrawToken === quoteMintAddress && inputInfo.amount !== inputsDescription.tokenBAmount) {
+        setInputInfo({
+          ...inputInfo,
+          lastTyped: "tokenB",
+          amount: inputsDescription.tokenBAmount
+        })
+      }
+    }
+  }, [inputInfo, withdrawToken, withdrawType, enriched, inputsDescription, baseMintAddress, quoteMintAddress])
 
   if (!pool || !enriched) {
     return null;
   }
-  const baseMintAddress = enriched.mints[0];
-  const quoteMintAddress = enriched.mints[1];
 
   const handleInputChange = (val: any, inputSource: string) => {
     switch (inputSource) {
@@ -238,6 +276,67 @@ export const RemoveLiquidityEntry = (props: {
     }
   };
 
+  const getTokenOptions = () => {
+    if (pool) {
+      const name = getPoolName(tokenMap, pool);
+      const mint = pool.pubkeys.mint.toBase58();
+      const sorted = pool.pubkeys.holdingMints
+        .map((a: PublicKey) => a.toBase58())
+        .sort();
+      const icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]}/>;
+      return (
+        <>
+          {pool && (
+            <Option key={mint} value={mint} name={name}>
+              <TokenDisplay
+                key={mint}
+                mintAddress={mint}
+                name={name}
+                icon={icon}
+              />
+            </Option>
+          )}
+          {pool.pubkeys.holdingMints.map((mint) => {
+            const mintAddress = mint.toBase58();
+            const tokenName = getTokenName(tokenMap, mintAddress);
+            return (
+              <Option
+                key={mintAddress}
+                value={mintAddress}
+                name={tokenName}
+                title={mintAddress}
+              >
+                <TokenDisplay
+                  key={mintAddress}
+                  name={tokenName}
+                  mintAddress={mintAddress}
+                  showBalance={true}
+                />
+              </Option>
+            );
+          })}
+        </>
+      );
+    }
+    return null;
+  }
+
+  const handleToggleWithdrawType = (item: any) => {
+    if (item === pool?.pubkeys.mint.toBase58()) {
+      setWithdrawType("both");
+      setWithdrawToken(pool?.pubkeys.mint.toBase58());
+    } else if (item === enriched.mints[0]) {
+      if (withdrawType !== "one") {
+        setWithdrawType("one");
+      }
+      setWithdrawToken(enriched.mints[0]);
+    } else if (item === enriched.mints[1]) {
+      if (withdrawType !== "one") {
+        setWithdrawType("one");
+      }
+      setWithdrawToken(enriched.mints[1]);
+    }
+  };
   return (
     <>
       {inputType === "slider" && (
@@ -471,6 +570,42 @@ export const RemoveLiquidityEntry = (props: {
               </Col>
             </Row>
           </Card>
+          { isLatestLayout && pool && (
+            <div className="flex-row-center">
+              <Select
+                size="large"
+                showSearch
+                style={{ minWidth: 150 }}
+                placeholder="Remove Token"
+                value={withdrawToken}
+                onChange={(item) => {
+                  handleToggleWithdrawType(item);
+                }}
+                filterOption={(input, option) =>
+                  option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+              >
+                {getTokenOptions()}
+              </Select>
+              <Popover
+              placement="topRight"
+              trigger="hover"
+              content={
+                <div style={{width: 300}}>
+                  You can select a one of the tokens to remove liquidity from
+                  the pool or both as default.
+                </div>
+              }
+            >
+              <Button
+                shape="circle"
+                size="large"
+                type="text"
+                icon={<QuestionCircleOutlined />}
+              />
+            </Popover>
+            </div>
+          )}
           <PoolCurrencyInput
             mint={pool.pubkeys.mint.toBase58()}
             pool={pool}
@@ -481,29 +616,35 @@ export const RemoveLiquidityEntry = (props: {
             }}
           />
           ↓
-          <PoolCurrencyInput
-            mint={pool.pubkeys.holdingMints[0].toBase58()}
-            title={inputsDescription.tokenA}
-            amount={inputsDescription.tokenAAmount}
-            onInputChange={(val: any) => {
-              handleInputChange(val, "tokenA");
-            }}
-          />
-          +
-          <PoolCurrencyInput
-            mint={pool.pubkeys.holdingMints[1].toBase58()}
-            title={inputsDescription.tokenB}
-            amount={inputsDescription.tokenBAmount}
-            onInputChange={(val: any) => {
-              handleInputChange(val, "tokenB");
-            }}
-          />
+          {(withdrawType === "both" || withdrawToken === baseMintAddress) && (
+            <PoolCurrencyInput
+              mint={baseMintAddress}
+              title={inputsDescription.tokenA}
+              amount={inputsDescription.tokenAAmount}
+              onInputChange={(val: any) => {
+                handleInputChange(val, "tokenA");
+              }}
+            />
+          )}
+          {withdrawType === "both" && "+" }
+          {(withdrawType === "both" || withdrawToken === quoteMintAddress) && (
+            <PoolCurrencyInput
+              mint={quoteMintAddress}
+              title={inputsDescription.tokenB}
+              amount={inputsDescription.tokenBAmount}
+              onInputChange={(val: any) => {
+                handleInputChange(val, "tokenB");
+              }}
+            />
+          )}
         </div>
       )}
       {account && (
         <RemoveLiquidity
           instance={{ pool: pool, account: account }}
           removeRatio={inputInfo.liquidityPercentage / 100}
+          withdrawType={withdrawType}
+          amount={parseFloat(inputInfo.amount)}
         />
       )}
       <YourPosition pool={pool} />
