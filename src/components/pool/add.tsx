@@ -12,7 +12,11 @@ import {
   useSlippageConfig,
 } from "../../utils/connection";
 import { Spin } from "antd";
-import { LoadingOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  LoadingOutlined,
+  QuestionCircleOutlined,
+  SettingOutlined
+} from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
 import { CurrencyInput, TokenDisplay } from "../currencyInput";
@@ -289,7 +293,7 @@ export const AddToLiquidity = () => {
           <Button type="text">Read more about providing liquidity.</Button>
         </Popover>
         {isLatestLayout && pool && (
-          <div className="space-evenly-row">
+          <div className="flex-row-center">
             <Select
               size="large"
               showSearch
@@ -309,6 +313,23 @@ export const AddToLiquidity = () => {
             >
               {getTokenOptions()}
             </Select>
+            <Popover
+              placement="topRight"
+              trigger="hover"
+              content={
+                <div style={{width: 300}}>
+                  You can select a one of the tokens to provide liquidity
+                  to the pool or both as default.
+                </div>
+              }
+            >
+              <Button
+                shape="circle"
+                size="large"
+                type="text"
+                icon={<QuestionCircleOutlined />}
+              />
+            </Popover>
           </div>
         )}
         {depositType === "both" && (
