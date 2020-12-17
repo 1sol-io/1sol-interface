@@ -27,13 +27,14 @@ import {
   generateExactOneLabel,
 } from "../labels";
 import { AdressesPopover } from "./address";
-import { formatPriceNumber } from "../../utils/utils";
+import { formatPriceNumber, getPoolName } from "../../utils/utils";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { useEnrichedPools } from "../../context/market";
 import { PoolIcon } from "../tokenIcon";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 import { programIds } from "../../utils/ids";
+import { PublicKey } from "@solana/web3.js";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 const { Option } = Select;
@@ -67,7 +68,6 @@ export const AddToLiquidity = () => {
           currentDepositToken?.account &&
           currentDepositToken.mint
         ) {
-          // add instructions
           setPendingTx(true);
           const components = [
             {
@@ -153,11 +153,19 @@ export const AddToLiquidity = () => {
     }
     return depositToken === A.mintAddress ? A : B;
   };
-  const handleToggleDepositType = () => {
-    if (depositType === "both") {
-      setDepositType("one");
-    } else {
+  const handleToggleDepositType = (item: any) => {
+    if (item === pool?.pubkeys.mint.toBase58()) {
       setDepositType("both");
+    } else if (item === A.mintAddress) {
+      if (depositType !== "one") {
+        setDepositType("one");
+      }
+      setDepositToken(A.mintAddress);
+    } else if (item === B.mintAddress) {
+      if (depositType !== "one") {
+        setDepositType("one");
+      }
+      setDepositToken(B.mintAddress);
     }
   };
   const createPoolButton = pool && (
@@ -218,6 +226,51 @@ export const AddToLiquidity = () => {
       {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
     </Dropdown.Button>
   );
+
+  const getTokenOptions = () => {
+    let name: string = "";
+    let mint: string = "";
+    let icon;
+    if (pool) {
+      name = getPoolName(tokenMap, pool);
+      mint = pool.pubkeys.mint.toBase58();
+      const sorted = pool.pubkeys.holdingMints
+        .map((a: PublicKey) => a.toBase58())
+        .sort();
+      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
+    }
+    return (
+      <>
+        {pool && (
+          <Option key={mint} value={mint} name={name}>
+            <TokenDisplay
+              key={mint}
+              mintAddress={mint}
+              name={name}
+              icon={icon}
+            />
+          </Option>
+        )}
+        {[A, B].map((item) => {
+          return (
+            <Option
+              key={item.mintAddress}
+              value={item.mintAddress}
+              name={item.name}
+              title={item.mintAddress}
+            >
+              <TokenDisplay
+                key={item.mintAddress}
+                name={item.name}
+                mintAddress={item.mintAddress}
+                showBalance={true}
+              />
+            </Option>
+          );
+        })}
+      </>
+    );
+  };
   return (
     <>
       <div className="input-card">
@@ -237,48 +290,25 @@ export const AddToLiquidity = () => {
         </Popover>
         {isLatestLayout && pool && (
           <div className="space-evenly-row">
-            <Button onClick={handleToggleDepositType}>
-              Deposit {depositType === "both" ? "One Token" : "Both Tokens"}
-            </Button>
-            {depositType === "one" && (
-              <Select
-                size="large"
-                showSearch
-                style={{ minWidth: 150 }}
-                placeholder="CCY"
-                value={getDepositToken()?.mintAddress}
-                onChange={(item) => {
-                  if (getDepositToken()?.mintAddress !== item) {
-                    if (getDepositToken()?.mintAddress !== A.mintAddress) {
-                      setDepositToken(A.mintAddress);
-                    } else {
-                      setDepositToken(B.mintAddress);
-                    }
-                  }
-                }}
-                filterOption={(input, option) =>
-                  option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {[A, B].map((item) => {
-                  return (
-                    <Option
-                      key={item.mintAddress}
-                      value={item.mintAddress}
-                      name={item.name}
-                      title={item.mintAddress}
-                    >
-                      <TokenDisplay
-                        key={item.mintAddress}
-                        name={item.name}
-                        mintAddress={item.mintAddress}
-                        showBalance={true}
-                      />
-                    </Option>
-                  );
-                })}
-              </Select>
-            )}
+            <Select
+              size="large"
+              showSearch
+              style={{ minWidth: 150 }}
+              placeholder="Deposit Token"
+              value={
+                depositType === "both"
+                  ? pool?.pubkeys.mint.toBase58()
+                  : getDepositToken()?.mintAddress
+              }
+              onChange={(item) => {
+                handleToggleDepositType(item);
+              }}
+              filterOption={(input, option) =>
+                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {getTokenOptions()}
+            </Select>
           </div>
         )}
         {depositType === "both" && (
