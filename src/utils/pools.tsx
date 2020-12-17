@@ -213,7 +213,7 @@ export const removeExactOneLiquidity = async (
     throw new Error("Mint doesnt have authority");
   }
   const tokenMatchAccount =
-    tokenMint === pool.pubkeys.holdingMints[0].toBase58() ? accountA : accountA;
+    tokenMint === pool.pubkeys.holdingMints[0].toBase58() ? accountA : accountB;
   const authority = poolMint.mintAuthority;
 
   const signers: Account[] = [];
