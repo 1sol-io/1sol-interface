@@ -35,6 +35,7 @@ import {
   swapInstruction,
   PoolConfig,
   depositExactOneInstruction,
+  withdrawExactOneInstruction,
 } from "./../models";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
@@ -175,6 +176,109 @@ export const removeLiquidity = async (
       ? (wallet.publicKey as PublicKey)
       : toAccounts[1],
   ];
+};
+
+export const removeExactOneLiquidity = async (
+  connection: Connection,
+  wallet: any,
+  account: TokenAccount,
+  liquidityAmount: number,
+  tokenAmount: number,
+  tokenMint: string,
+  pool?: PoolInfo
+) => {
+  if (!pool) {
+    throw new Error("Pool is required");
+  }
+
+  notify({
+    message: "Removing Liquidity...",
+    description: "Please review transactions to approve.",
+    type: "warn",
+  });
+
+  // Maximum number of LP tokens
+  const liquidityMaxAmount = liquidityAmount * (1 + SLIPPAGE);
+
+  const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
+  const accountA = await cache.queryAccount(
+    connection,
+    pool.pubkeys.holdingAccounts[0]
+  );
+  const accountB = await cache.queryAccount(
+    connection,
+    pool.pubkeys.holdingAccounts[1]
+  );
+  if (!poolMint.mintAuthority) {
+    throw new Error("Mint doesnt have authority");
+  }
+  const tokenMatchAccount =
+    tokenMint === pool.pubkeys.holdingMints[0].toBase58() ? accountA : accountA;
+  const authority = poolMint.mintAuthority;
+
+  const signers: Account[] = [];
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
+
+  const toAccount: PublicKey = await findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    instructions,
+    cleanupInstructions,
+    accountRentExempt,
+    tokenMatchAccount.info.mint,
+    signers
+  );
+
+  instructions.push(
+    Token.createApproveInstruction(
+      programIds().token,
+      account.pubkey,
+      authority,
+      wallet.publicKey,
+      [],
+      tokenAmount
+    )
+  );
+
+  // withdraw exact one
+  instructions.push(
+    withdrawExactOneInstruction(
+      pool.pubkeys.account,
+      authority,
+      pool.pubkeys.mint,
+      account.pubkey,
+      pool.pubkeys.holdingAccounts[0],
+      pool.pubkeys.holdingAccounts[1],
+      toAccount,
+      pool.pubkeys.feeAccount,
+      pool.pubkeys.program,
+      programIds().token,
+      tokenAmount,
+      liquidityMaxAmount
+    )
+  );
+
+  let tx = await sendTransaction(
+    connection,
+    wallet,
+    instructions.concat(cleanupInstructions),
+    signers
+  );
+
+  notify({
+    message: "Liquidity Returned. Thank you for your support.",
+    type: "success",
+    description: `Transaction - ${tx}`,
+  });
+
+  return tokenMatchAccount.info.mint.equals(WRAPPED_SOL_MINT)
+    ? (wallet.publicKey as PublicKey)
+    : toAccount;
 };
 
 export const swap = async (

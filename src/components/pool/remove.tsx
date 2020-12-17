@@ -1,30 +1,45 @@
 import React, { useEffect, useState } from "react";
-import {Button, Card, Col, Popover, Row, Select, Slider, Spin, Typography} from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Popover,
+  Row,
+  Select,
+  Slider,
+  Spin,
+  Typography,
+} from "antd";
 
-import { removeLiquidity } from "../../utils/pools";
+import { removeLiquidity, removeExactOneLiquidity } from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import { useConnection, useConnectionConfig } from "../../utils/connection";
-import {PoolInfo, TokenAccount, TokenSwapLayout} from "../../models";
+import { PoolInfo, TokenAccount, TokenSwapLayout } from "../../models";
 import { notify } from "../../utils/notifications";
-import {PoolIcon, TokenIcon} from "../tokenIcon";
+import { PoolIcon, TokenIcon } from "../tokenIcon";
 import { YourPosition } from "./add";
 import { useMint } from "../../utils/accounts";
-import {formatPriceNumber, getPoolName, getTokenName} from "../../utils/utils";
-import {PoolCurrencyInput, TokenDisplay} from "../currencyInput";
-import {LoadingOutlined, QuestionCircleOutlined} from "@ant-design/icons";
+import {
+  formatPriceNumber,
+  getPoolName,
+  getTokenName,
+} from "../../utils/utils";
+import { PoolCurrencyInput, TokenDisplay } from "../currencyInput";
+import { LoadingOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { generateRemoveLabel } from "../labels";
-import {programIds} from "../../utils/ids";
-import {PublicKey} from "@solana/web3.js";
+import { programIds } from "../../utils/ids";
+import { PublicKey } from "@solana/web3.js";
 const { Option } = Select;
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
   removeRatio: number;
   withdrawType: string;
-  amount?: number;
+  amount: number;
+  withdrawToken: string;
 }) => {
   const { account, pool } = props.instance;
-  const { removeRatio, withdrawType, amount } = props;
+  const { removeRatio, withdrawType, amount, withdrawToken } = props;
   const [pendingTx, setPendingTx] = useState(false);
   const { wallet, connected } = useWallet();
   const connection = useConnection();
@@ -39,10 +54,24 @@ export const RemoveLiquidity = (props: {
   const onRemove = async () => {
     try {
       setPendingTx(true);
-      if (withdrawType === "one" && isLatestLayout){
-        //await removeExactOneLiquidity(connection, wallet, account, liquidityAmount, amount, pool)
+      if (withdrawType === "one" && isLatestLayout) {
+        await removeExactOneLiquidity(
+          connection,
+          wallet,
+          account,
+          liquidityAmount,
+          amount,
+          withdrawToken,
+          pool
+        );
       } else {
-        await removeLiquidity(connection, wallet, liquidityAmount, account, pool);
+        await removeLiquidity(
+          connection,
+          wallet,
+          liquidityAmount,
+          account,
+          pool
+        );
       }
     } catch {
       notify({
@@ -131,7 +160,6 @@ export const RemoveLiquidityEntry = (props: {
         (inputInfo.liquidityPercentage / 100)
     ),
   });
-
 
   useEffect(() => {
     switch (inputInfo.lastTyped) {
@@ -227,21 +255,35 @@ export const RemoveLiquidityEntry = (props: {
 
   useEffect(() => {
     if (withdrawType === "one") {
-      if (withdrawToken === baseMintAddress && inputInfo.amount !== inputsDescription.tokenAAmount) {
+      if (
+        withdrawToken === baseMintAddress &&
+        inputInfo.amount !== inputsDescription.tokenAAmount
+      ) {
         setInputInfo({
           ...inputInfo,
           lastTyped: "tokenA",
-          amount: inputsDescription.tokenAAmount
-        })
-      }else if (withdrawToken === quoteMintAddress && inputInfo.amount !== inputsDescription.tokenBAmount) {
+          amount: inputsDescription.tokenAAmount,
+        });
+      } else if (
+        withdrawToken === quoteMintAddress &&
+        inputInfo.amount !== inputsDescription.tokenBAmount
+      ) {
         setInputInfo({
           ...inputInfo,
           lastTyped: "tokenB",
-          amount: inputsDescription.tokenBAmount
-        })
+          amount: inputsDescription.tokenBAmount,
+        });
       }
     }
-  }, [inputInfo, withdrawToken, withdrawType, enriched, inputsDescription, baseMintAddress, quoteMintAddress])
+  }, [
+    inputInfo,
+    withdrawToken,
+    withdrawType,
+    enriched,
+    inputsDescription,
+    baseMintAddress,
+    quoteMintAddress,
+  ]);
 
   if (!pool || !enriched) {
     return null;
@@ -283,7 +325,7 @@ export const RemoveLiquidityEntry = (props: {
       const sorted = pool.pubkeys.holdingMints
         .map((a: PublicKey) => a.toBase58())
         .sort();
-      const icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]}/>;
+      const icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
       return (
         <>
           {pool && (
@@ -319,7 +361,7 @@ export const RemoveLiquidityEntry = (props: {
       );
     }
     return null;
-  }
+  };
 
   const handleToggleWithdrawType = (item: any) => {
     if (item === pool?.pubkeys.mint.toBase58()) {
@@ -570,7 +612,7 @@ export const RemoveLiquidityEntry = (props: {
               </Col>
             </Row>
           </Card>
-          { isLatestLayout && pool && (
+          {isLatestLayout && pool && (
             <div className="flex-row-center">
               <Select
                 size="large"
@@ -588,22 +630,22 @@ export const RemoveLiquidityEntry = (props: {
                 {getTokenOptions()}
               </Select>
               <Popover
-              placement="topRight"
-              trigger="hover"
-              content={
-                <div style={{width: 300}}>
-                  You can select a one of the tokens to remove liquidity from
-                  the pool or both as default.
-                </div>
-              }
-            >
-              <Button
-                shape="circle"
-                size="large"
-                type="text"
-                icon={<QuestionCircleOutlined />}
-              />
-            </Popover>
+                placement="topRight"
+                trigger="hover"
+                content={
+                  <div style={{ width: 300 }}>
+                    You can select a one of the tokens to remove liquidity from
+                    the pool or both as default.
+                  </div>
+                }
+              >
+                <Button
+                  shape="circle"
+                  size="large"
+                  type="text"
+                  icon={<QuestionCircleOutlined />}
+                />
+              </Popover>
             </div>
           )}
           <PoolCurrencyInput
@@ -626,7 +668,7 @@ export const RemoveLiquidityEntry = (props: {
               }}
             />
           )}
-          {withdrawType === "both" && "+" }
+          {withdrawType === "both" && "+"}
           {(withdrawType === "both" || withdrawToken === quoteMintAddress) && (
             <PoolCurrencyInput
               mint={quoteMintAddress}
@@ -645,6 +687,7 @@ export const RemoveLiquidityEntry = (props: {
           removeRatio={inputInfo.liquidityPercentage / 100}
           withdrawType={withdrawType}
           amount={parseFloat(inputInfo.amount)}
+          withdrawToken={withdrawToken}
         />
       )}
       <YourPosition pool={pool} />

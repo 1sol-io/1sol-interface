@@ -15,7 +15,7 @@ import { Spin } from "antd";
 import {
   LoadingOutlined,
   QuestionCircleOutlined,
-  SettingOutlined
+  SettingOutlined,
 } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
@@ -317,9 +317,9 @@ export const AddToLiquidity = () => {
               placement="topRight"
               trigger="hover"
               content={
-                <div style={{width: 300}}>
-                  You can select a one of the tokens to provide liquidity
-                  to the pool or both as default.
+                <div style={{ width: 300 }}>
+                  You can select a one of the tokens to provide liquidity to the
+                  pool or both as default.
                 </div>
               }
             >
