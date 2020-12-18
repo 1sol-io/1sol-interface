@@ -4,7 +4,7 @@ import {
   usePoolForBasket,
   PoolOperation,
 } from "../../utils/pools";
-import { Button, Card, Col, Dropdown, Popover, Row, Select } from "antd";
+import { Button, Card, Col, Dropdown, Popover, Radio, Row } from "antd";
 import { useWallet } from "../../utils/wallet";
 import {
   useConnection,
@@ -12,14 +12,10 @@ import {
   useSlippageConfig,
 } from "../../utils/connection";
 import { Spin } from "antd";
-import {
-  LoadingOutlined,
-  QuestionCircleOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
+import { LoadingOutlined, SettingOutlined } from "@ant-design/icons";
 import { notify } from "../../utils/notifications";
 import { SupplyOverview } from "./supplyOverview";
-import { CurrencyInput, TokenDisplay } from "../currencyInput";
+import { CurrencyInput } from "../currencyInput";
 import { PoolConfigCard } from "./config";
 import "./add.less";
 import { CurveType, PoolInfo, TokenSwapLayout } from "../../models";
@@ -38,10 +34,8 @@ import { PoolIcon } from "../tokenIcon";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 import { programIds } from "../../utils/ids";
-import { PublicKey } from "@solana/web3.js";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-const { Option } = Select;
 
 export const AddToLiquidity = () => {
   const { wallet, connected } = useWallet();
@@ -234,42 +228,26 @@ export const AddToLiquidity = () => {
   const getTokenOptions = () => {
     let name: string = "";
     let mint: string = "";
-    let icon;
     if (pool) {
       name = getPoolName(tokenMap, pool);
       mint = pool.pubkeys.mint.toBase58();
-      const sorted = pool.pubkeys.holdingMints
-        .map((a: PublicKey) => a.toBase58())
-        .sort();
-      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
     }
     return (
       <>
         {pool && (
-          <Option key={mint} value={mint} name={name}>
-            <TokenDisplay
-              key={mint}
-              mintAddress={mint}
-              name={name}
-              icon={icon}
-            />
-          </Option>
+          <Radio key={mint} value={mint} name={name}>
+            Add {name}
+          </Radio>
         )}
         {[A, B].map((item) => {
           return (
-            <Option
+            <Radio
               key={item.mintAddress}
               value={item.mintAddress}
               name={item.name}
-              title={item.mintAddress}
             >
-              <TokenDisplay
-                key={item.mintAddress}
-                name={item.name}
-                mintAddress={item.mintAddress}
-                showBalance={true}
-              />
-            </Option>
+              Add {item.name}
+            </Radio>
           );
         })}
       </>
@@ -294,42 +272,17 @@ export const AddToLiquidity = () => {
         </Popover>
         {isLatestLayout && pool && (
           <div className="flex-row-center">
-            <Select
-              size="large"
-              showSearch
-              style={{ minWidth: 150 }}
-              placeholder="Deposit Token"
+            <Radio.Group
+              style={{ margin: "10px 0" }}
+              onChange={(item) => handleToggleDepositType(item.target.value)}
               value={
                 depositType === "both"
                   ? pool?.pubkeys.mint.toBase58()
                   : getDepositToken()?.mintAddress
               }
-              onChange={(item) => {
-                handleToggleDepositType(item);
-              }}
-              filterOption={(input, option) =>
-                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
             >
               {getTokenOptions()}
-            </Select>
-            <Popover
-              placement="topRight"
-              trigger="hover"
-              content={
-                <div style={{ width: 300 }}>
-                  You can select a one of the tokens to provide liquidity to the
-                  pool or both as default.
-                </div>
-              }
-            >
-              <Button
-                shape="circle"
-                size="large"
-                type="text"
-                icon={<QuestionCircleOutlined />}
-              />
-            </Popover>
+            </Radio.Group>
           </div>
         )}
         {depositType === "both" && (

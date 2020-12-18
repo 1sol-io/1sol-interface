@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Popover,
-  Row,
-  Select,
-  Slider,
-  Spin,
-  Typography,
-} from "antd";
+import { Button, Card, Col, Radio, Row, Slider, Spin, Typography } from "antd";
 
 import { removeLiquidity, removeExactOneLiquidity } from "../../utils/pools";
 import { useWallet } from "../../utils/wallet";
 import { useConnection, useConnectionConfig } from "../../utils/connection";
 import { PoolInfo, TokenAccount, TokenSwapLayout } from "../../models";
 import { notify } from "../../utils/notifications";
-import { PoolIcon, TokenIcon } from "../tokenIcon";
+import { TokenIcon } from "../tokenIcon";
 import { YourPosition } from "./add";
 import { useMint } from "../../utils/accounts";
 import {
@@ -24,12 +14,10 @@ import {
   getPoolName,
   getTokenName,
 } from "../../utils/utils";
-import { PoolCurrencyInput, TokenDisplay } from "../currencyInput";
-import { LoadingOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { PoolCurrencyInput } from "../currencyInput";
+import { LoadingOutlined } from "@ant-design/icons";
 import { generateRemoveLabel } from "../labels";
 import { programIds } from "../../utils/ids";
-import { PublicKey } from "@solana/web3.js";
-const { Option } = Select;
 
 export const RemoveLiquidity = (props: {
   instance: { account: TokenAccount; pool: PoolInfo };
@@ -326,39 +314,18 @@ export const RemoveLiquidityEntry = (props: {
     if (pool) {
       const name = getPoolName(tokenMap, pool);
       const mint = pool.pubkeys.mint.toBase58();
-      const sorted = pool.pubkeys.holdingMints
-        .map((a: PublicKey) => a.toBase58())
-        .sort();
-      const icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
       return (
         <>
-          {pool && (
-            <Option key={mint} value={mint} name={name}>
-              <TokenDisplay
-                key={mint}
-                mintAddress={mint}
-                name={name}
-                icon={icon}
-              />
-            </Option>
-          )}
+          <Radio key={mint} value={mint} name={name}>
+            {name}
+          </Radio>
           {pool.pubkeys.holdingMints.map((mint) => {
             const mintAddress = mint.toBase58();
             const tokenName = getTokenName(tokenMap, mintAddress);
             return (
-              <Option
-                key={mintAddress}
-                value={mintAddress}
-                name={tokenName}
-                title={mintAddress}
-              >
-                <TokenDisplay
-                  key={mintAddress}
-                  name={tokenName}
-                  mintAddress={mintAddress}
-                  showBalance={true}
-                />
-              </Option>
+              <Radio key={mintAddress} value={mintAddress} name={tokenName}>
+                {tokenName}
+              </Radio>
             );
           })}
         </>
@@ -525,6 +492,21 @@ export const RemoveLiquidityEntry = (props: {
       {inputType === "input" && (
         <div className="input-card">
           Remove Liquidity
+          {isLatestLayout && pool && (
+            <div className="flex-row-center">
+              <Radio.Group
+                style={{ margin: "10px 0" }}
+                onChange={(item) => handleToggleWithdrawType(item.target.value)}
+                value={
+                  withdrawType === "both"
+                    ? pool?.pubkeys.mint.toBase58()
+                    : withdrawToken
+                }
+              >
+                {getTokenOptions()}
+              </Radio.Group>
+            </div>
+          )}
           <Card
             className="ccy-input"
             style={{ borderRadius: 20, width: "100%" }}
@@ -580,42 +562,6 @@ export const RemoveLiquidityEntry = (props: {
               </Col>
             </Row>
           </Card>
-          {isLatestLayout && pool && (
-            <div className="flex-row-center">
-              <Select
-                size="large"
-                showSearch
-                style={{ minWidth: 150 }}
-                placeholder="Remove Token"
-                value={withdrawToken}
-                onChange={(item) => {
-                  handleToggleWithdrawType(item);
-                }}
-                filterOption={(input, option) =>
-                  option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {getTokenOptions()}
-              </Select>
-              <Popover
-                placement="topRight"
-                trigger="hover"
-                content={
-                  <div style={{ width: 300 }}>
-                    You can select a one of the tokens to remove liquidity from
-                    the pool or both as default.
-                  </div>
-                }
-              >
-                <Button
-                  shape="circle"
-                  size="large"
-                  type="text"
-                  icon={<QuestionCircleOutlined />}
-                />
-              </Popover>
-            </div>
-          )}
           <PoolCurrencyInput
             mint={pool.pubkeys.mint.toBase58()}
             pool={pool}

@@ -213,8 +213,8 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
-        {!props.hideSelect && (
-          <div className="ccy-input-header-right" style={{ display: "felx" }}>
+        <div className="ccy-input-header-right" style={{ display: "felx" }}>
+          {!props.hideSelect ? (
             <Select
               size="large"
               showSearch
@@ -232,8 +232,17 @@ export const CurrencyInput = (props: {
             >
               {[...renderPopularTokens, ...renderAdditionalTokens]}
             </Select>
-          </div>
-        )}
+          ) : (
+            props.mint && (
+              <TokenDisplay
+                key={props.mint}
+                name={getTokenName(tokenMap, props.mint)}
+                mintAddress={props.mint}
+                showBalance={true}
+              />
+            )
+          )}
+        </div>
       </div>
     </Card>
   );
