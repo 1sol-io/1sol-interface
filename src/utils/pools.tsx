@@ -196,8 +196,8 @@ export const removeExactOneLiquidity = async (
     description: "Please review transactions to approve.",
     type: "warn",
   });
-
   // Maximum number of LP tokens
+  // needs to be different math because the new instruction
   const liquidityMaxAmount = liquidityAmount * (1 + SLIPPAGE);
 
   const poolMint = await cache.queryMint(connection, pool.pubkeys.mint);
@@ -212,6 +212,7 @@ export const removeExactOneLiquidity = async (
   if (!poolMint.mintAuthority) {
     throw new Error("Mint doesnt have authority");
   }
+
   const tokenMatchAccount =
     tokenMint === pool.pubkeys.holdingMints[0].toBase58() ? accountA : accountB;
   const authority = poolMint.mintAuthority;
@@ -241,7 +242,7 @@ export const removeExactOneLiquidity = async (
       authority,
       wallet.publicKey,
       [],
-      tokenAmount
+      account.info.amount.toNumber() // liquidityAmount <- need math tuning
     )
   );
 
@@ -882,7 +883,9 @@ async function _addLiquidityExactOneExistingPool(
   // as well as native uniswap v2 oracle: https://uniswap.org/docs/v2/core-concepts/oracles/
   const amount = from.amount;
 
-  const liquidityToken = (amount * (1 - SLIPPAGE) * supply) / reserve;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _liquidityTokenTempMath = (amount * (1 - SLIPPAGE) * supply) / reserve;
+  const liquidityToken = 0;
 
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];

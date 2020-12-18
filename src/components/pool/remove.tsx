@@ -44,6 +44,7 @@ export const RemoveLiquidity = (props: {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
   const { tokenMap } = useConnectionConfig();
+  const mint = useMint(withdrawToken);
 
   const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
 
@@ -55,12 +56,13 @@ export const RemoveLiquidity = (props: {
     try {
       setPendingTx(true);
       if (withdrawType === "one" && isLatestLayout) {
+        const tokenAmount = amount * Math.pow(10, mint?.decimals || 0);
         await removeExactOneLiquidity(
           connection,
           wallet,
           account,
           liquidityAmount,
-          amount,
+          tokenAmount,
           withdrawToken,
           pool
         );
@@ -275,15 +277,9 @@ export const RemoveLiquidityEntry = (props: {
         });
       }
     }
-  }, [
-    inputInfo,
-    withdrawToken,
-    withdrawType,
-    enriched,
-    inputsDescription,
-    baseMintAddress,
-    quoteMintAddress,
-  ]);
+    // Only needed to change with specific states
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [withdrawToken, withdrawType, baseMintAddress, quoteMintAddress]);
 
   if (!pool || !enriched) {
     return null;
@@ -312,6 +308,14 @@ export const RemoveLiquidityEntry = (props: {
           liquidityPercentage: (val * 100) / (enriched.liquidityB * ratio),
           amount: val,
           lastTyped: "tokenB",
+        });
+        break;
+      }
+      case "slider": {
+        setInputInfo({
+          ...inputInfo,
+          liquidityPercentage: val,
+          lastTyped: "slider",
         });
         break;
       }
@@ -549,64 +553,28 @@ export const RemoveLiquidityEntry = (props: {
                 min={0}
                 max={100}
                 onChange={(amount: number) =>
-                  setInputInfo({
-                    ...inputInfo,
-                    liquidityPercentage: amount,
-                    lastTyped: "slider",
-                  })
+                  handleInputChange(amount, "slider")
                 }
               />
             </div>
             <Row>
               <Col span={6}>
-                <Button
-                  onClick={() =>
-                    setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 25,
-                      lastTyped: "slider",
-                    })
-                  }
-                >
+                <Button onClick={() => handleInputChange(25, "slider")}>
                   25%
                 </Button>
               </Col>
               <Col span={6}>
-                <Button
-                  onClick={() =>
-                    setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 50,
-                      lastTyped: "slider",
-                    })
-                  }
-                >
+                <Button onClick={() => handleInputChange(50, "slider")}>
                   50%
                 </Button>
               </Col>
               <Col span={6}>
-                <Button
-                  onClick={() =>
-                    setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 75,
-                      lastTyped: "slider",
-                    })
-                  }
-                >
+                <Button onClick={() => handleInputChange(75, "slider")}>
                   75%
                 </Button>
               </Col>
               <Col span={6}>
-                <Button
-                  onClick={() =>
-                    setInputInfo({
-                      ...inputInfo,
-                      liquidityPercentage: 100,
-                      lastTyped: "slider",
-                    })
-                  }
-                >
+                <Button onClick={() => handleInputChange(100, "slider")}>
                   100%
                 </Button>
               </Col>
@@ -686,7 +654,11 @@ export const RemoveLiquidityEntry = (props: {
           instance={{ pool: pool, account: account }}
           removeRatio={inputInfo.liquidityPercentage / 100}
           withdrawType={withdrawType}
-          amount={parseFloat(inputInfo.amount)}
+          amount={
+            withdrawToken === baseMintAddress
+              ? parseFloat(inputsDescription.tokenAAmount)
+              : parseFloat(inputsDescription.tokenBAmount)
+          }
           withdrawToken={withdrawToken}
         />
       )}
