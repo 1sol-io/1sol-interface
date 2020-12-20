@@ -16,7 +16,7 @@ import { PoolInfo, TokenAccount } from "../../models";
 
 const { Option } = Select;
 
-const TokenDisplay = (props: {
+export const TokenDisplay = (props: {
   name: string;
   mintAddress: string;
   icon?: JSX.Element;
@@ -58,7 +58,11 @@ const TokenDisplay = (props: {
             className="token-balance"
           >
             &nbsp;{" "}
-            {hasBalance ? balance < 0.001 ? "<0.001" : balance.toFixed(3) : '-'}
+            {hasBalance
+              ? balance < 0.001
+                ? "<0.001"
+                : balance.toFixed(3)
+              : "-"}
           </span>
         ) : null}
       </div>
@@ -70,6 +74,7 @@ export const CurrencyInput = (props: {
   mint?: string;
   amount?: string;
   title?: string;
+  hideSelect?: boolean;
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
 }) => {
@@ -208,25 +213,35 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
-
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          <Select
-            size="large"
-            showSearch
-            style={{ minWidth: 150 }}
-            placeholder="CCY"
-            value={props.mint}
-            onChange={(item) => {
-              if (props.onMintChange) {
-                props.onMintChange(item);
+          {!props.hideSelect ? (
+            <Select
+              size="large"
+              showSearch
+              style={{ minWidth: 150 }}
+              placeholder="CCY"
+              value={props.mint}
+              onChange={(item) => {
+                if (props.onMintChange) {
+                  props.onMintChange(item);
+                }
+              }}
+              filterOption={(input, option) =>
+                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
-            }}
-            filterOption={(input, option) =>
-              option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {[...renderPopularTokens, ...renderAdditionalTokens]}
-          </Select>
+            >
+              {[...renderPopularTokens, ...renderAdditionalTokens]}
+            </Select>
+          ) : (
+            props.mint && (
+              <TokenDisplay
+                key={props.mint}
+                name={getTokenName(tokenMap, props.mint)}
+                mintAddress={props.mint}
+                showBalance={true}
+              />
+            )
+          )}
         </div>
       </div>
     </Card>

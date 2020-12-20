@@ -55,3 +55,19 @@ export const generateRemoveLabel = (
     ? INSUFFICIENT_FUNDS_LABEL(getPoolName(tokenMap, pool))
     : REMOVE_LIQUIDITY_LABEL;
 };
+
+export const generateExactOneLabel = (
+  connected: boolean,
+  tokenMap: KnownTokenMap,
+  token?: CurrencyContextState
+) => {
+  return !connected
+    ? CONNECT_LABEL
+    : !token
+    ? SELECT_TOKEN_LABEL
+    : !parseFloat(token.amount || "")
+    ? ENTER_AMOUNT_LABEL
+    : !token.sufficientBalance()
+    ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, token.mintAddress))
+    : ADD_LIQUIDITY_LABEL;
+};

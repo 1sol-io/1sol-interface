@@ -256,6 +256,52 @@ export const depositInstruction = (
   });
 };
 
+export const depositExactOneInstruction = (
+  tokenSwap: PublicKey,
+  authority: PublicKey,
+  source: PublicKey,
+  intoA: PublicKey,
+  intoB: PublicKey,
+  poolToken: PublicKey,
+  poolAccount: PublicKey,
+  swapProgramId: PublicKey,
+  tokenProgramId: PublicKey,
+  sourceTokenAmount: number | Numberu64,
+  minimumPoolTokenAmount: number | Numberu64
+): TransactionInstruction => {
+  const dataLayout = BufferLayout.struct([
+    BufferLayout.u8("instruction"),
+    uint64("sourceTokenAmount"),
+    uint64("minimumPoolTokenAmount"),
+  ]);
+
+  const data = Buffer.alloc(dataLayout.span);
+  dataLayout.encode(
+    {
+      instruction: 4, // DepositExactOne instruction
+      sourceTokenAmount: new Numberu64(sourceTokenAmount).toBuffer(),
+      minimumPoolTokenAmount: new Numberu64(minimumPoolTokenAmount).toBuffer(),
+    },
+    data
+  );
+
+  const keys = [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: source, isSigner: false, isWritable: true },
+    { pubkey: intoA, isSigner: false, isWritable: true },
+    { pubkey: intoB, isSigner: false, isWritable: true },
+    { pubkey: poolToken, isSigner: false, isWritable: true },
+    { pubkey: poolAccount, isSigner: false, isWritable: true },
+    { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+  ];
+  return new TransactionInstruction({
+    keys,
+    programId: swapProgramId,
+    data,
+  });
+};
+
 export const withdrawInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
@@ -299,6 +345,58 @@ export const withdrawInstruction = (
     { pubkey: fromB, isSigner: false, isWritable: true },
     { pubkey: userAccountA, isSigner: false, isWritable: true },
     { pubkey: userAccountB, isSigner: false, isWritable: true },
+  ];
+
+  if (feeAccount) {
+    keys.push({ pubkey: feeAccount, isSigner: false, isWritable: true });
+  }
+  keys.push({ pubkey: tokenProgramId, isSigner: false, isWritable: false });
+
+  return new TransactionInstruction({
+    keys,
+    programId: swapProgramId,
+    data,
+  });
+};
+
+export const withdrawExactOneInstruction = (
+  tokenSwap: PublicKey,
+  authority: PublicKey,
+  poolMint: PublicKey,
+  sourcePoolAccount: PublicKey,
+  fromA: PublicKey,
+  fromB: PublicKey,
+  userAccount: PublicKey,
+  feeAccount: PublicKey | undefined,
+  swapProgramId: PublicKey,
+  tokenProgramId: PublicKey,
+  sourceTokenAmount: number | Numberu64,
+  maximumTokenAmount: number | Numberu64
+): TransactionInstruction => {
+  const dataLayout = BufferLayout.struct([
+    BufferLayout.u8("instruction"),
+    uint64("sourceTokenAmount"),
+    uint64("maximumTokenAmount"),
+  ]);
+
+  const data = Buffer.alloc(dataLayout.span);
+  dataLayout.encode(
+    {
+      instruction: 5, // WithdrawExactOne instruction
+      sourceTokenAmount: new Numberu64(sourceTokenAmount).toBuffer(),
+      maximumTokenAmount: new Numberu64(maximumTokenAmount).toBuffer(),
+    },
+    data
+  );
+
+  const keys = [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: poolMint, isSigner: false, isWritable: true },
+    { pubkey: sourcePoolAccount, isSigner: false, isWritable: true },
+    { pubkey: fromA, isSigner: false, isWritable: true },
+    { pubkey: fromB, isSigner: false, isWritable: true },
+    { pubkey: userAccount, isSigner: false, isWritable: true },
   ];
 
   if (feeAccount) {
