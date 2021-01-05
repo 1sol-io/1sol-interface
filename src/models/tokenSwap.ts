@@ -86,6 +86,7 @@ CURVE_NODE.addVariant(
 
 export const TokenSwapLayout: typeof BufferLayout.Structure = BufferLayout.struct(
   [
+    BufferLayout.u8('version'),
     BufferLayout.u8("isInitialized"),
     BufferLayout.u8("nonce"),
     publicKey("tokenProgramId"),

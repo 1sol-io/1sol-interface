@@ -107,16 +107,13 @@ export const removeLiquidity = async (
     ),
   ];
 
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      account.pubkey,
-      authority,
-      wallet.publicKey,
-      [],
-      liquidityAmount
-    )
-  );
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    account.pubkey,
+    authority,
+    wallet.publicKey,
+    liquidityAmount)
 
   // withdraw
   instructions.push(
@@ -235,15 +232,13 @@ export const removeExactOneLiquidity = async (
     signers
   );
 
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      account.pubkey,
-      authority,
-      wallet.publicKey,
-      [],
-      account.info.amount.toNumber() // liquidityAmount <- need math tuning
-    )
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    account.pubkey,
+    authority,
+    wallet.publicKey,
+    account.info.amount.toNumber() // liquidityAmount <- need math tuning
   );
 
   // withdraw exact one
@@ -305,7 +300,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0]?.toBase58() ===
-    components[0].account.info.mint.toBase58()
+      components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -347,27 +342,25 @@ export const swap = async (
   );
 
   // create approval for transfer transactions
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      fromAccount,
-      authority,
-      wallet.publicKey,
-      [],
-      amountIn
-    )
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    fromAccount,
+    authority,
+    wallet.publicKey,
+    amountIn
   );
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-        wallet.publicKey,
-        SWAP_HOST_FEE_ADDRESS,
-        instructions,
-        cleanupInstructions,
-        accountRentExempt,
-        pool.pubkeys.mint,
-        signers
-      )
+      wallet.publicKey,
+      SWAP_HOST_FEE_ADDRESS,
+      instructions,
+      cleanupInstructions,
+      accountRentExempt,
+      pool.pubkeys.mint,
+      signers
+    )
     : undefined;
 
   // swap
@@ -388,6 +381,8 @@ export const swap = async (
       hostFeeAccount
     )
   );
+
+
 
   let tx = await sendTransaction(
     connection,
@@ -475,15 +470,15 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => {},
+            init: async () => { },
           };
 
           const layout =
             item.account.data.length === TokenSwapLayout.span
               ? TokenSwapLayout
               : item.account.data.length === TokenSwapLayoutV1.span
-              ? TokenSwapLayoutV1
-              : TokenSwapLayoutV0;
+                ? TokenSwapLayoutV1
+                : TokenSwapLayoutV0;
 
           // handling of legacy layout can be removed soon...
           if (layout === TokenSwapLayoutV0) {
@@ -780,26 +775,22 @@ async function _addLiquidityExistingPool(
   );
 
   // create approval for transfer transactions
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      fromKeyA,
-      authority,
-      wallet.publicKey,
-      [],
-      amount0
-    )
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    fromKeyA,
+    authority,
+    wallet.publicKey,
+    amount0
   );
 
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      fromKeyB,
-      authority,
-      wallet.publicKey,
-      [],
-      amount1
-    )
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    fromKeyB,
+    authority,
+    wallet.publicKey,
+    amount1
   );
 
   // deposit
@@ -916,15 +907,13 @@ async function _addLiquidityExactOneExistingPool(
   );
 
   // create approval for transfer transactions
-  instructions.push(
-    Token.createApproveInstruction(
-      programIds().token,
-      fromKey,
-      authority,
-      wallet.publicKey,
-      [],
-      amount
-    )
+  approveAmount(
+    instructions,
+    cleanupInstructions,
+    fromKey,
+    authority,
+    wallet.publicKey,
+    amount
   );
 
   // deposit
@@ -1336,6 +1325,35 @@ async function _addLiquidityNewPool(
     type: "success",
     description: `Transaction - ${tx}`,
   });
+}
+
+function approveAmount(
+  instructions: TransactionInstruction[],
+  cleanupInstructions: TransactionInstruction[],
+  account: PublicKey,
+  delegate: PublicKey,
+  owner: PublicKey,
+  amount: number,
+) {
+  const tokenProgram = programIds().token;
+  instructions.push(
+    Token.createApproveInstruction(
+      tokenProgram,
+      account,
+      delegate,
+      owner,
+      [],
+      amount
+    )
+  );
+
+  cleanupInstructions.push(
+    Token.createRevokeInstruction(
+      tokenProgram,
+      account,
+      owner,
+      []),
+  );
 }
 
 function getWrappedAccount(
