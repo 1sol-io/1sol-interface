@@ -145,11 +145,11 @@ export const MigrationModal = () => {
       onOk={handleOk}
       onCancel={handleCancel}
       closable={!executing}
-      footer={[
+      footer={completed ? [] : [
         <Button
           key="back"
           onClick={handleCancel}
-          disabled={executing || completed}
+          disabled={executing}
         >
           Ask me later
         </Button>,
@@ -157,7 +157,6 @@ export const MigrationModal = () => {
           key="submit"
           type="primary"
           loading={executing}
-          disabled={completed}
           onClick={handleOk}
         >
           Migrate
@@ -175,7 +174,7 @@ export const MigrationModal = () => {
         >
           <h2>Congratulations!</h2>
           <div>Your migration has been successful.</div>
-          <Button type="primary">Close</Button>
+          <Button type="primary" onClick={handleOk}>Close</Button>
         </div>
       ) : (
         <>

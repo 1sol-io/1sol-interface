@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { AccountInfo, PublicKey } from "@solana/web3.js";
 import { TokenAccount } from "./account";
 
 export const DEFAULT_DENOMINATOR = 10_000;
@@ -13,7 +13,11 @@ export interface PoolInfo {
     feeAccount?: PublicKey;
   };
   legacy: boolean;
-  raw: any;
+  raw: {
+    pubkey: PublicKey,
+    data: any,
+    account: AccountInfo<Buffer>
+  };
 }
 
 export interface LiquidityComponent {

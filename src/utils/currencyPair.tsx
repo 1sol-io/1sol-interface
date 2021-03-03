@@ -106,12 +106,12 @@ export function CurrencyPairProvider({ children = null as any }) {
     fees: {
       tradeFeeNumerator: 25,
       tradeFeeDenominator: DEFAULT_DENOMINATOR,
-      ownerTradeFeeNumerator: 4,
+      ownerTradeFeeNumerator: 5,
       ownerTradeFeeDenominator: DEFAULT_DENOMINATOR,
       ownerWithdrawFeeNumerator: 0,
-      ownerWithdrawFeeDenominator: DEFAULT_DENOMINATOR,
-      hostFeeNumerator: 1,
-      hostFeeDenominator: DEFAULT_DENOMINATOR,
+      ownerWithdrawFeeDenominator: 0,
+      hostFeeNumerator: 20,
+      hostFeeDenominator: 100,
     },
   });
 

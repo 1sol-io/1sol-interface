@@ -1,7 +1,6 @@
 import { Numberu64 } from "@solana/spl-token-swap";
 import { PublicKey, Account, TransactionInstruction } from "@solana/web3.js";
 import * as BufferLayout from "buffer-layout";
-import { programIds } from "../utils/ids";
 import { CurveType, PoolConfig } from "./pool";
 
 export { TokenSwap } from "@solana/spl-token-swap";
@@ -112,7 +111,8 @@ export const createInitSwapInstruction = (
   tokenProgramId: PublicKey,
   swapProgramId: PublicKey,
   nonce: number,
-  config: PoolConfig
+  config: PoolConfig,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const keys = [
     { pubkey: tokenSwapAccount.publicKey, isSigner: false, isWritable: true },
@@ -126,77 +126,74 @@ export const createInitSwapInstruction = (
   ];
 
   let data = Buffer.alloc(1024);
-  {
-    const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
-    if (isLatestLayout) {
-      const fields = [
-        BufferLayout.u8("instruction"),
-        BufferLayout.u8("nonce"),
-        BufferLayout.nu64("tradeFeeNumerator"),
-        BufferLayout.nu64("tradeFeeDenominator"),
-        BufferLayout.nu64("ownerTradeFeeNumerator"),
-        BufferLayout.nu64("ownerTradeFeeDenominator"),
-        BufferLayout.nu64("ownerWithdrawFeeNumerator"),
-        BufferLayout.nu64("ownerWithdrawFeeDenominator"),
-        BufferLayout.nu64("hostFeeNumerator"),
-        BufferLayout.nu64("hostFeeDenominator"),
-        BufferLayout.u8("curveType"),
-      ];
+  if (isLatest) {
+    const fields = [
+      BufferLayout.u8("instruction"),
+      BufferLayout.u8("nonce"),
+      BufferLayout.nu64("tradeFeeNumerator"),
+      BufferLayout.nu64("tradeFeeDenominator"),
+      BufferLayout.nu64("ownerTradeFeeNumerator"),
+      BufferLayout.nu64("ownerTradeFeeDenominator"),
+      BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+      BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+      BufferLayout.nu64("hostFeeNumerator"),
+      BufferLayout.nu64("hostFeeDenominator"),
+      BufferLayout.u8("curveType"),
+    ];
 
-      if (config.curveType === CurveType.ConstantProductWithOffset) {
-        fields.push(BufferLayout.nu64("token_b_offset"));
-        fields.push(BufferLayout.blob(24, "padding"));
-      } else if (config.curveType === CurveType.ConstantPrice) {
-        fields.push(BufferLayout.nu64("token_b_price"));
-        fields.push(BufferLayout.blob(24, "padding"));
-      } else {
-        fields.push(BufferLayout.blob(32, "padding"));
-      }
-
-      const commandDataLayout = BufferLayout.struct(fields);
-
-      const { fees, ...rest } = config;
-
-      const encodeLength = commandDataLayout.encode(
-        {
-          instruction: 0, // InitializeSwap instruction
-          nonce,
-          ...fees,
-          ...rest,
-        },
-        data
-      );
-      data = data.slice(0, encodeLength);
+    if (config.curveType === CurveType.ConstantProductWithOffset) {
+      fields.push(BufferLayout.nu64("token_b_offset"));
+      fields.push(BufferLayout.blob(24, "padding"));
+    } else if (config.curveType === CurveType.ConstantPrice) {
+      fields.push(BufferLayout.nu64("token_b_price"));
+      fields.push(BufferLayout.blob(24, "padding"));
     } else {
-      const commandDataLayout = BufferLayout.struct([
-        BufferLayout.u8("instruction"),
-        BufferLayout.u8("nonce"),
-        BufferLayout.u8("curveType"),
-        BufferLayout.nu64("tradeFeeNumerator"),
-        BufferLayout.nu64("tradeFeeDenominator"),
-        BufferLayout.nu64("ownerTradeFeeNumerator"),
-        BufferLayout.nu64("ownerTradeFeeDenominator"),
-        BufferLayout.nu64("ownerWithdrawFeeNumerator"),
-        BufferLayout.nu64("ownerWithdrawFeeDenominator"),
-        BufferLayout.blob(16, "padding"),
-      ]);
-
-      const encodeLength = commandDataLayout.encode(
-        {
-          instruction: 0, // InitializeSwap instruction
-          nonce,
-          curveType: config.curveType,
-          tradeFeeNumerator: config.fees.tradeFeeNumerator,
-          tradeFeeDenominator: config.fees.tradeFeeDenominator,
-          ownerTradeFeeNumerator: config.fees.ownerTradeFeeNumerator,
-          ownerTradeFeeDenominator: config.fees.ownerTradeFeeDenominator,
-          ownerWithdrawFeeNumerator: config.fees.ownerWithdrawFeeNumerator,
-          ownerWithdrawFeeDenominator: config.fees.ownerWithdrawFeeDenominator,
-        },
-        data
-      );
-      data = data.slice(0, encodeLength);
+      fields.push(BufferLayout.blob(32, "padding"));
     }
+
+    const commandDataLayout = BufferLayout.struct(fields);
+
+    const { fees, ...rest } = config;
+
+    const encodeLength = commandDataLayout.encode(
+      {
+        instruction: 0, // InitializeSwap instruction
+        nonce,
+        ...fees,
+        ...rest,
+      },
+      data
+    );
+    data = data.slice(0, encodeLength);
+  } else {
+    const commandDataLayout = BufferLayout.struct([
+      BufferLayout.u8("instruction"),
+      BufferLayout.u8("nonce"),
+      BufferLayout.u8("curveType"),
+      BufferLayout.nu64("tradeFeeNumerator"),
+      BufferLayout.nu64("tradeFeeDenominator"),
+      BufferLayout.nu64("ownerTradeFeeNumerator"),
+      BufferLayout.nu64("ownerTradeFeeDenominator"),
+      BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+      BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+      BufferLayout.blob(16, "padding"),
+    ]);
+
+    const encodeLength = commandDataLayout.encode(
+      {
+        instruction: 0, // InitializeSwap instruction
+        nonce,
+        curveType: config.curveType,
+        tradeFeeNumerator: config.fees.tradeFeeNumerator,
+        tradeFeeDenominator: config.fees.tradeFeeDenominator,
+        ownerTradeFeeNumerator: config.fees.ownerTradeFeeNumerator,
+        ownerTradeFeeDenominator: config.fees.ownerTradeFeeDenominator,
+        ownerWithdrawFeeNumerator: config.fees.ownerWithdrawFeeNumerator,
+        ownerWithdrawFeeDenominator: config.fees.ownerWithdrawFeeDenominator,
+      },
+      data
+    );
+    data = data.slice(0, encodeLength);
   }
 
   return new TransactionInstruction({
@@ -209,6 +206,7 @@ export const createInitSwapInstruction = (
 export const depositInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
+  transferAuthority: PublicKey,
   sourceA: PublicKey,
   sourceB: PublicKey,
   intoA: PublicKey,
@@ -219,7 +217,8 @@ export const depositInstruction = (
   tokenProgramId: PublicKey,
   poolTokenAmount: number | Numberu64,
   maximumTokenA: number | Numberu64,
-  maximumTokenB: number | Numberu64
+  maximumTokenB: number | Numberu64,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const dataLayout = BufferLayout.struct([
     BufferLayout.u8("instruction"),
@@ -239,7 +238,18 @@ export const depositInstruction = (
     data
   );
 
-  const keys = [
+  const keys = isLatest ? [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: transferAuthority, isSigner: true, isWritable: false },
+    { pubkey: sourceA, isSigner: false, isWritable: true },
+    { pubkey: sourceB, isSigner: false, isWritable: true },
+    { pubkey: intoA, isSigner: false, isWritable: true },
+    { pubkey: intoB, isSigner: false, isWritable: true },
+    { pubkey: poolToken, isSigner: false, isWritable: true },
+    { pubkey: poolAccount, isSigner: false, isWritable: true },
+    { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+  ]: [
     { pubkey: tokenSwap, isSigner: false, isWritable: false },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: sourceA, isSigner: false, isWritable: true },
@@ -260,6 +270,7 @@ export const depositInstruction = (
 export const depositExactOneInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
+  transferAuthority: PublicKey,
   source: PublicKey,
   intoA: PublicKey,
   intoB: PublicKey,
@@ -268,7 +279,8 @@ export const depositExactOneInstruction = (
   swapProgramId: PublicKey,
   tokenProgramId: PublicKey,
   sourceTokenAmount: number | Numberu64,
-  minimumPoolTokenAmount: number | Numberu64
+  minimumPoolTokenAmount: number | Numberu64,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const dataLayout = BufferLayout.struct([
     BufferLayout.u8("instruction"),
@@ -286,7 +298,17 @@ export const depositExactOneInstruction = (
     data
   );
 
-  const keys = [
+  const keys = isLatest ? [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: transferAuthority, isSigner: true, isWritable: false },
+    { pubkey: source, isSigner: false, isWritable: true },
+    { pubkey: intoA, isSigner: false, isWritable: true },
+    { pubkey: intoB, isSigner: false, isWritable: true },
+    { pubkey: poolToken, isSigner: false, isWritable: true },
+    { pubkey: poolAccount, isSigner: false, isWritable: true },
+    { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+  ] : [
     { pubkey: tokenSwap, isSigner: false, isWritable: false },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: source, isSigner: false, isWritable: true },
@@ -306,6 +328,7 @@ export const depositExactOneInstruction = (
 export const withdrawInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
+  transferAuthority: PublicKey,
   poolMint: PublicKey,
   feeAccount: PublicKey | undefined,
   sourcePoolAccount: PublicKey,
@@ -317,7 +340,8 @@ export const withdrawInstruction = (
   tokenProgramId: PublicKey,
   poolTokenAmount: number | Numberu64,
   minimumTokenA: number | Numberu64,
-  minimumTokenB: number | Numberu64
+  minimumTokenB: number | Numberu64,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const dataLayout = BufferLayout.struct([
     BufferLayout.u8("instruction"),
@@ -337,7 +361,17 @@ export const withdrawInstruction = (
     data
   );
 
-  const keys = [
+  const keys = isLatest ? [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: transferAuthority, isSigner: true, isWritable: false },
+    { pubkey: poolMint, isSigner: false, isWritable: true },
+    { pubkey: sourcePoolAccount, isSigner: false, isWritable: true },
+    { pubkey: fromA, isSigner: false, isWritable: true },
+    { pubkey: fromB, isSigner: false, isWritable: true },
+    { pubkey: userAccountA, isSigner: false, isWritable: true },
+    { pubkey: userAccountB, isSigner: false, isWritable: true },
+  ] : [
     { pubkey: tokenSwap, isSigner: false, isWritable: false },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: poolMint, isSigner: false, isWritable: true },
@@ -363,6 +397,7 @@ export const withdrawInstruction = (
 export const withdrawExactOneInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
+  transferAuthority: PublicKey,
   poolMint: PublicKey,
   sourcePoolAccount: PublicKey,
   fromA: PublicKey,
@@ -372,7 +407,8 @@ export const withdrawExactOneInstruction = (
   swapProgramId: PublicKey,
   tokenProgramId: PublicKey,
   sourceTokenAmount: number | Numberu64,
-  maximumTokenAmount: number | Numberu64
+  maximumTokenAmount: number | Numberu64,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const dataLayout = BufferLayout.struct([
     BufferLayout.u8("instruction"),
@@ -390,7 +426,16 @@ export const withdrawExactOneInstruction = (
     data
   );
 
-  const keys = [
+  const keys = isLatest ? [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: transferAuthority, isSigner: true, isWritable: false },
+    { pubkey: poolMint, isSigner: false, isWritable: true },
+    { pubkey: sourcePoolAccount, isSigner: false, isWritable: true },
+    { pubkey: fromA, isSigner: false, isWritable: true },
+    { pubkey: fromB, isSigner: false, isWritable: true },
+    { pubkey: userAccount, isSigner: false, isWritable: true },
+  ] : [
     { pubkey: tokenSwap, isSigner: false, isWritable: false },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: poolMint, isSigner: false, isWritable: true },
@@ -415,6 +460,7 @@ export const withdrawExactOneInstruction = (
 export const swapInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
+  transferAuthority: PublicKey,
   userSource: PublicKey,
   poolSource: PublicKey,
   poolDestination: PublicKey,
@@ -425,7 +471,8 @@ export const swapInstruction = (
   tokenProgramId: PublicKey,
   amountIn: number | Numberu64,
   minimumAmountOut: number | Numberu64,
-  programOwner?: PublicKey
+  programOwner: PublicKey | undefined,
+  isLatest: boolean,
 ): TransactionInstruction => {
   const dataLayout = BufferLayout.struct([
     BufferLayout.u8("instruction"),
@@ -433,7 +480,18 @@ export const swapInstruction = (
     uint64("minimumAmountOut"),
   ]);
 
-  const keys = [
+  const keys = isLatest ? [
+    { pubkey: tokenSwap, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: transferAuthority, isSigner: true, isWritable: false },
+    { pubkey: userSource, isSigner: false, isWritable: true },
+    { pubkey: poolSource, isSigner: false, isWritable: true },
+    { pubkey: poolDestination, isSigner: false, isWritable: true },
+    { pubkey: userDestination, isSigner: false, isWritable: true },
+    { pubkey: poolMint, isSigner: false, isWritable: true },
+    { pubkey: feeAccount, isSigner: false, isWritable: true },
+    { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+  ] : [
     { pubkey: tokenSwap, isSigner: false, isWritable: false },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: userSource, isSigner: false, isWritable: true },

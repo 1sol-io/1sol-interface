@@ -1,5 +1,6 @@
 import {
   Account,
+  AccountInfo,
   Connection,
   PublicKey,
   SystemProgram,
@@ -42,6 +43,10 @@ const LIQUIDITY_TOKEN_PRECISION = 8;
 
 export const LIQUIDITY_PROVIDER_FEE = 0.003;
 export const SERUM_FEE = 0.0005;
+
+export const isLatest = (swap: AccountInfo<Buffer>) => {
+  return swap.data.length === TokenSwapLayout.span;
+}
 
 export const removeLiquidity = async (
   connection: Connection,
@@ -107,19 +112,25 @@ export const removeLiquidity = async (
     ),
   ];
 
-  approveAmount(
+  const isLatestSwap = isLatest(pool.raw.account);
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     account.pubkey,
-    authority,
     wallet.publicKey,
-    liquidityAmount)
+    liquidityAmount,
+    isLatestSwap ? undefined : authority);
+
+  if(isLatestSwap) {
+    signers.push(transferAuthority);
+  }
 
   // withdraw
   instructions.push(
     withdrawInstruction(
       pool.pubkeys.account,
       authority,
+      transferAuthority.publicKey,
       pool.pubkeys.mint,
       pool.pubkeys.feeAccount,
       account.pubkey,
@@ -131,7 +142,8 @@ export const removeLiquidity = async (
       programIds().token,
       liquidityAmount,
       minAmount0,
-      minAmount1
+      minAmount1,
+      isLatestSwap,
     )
   );
 
@@ -232,20 +244,25 @@ export const removeExactOneLiquidity = async (
     signers
   );
 
-  approveAmount(
+  const isLatestSwap = isLatest(pool.raw.account);
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     account.pubkey,
-    authority,
     wallet.publicKey,
-    account.info.amount.toNumber() // liquidityAmount <- need math tuning
+    account.info.amount.toNumber(), // liquidityAmount <- need math tuning
+    isLatestSwap ? undefined : authority
   );
+  if(isLatestSwap) {
+    signers.push(transferAuthority);
+  }
 
   // withdraw exact one
   instructions.push(
     withdrawExactOneInstruction(
       pool.pubkeys.account,
       authority,
+      transferAuthority.publicKey,
       pool.pubkeys.mint,
       account.pubkey,
       pool.pubkeys.holdingAccounts[0],
@@ -255,7 +272,8 @@ export const removeExactOneLiquidity = async (
       pool.pubkeys.program,
       programIds().token,
       tokenAmount,
-      liquidityMaxAmount
+      liquidityMaxAmount,
+      isLatestSwap,
     )
   );
 
@@ -341,15 +359,19 @@ export const swap = async (
     signers
   );
 
+  const isLatestSwap = isLatest(pool.raw.account);
   // create approval for transfer transactions
-  approveAmount(
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     fromAccount,
-    authority,
     wallet.publicKey,
-    amountIn
+    amountIn,
+    isLatestSwap ? undefined : authority,
   );
+  if(isLatestSwap) {
+    signers.push(transferAuthority);
+  }
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
@@ -368,6 +390,7 @@ export const swap = async (
     swapInstruction(
       pool.pubkeys.account,
       authority,
+      transferAuthority.publicKey,
       fromAccount,
       holdingA,
       holdingB,
@@ -378,7 +401,8 @@ export const swap = async (
       programIds().token,
       amountIn,
       minAmountOut,
-      hostFeeAccount
+      hostFeeAccount,
+      isLatestSwap,
     )
   );
 
@@ -628,18 +652,33 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
             .every((address, i) => address === sortedMints[i])
         );
 
+      const poolQuantities: {[ pool: string ]: number} = {};
       for (let i = 0; i < matchingPool.length; i++) {
         const p = matchingPool[i];
 
-        const account = await cache.queryAccount(
-          connection,
-          p.pubkeys.holdingAccounts[0]
-        );
-
-        if (!account.info.amount.eqn(0)) {
-          setPool(p);
-          return;
+        const [account0, account1] = await Promise.all([
+          cache.queryAccount(
+            connection,
+            p.pubkeys.holdingAccounts[0]
+          ),
+          cache.queryAccount(
+            connection,
+            p.pubkeys.holdingAccounts[1]
+          ),
+        ]);
+        const amount = (account0.info.amount.toNumber() || 0) + (account1.info.amount.toNumber() || 0)
+        if (amount > 0) {
+          poolQuantities[i.toString()] = amount;
         }
+      }
+      if (Object.keys(poolQuantities).length > 0) {
+        const sorted = Object.entries(poolQuantities).sort((
+          [pool0Idx, amount0], [pool1Idx, amount1]) =>
+          amount0 > amount1 ? -1 : 1
+        );
+        const bestPool = matchingPool[parseInt(sorted[0][0])];
+        setPool(bestPool)
+        return;
       }
     })();
   }, [connection, sortedMints, pools]);
@@ -774,23 +813,27 @@ async function _addLiquidityExistingPool(
     new Set<string>([pool.pubkeys.feeAccount.toBase58()])
   );
 
+  const isLatestSwap = isLatest(pool.raw.account);
   // create approval for transfer transactions
-  approveAmount(
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     fromKeyA,
-    authority,
     wallet.publicKey,
-    amount0
+    amount0,
+    isLatestSwap ? undefined : authority,
   );
+  if(isLatestSwap) {
+    signers.push(transferAuthority);
+  }
 
   approveAmount(
     instructions,
     cleanupInstructions,
     fromKeyB,
-    authority,
     wallet.publicKey,
-    amount1
+    amount1,
+    isLatestSwap ? transferAuthority.publicKey : authority,
   );
 
   // deposit
@@ -798,6 +841,7 @@ async function _addLiquidityExistingPool(
     depositInstruction(
       pool.pubkeys.account,
       authority,
+      transferAuthority.publicKey,
       fromKeyA,
       fromKeyB,
       pool.pubkeys.holdingAccounts[0],
@@ -808,7 +852,8 @@ async function _addLiquidityExistingPool(
       programIds().token,
       liquidity,
       amount0,
-      amount1
+      amount1,
+      isLatestSwap,
     )
   );
 
@@ -906,21 +951,26 @@ async function _addLiquidityExactOneExistingPool(
     new Set<string>([pool.pubkeys.feeAccount.toBase58()])
   );
 
+  const isLatestSwap = isLatest(pool.raw.account);
   // create approval for transfer transactions
-  approveAmount(
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     fromKey,
-    authority,
     wallet.publicKey,
-    amount
+    amount,
+    isLatestSwap ? undefined : authority,
   );
+  if(isLatestSwap) {
+    signers.push(transferAuthority);
+  }
 
   // deposit
   instructions.push(
     depositExactOneInstruction(
       pool.pubkeys.account,
       authority,
+      transferAuthority.publicKey,
       fromKey,
       pool.pubkeys.holdingAccounts[0],
       pool.pubkeys.holdingAccounts[1],
@@ -929,7 +979,8 @@ async function _addLiquidityExactOneExistingPool(
       pool.pubkeys.program,
       programIds().token,
       amount,
-      liquidityToken
+      liquidityToken,
+      isLatestSwap,
     )
   );
 
@@ -1307,7 +1358,8 @@ async function _addLiquidityNewPool(
       programIds().token,
       programIds().swap,
       nonce,
-      options
+      options,
+      programIds().swapLayout === TokenSwapLayout,
     )
   );
 
@@ -1331,16 +1383,20 @@ function approveAmount(
   instructions: TransactionInstruction[],
   cleanupInstructions: TransactionInstruction[],
   account: PublicKey,
-  delegate: PublicKey,
   owner: PublicKey,
   amount: number,
+
+  // if delegate is not passed ephemeral transfer authority is used
+  delegate?: PublicKey,
 ) {
   const tokenProgram = programIds().token;
+  const transferAuthority = new Account();
+
   instructions.push(
     Token.createApproveInstruction(
       tokenProgram,
       account,
-      delegate,
+      delegate ?? transferAuthority.publicKey,
       owner,
       [],
       amount
@@ -1354,6 +1410,8 @@ function approveAmount(
       owner,
       []),
   );
+
+  return transferAuthority;
 }
 
 function getWrappedAccount(
