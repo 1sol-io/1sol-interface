@@ -255,7 +255,7 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
               </div>
             }
           >
-            Minimun Received <QuestionCircleOutlined />
+            Minimum Received <QuestionCircleOutlined />
           </Popover>
         </Text>
         <div className="pool-card-cell " title={amountOut.toString()}>
