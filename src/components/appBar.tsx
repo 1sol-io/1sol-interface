@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Menu, Popover } from "antd";
-import { useWallet } from "../utils/wallet";
+import { useWallet } from "../context/wallet";
 import { AccountInfo } from "./accountInfo";
 import { Link, useHistory, useLocation } from "react-router-dom";
 

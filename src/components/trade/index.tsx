@@ -5,7 +5,7 @@ import {
   useConnectionConfig,
   useSlippageConfig,
 } from "../../utils/connection";
-import { useWallet } from "../../utils/wallet";
+import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
 import {
   LoadingOutlined,

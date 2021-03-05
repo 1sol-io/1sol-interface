@@ -5,7 +5,7 @@ import "./view.less";
 import { Settings } from "./../settings";
 import { SettingOutlined } from "@ant-design/icons";
 import { AppBar } from "./../appBar";
-import { useWallet } from "../../utils/wallet";
+import { useWallet } from "../../context/wallet";
 import { PoolCard } from "./card";
 import { MigrationModal } from "../migration";
 

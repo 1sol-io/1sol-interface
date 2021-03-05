@@ -1,7 +1,7 @@
 import React from "react";
 import { Select } from "antd";
 import { ENDPOINTS, useConnectionConfig } from "../utils/connection";
-import { useWallet, WALLET_PROVIDERS } from "../utils/wallet";
+import { useWallet, WALLET_PROVIDERS } from "../context/wallet";
 import { Slippage } from "./slippage";
 
 export const Settings = () => {

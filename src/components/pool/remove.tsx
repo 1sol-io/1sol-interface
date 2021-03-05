@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Radio, Row, Slider, Spin, Typography } from "antd";
 
 import { removeLiquidity, removeExactOneLiquidity } from "../../utils/pools";
-import { useWallet } from "../../utils/wallet";
+import { useWallet } from "../../context/wallet";
 import { useConnection, useConnectionConfig } from "../../utils/connection";
 import { PoolInfo, TokenAccount, TokenSwapLayout } from "../../models";
 import { notify } from "../../utils/notifications";

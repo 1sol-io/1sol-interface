@@ -2,7 +2,7 @@ import { HashRouter, Route } from "react-router-dom";
 import React from "react";
 import { ChartsView } from "./components/charts";
 
-import { WalletProvider } from "./utils/wallet";
+import { WalletProvider } from "./context/wallet";
 import { ConnectionProvider } from "./utils/connection";
 import { AccountsProvider } from "./utils/accounts";
 import { CurrencyPairProvider } from "./utils/currencyPair";

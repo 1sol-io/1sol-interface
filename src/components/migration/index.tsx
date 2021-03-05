@@ -7,7 +7,7 @@ import {
   removeLiquidity,
   useOwnedPools,
 } from "../../utils/pools";
-import { useWallet } from "../../utils/wallet";
+import { useWallet } from "../../context/wallet";
 import { PoolAccounts } from "../pool/quickView";
 import { LiquidityComponent } from "../../models";
 
