@@ -38,7 +38,7 @@ import { programIds } from "../../utils/ids";
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 export const AddToLiquidity = () => {
-  const { wallet, connected } = useWallet();
+  const { wallet, connect, connected } = useWallet();
   const connection = useConnection();
   const [pendingTx, setPendingTx] = useState(false);
   const [depositType, setDepositType] = useState("both");
@@ -57,7 +57,7 @@ export const AddToLiquidity = () => {
   const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
 
   const executeAction = !connected
-    ? wallet?.connect
+    ? connect
     : async (instance?: PoolInfo) => {
         const currentDepositToken = getDepositToken();
         if (

@@ -36,7 +36,7 @@ const { Text } = Typography;
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 export const TradeEntry = () => {
-  const { wallet, connected } = useWallet();
+  const { wallet, connect, connected } = useWallet();
   const connection = useConnection();
   const [pendingTx, setPendingTx] = useState(false);
   const {
@@ -144,7 +144,7 @@ export const TradeEntry = () => {
         className="trade-button"
         type="primary"
         size="large"
-        onClick={connected ? handleSwap : wallet?.connect}
+        onClick={connected ? handleSwap : connect}
         style={{ width: "100%" }}
         disabled={
           connected &&
