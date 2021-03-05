@@ -1,7 +1,7 @@
-import type Transport from '@ledgerhq/hw-transport';
-import type { Transaction } from '@solana/web3.js';
+import type Transport from "@ledgerhq/hw-transport";
+import type { Transaction } from "@solana/web3.js";
 
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 
 const INS_GET_PUBKEY = 0x05;
 const INS_SIGN_MESSAGE = 0x06;
@@ -23,7 +23,7 @@ async function ledgerSend(
   transport: Transport,
   instruction: number,
   p1: number,
-  payload: Buffer,
+  payload: Buffer
 ) {
   let p2 = 0;
   let payloadOffset = 0;
@@ -33,27 +33,27 @@ async function ledgerSend(
       const chunk = payload.slice(payloadOffset, payloadOffset + MAX_PAYLOAD);
       payloadOffset += MAX_PAYLOAD;
       console.log(
-        'send',
+        "send",
         (p2 | P2_MORE).toString(16),
         chunk.length.toString(16),
-        chunk,
+        chunk
       );
       const reply = await transport.send(
         LEDGER_CLA,
         instruction,
         p1,
         p2 | P2_MORE,
-        chunk,
+        chunk
       );
       if (reply.length !== 2) {
-        throw new Error('Received unexpected reply payload');
+        throw new Error("Received unexpected reply payload");
       }
       p2 |= P2_EXTEND;
     }
   }
 
   const chunk = payload.slice(payloadOffset);
-  console.log('send', p2.toString(16), chunk.length.toString(16), chunk);
+  console.log("send", p2.toString(16), chunk.length.toString(16), chunk);
   const reply = await transport.send(LEDGER_CLA, instruction, p1, p2, chunk);
 
   return reply.slice(0, reply.length - 2);
@@ -97,7 +97,7 @@ export function getSolanaDerivationPath(account?: number, change?: number) {
 export async function signTransaction(
   transport: Transport,
   transaction: Transaction,
-  derivationPath: Buffer = getSolanaDerivationPath(),
+  derivationPath: Buffer = getSolanaDerivationPath()
 ) {
   const messageBytes = transaction.serializeMessage();
   return signBytes(transport, messageBytes, derivationPath);
@@ -106,7 +106,7 @@ export async function signTransaction(
 export async function signBytes(
   transport: Transport,
   bytes: Buffer,
-  derivationPath: Buffer = getSolanaDerivationPath(),
+  derivationPath: Buffer = getSolanaDerivationPath()
 ) {
   const numPaths = Buffer.alloc(1);
   numPaths.writeUInt8(1, 0);
@@ -120,13 +120,13 @@ export async function signBytes(
 
 export async function getPublicKey(
   transport: Transport,
-  derivationPath: Buffer = getSolanaDerivationPath(),
+  derivationPath: Buffer = getSolanaDerivationPath()
 ) {
   const publicKeyBytes = await ledgerSend(
     transport,
     INS_GET_PUBKEY,
     P1_NON_CONFIRM,
-    derivationPath,
+    derivationPath
   );
 
   return new PublicKey(publicKeyBytes);

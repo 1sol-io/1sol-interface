@@ -46,7 +46,7 @@ export const SERUM_FEE = 0.0005;
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
   return swap.data.length === TokenSwapLayout.span;
-}
+};
 
 export const removeLiquidity = async (
   connection: Connection,
@@ -119,9 +119,10 @@ export const removeLiquidity = async (
     account.pubkey,
     wallet.publicKey,
     liquidityAmount,
-    isLatestSwap ? undefined : authority);
+    isLatestSwap ? undefined : authority
+  );
 
-  if(isLatestSwap) {
+  if (isLatestSwap) {
     signers.push(transferAuthority);
   }
 
@@ -143,7 +144,7 @@ export const removeLiquidity = async (
       liquidityAmount,
       minAmount0,
       minAmount1,
-      isLatestSwap,
+      isLatestSwap
     )
   );
 
@@ -253,7 +254,7 @@ export const removeExactOneLiquidity = async (
     account.info.amount.toNumber(), // liquidityAmount <- need math tuning
     isLatestSwap ? undefined : authority
   );
-  if(isLatestSwap) {
+  if (isLatestSwap) {
     signers.push(transferAuthority);
   }
 
@@ -273,7 +274,7 @@ export const removeExactOneLiquidity = async (
       programIds().token,
       tokenAmount,
       liquidityMaxAmount,
-      isLatestSwap,
+      isLatestSwap
     )
   );
 
@@ -318,7 +319,7 @@ export const swap = async (
   const minAmountOut = components[1].amount * (1 - SLIPPAGE);
   const holdingA =
     pool.pubkeys.holdingMints[0]?.toBase58() ===
-      components[0].account.info.mint.toBase58()
+    components[0].account.info.mint.toBase58()
       ? pool.pubkeys.holdingAccounts[0]
       : pool.pubkeys.holdingAccounts[1];
   const holdingB =
@@ -367,22 +368,22 @@ export const swap = async (
     fromAccount,
     wallet.publicKey,
     amountIn,
-    isLatestSwap ? undefined : authority,
+    isLatestSwap ? undefined : authority
   );
-  if(isLatestSwap) {
+  if (isLatestSwap) {
     signers.push(transferAuthority);
   }
 
   let hostFeeAccount = SWAP_HOST_FEE_ADDRESS
     ? findOrCreateAccountByMint(
-      wallet.publicKey,
-      SWAP_HOST_FEE_ADDRESS,
-      instructions,
-      cleanupInstructions,
-      accountRentExempt,
-      pool.pubkeys.mint,
-      signers
-    )
+        wallet.publicKey,
+        SWAP_HOST_FEE_ADDRESS,
+        instructions,
+        cleanupInstructions,
+        accountRentExempt,
+        pool.pubkeys.mint,
+        signers
+      )
     : undefined;
 
   // swap
@@ -402,11 +403,9 @@ export const swap = async (
       amountIn,
       minAmountOut,
       hostFeeAccount,
-      isLatestSwap,
+      isLatestSwap
     )
   );
-
-
 
   let tx = await sendTransaction(
     connection,
@@ -494,15 +493,15 @@ export const usePools = () => {
             data: undefined as any,
             account: item.account,
             pubkey: item.pubkey,
-            init: async () => { },
+            init: async () => {},
           };
 
           const layout =
             item.account.data.length === TokenSwapLayout.span
               ? TokenSwapLayout
               : item.account.data.length === TokenSwapLayoutV1.span
-                ? TokenSwapLayoutV1
-                : TokenSwapLayoutV0;
+              ? TokenSwapLayoutV1
+              : TokenSwapLayoutV0;
 
           // handling of legacy layout can be removed soon...
           if (layout === TokenSwapLayoutV0) {
@@ -652,32 +651,29 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
             .every((address, i) => address === sortedMints[i])
         );
 
-      const poolQuantities: {[ pool: string ]: number} = {};
+      const poolQuantities: { [pool: string]: number } = {};
       for (let i = 0; i < matchingPool.length; i++) {
         const p = matchingPool[i];
 
         const [account0, account1] = await Promise.all([
-          cache.queryAccount(
-            connection,
-            p.pubkeys.holdingAccounts[0]
-          ),
-          cache.queryAccount(
-            connection,
-            p.pubkeys.holdingAccounts[1]
-          ),
+          cache.queryAccount(connection, p.pubkeys.holdingAccounts[0]),
+          cache.queryAccount(connection, p.pubkeys.holdingAccounts[1]),
         ]);
-        const amount = (account0.info.amount.toNumber() || 0) + (account1.info.amount.toNumber() || 0)
+        const amount =
+          (account0.info.amount.toNumber() || 0) +
+          (account1.info.amount.toNumber() || 0);
         if (amount > 0) {
           poolQuantities[i.toString()] = amount;
         }
       }
       if (Object.keys(poolQuantities).length > 0) {
-        const sorted = Object.entries(poolQuantities).sort((
-          [pool0Idx, amount0], [pool1Idx, amount1]) =>
+        const sorted = Object.entries(
+          poolQuantities
+        ).sort(([pool0Idx, amount0], [pool1Idx, amount1]) =>
           amount0 > amount1 ? -1 : 1
         );
         const bestPool = matchingPool[parseInt(sorted[0][0])];
-        setPool(bestPool)
+        setPool(bestPool);
         return;
       }
     })();
@@ -821,9 +817,9 @@ async function _addLiquidityExistingPool(
     fromKeyA,
     wallet.publicKey,
     amount0,
-    isLatestSwap ? undefined : authority,
+    isLatestSwap ? undefined : authority
   );
-  if(isLatestSwap) {
+  if (isLatestSwap) {
     signers.push(transferAuthority);
   }
 
@@ -833,7 +829,7 @@ async function _addLiquidityExistingPool(
     fromKeyB,
     wallet.publicKey,
     amount1,
-    isLatestSwap ? transferAuthority.publicKey : authority,
+    isLatestSwap ? transferAuthority.publicKey : authority
   );
 
   // deposit
@@ -853,7 +849,7 @@ async function _addLiquidityExistingPool(
       liquidity,
       amount0,
       amount1,
-      isLatestSwap,
+      isLatestSwap
     )
   );
 
@@ -959,9 +955,9 @@ async function _addLiquidityExactOneExistingPool(
     fromKey,
     wallet.publicKey,
     amount,
-    isLatestSwap ? undefined : authority,
+    isLatestSwap ? undefined : authority
   );
-  if(isLatestSwap) {
+  if (isLatestSwap) {
     signers.push(transferAuthority);
   }
 
@@ -980,7 +976,7 @@ async function _addLiquidityExactOneExistingPool(
       programIds().token,
       amount,
       liquidityToken,
-      isLatestSwap,
+      isLatestSwap
     )
   );
 
@@ -1359,7 +1355,7 @@ async function _addLiquidityNewPool(
       programIds().swap,
       nonce,
       options,
-      programIds().swapLayout === TokenSwapLayout,
+      programIds().swapLayout === TokenSwapLayout
     )
   );
 
@@ -1387,7 +1383,7 @@ function approveAmount(
   amount: number,
 
   // if delegate is not passed ephemeral transfer authority is used
-  delegate?: PublicKey,
+  delegate?: PublicKey
 ) {
   const tokenProgram = programIds().token;
   const transferAuthority = new Account();
@@ -1404,11 +1400,7 @@ function approveAmount(
   );
 
   cleanupInstructions.push(
-    Token.createRevokeInstruction(
-      tokenProgram,
-      account,
-      owner,
-      []),
+    Token.createRevokeInstruction(tokenProgram, account, owner, [])
   );
 
   return transferAuthority;

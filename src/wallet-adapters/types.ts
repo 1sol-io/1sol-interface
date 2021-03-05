@@ -1,7 +1,7 @@
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey, Transaction } from "@solana/web3.js";
 
 export const DEFAULT_PUBLIC_KEY = new PublicKey(
-  '11111111111111111111111111111111',
+  "11111111111111111111111111111111"
 );
 
 export interface WalletAdapter {

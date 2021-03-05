@@ -14,9 +14,9 @@ export interface PoolInfo {
   };
   legacy: boolean;
   raw: {
-    pubkey: PublicKey,
-    data: any,
-    account: AccountInfo<Buffer>
+    pubkey: PublicKey;
+    data: any;
+    account: AccountInfo<Buffer>;
   };
 }
 

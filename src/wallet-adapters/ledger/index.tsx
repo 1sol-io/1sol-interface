@@ -1,12 +1,12 @@
-import type Transport from '@ledgerhq/hw-transport';
-import type { Transaction } from '@solana/web3.js';
+import type Transport from "@ledgerhq/hw-transport";
+import type { Transaction } from "@solana/web3.js";
 
-import EventEmitter from 'eventemitter3';
-import { PublicKey } from '@solana/web3.js';
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
-import { notify } from '../../utils/notifications';
-import { getPublicKey, signTransaction } from './core';
-import { DEFAULT_PUBLIC_KEY, WalletAdapter } from '../types';
+import EventEmitter from "eventemitter3";
+import { PublicKey } from "@solana/web3.js";
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import { notify } from "../../utils/notifications";
+import { getPublicKey, signTransaction } from "./core";
+import { DEFAULT_PUBLIC_KEY, WalletAdapter } from "../types";
 
 export class LedgerWalletAdapter extends EventEmitter implements WalletAdapter {
   _connecting: boolean;
@@ -33,7 +33,7 @@ export class LedgerWalletAdapter extends EventEmitter implements WalletAdapter {
   }
 
   public async signAllTransactions(
-    transactions: Transaction[],
+    transactions: Transaction[]
   ): Promise<Transaction[]> {
     const result: Transaction[] = [];
     for (let i = 0; i < transactions.length; i++) {
@@ -47,7 +47,7 @@ export class LedgerWalletAdapter extends EventEmitter implements WalletAdapter {
 
   async signTransaction(transaction: Transaction) {
     if (!this._transport || !this._publicKey) {
-      throw new Error('Not connected to Ledger');
+      throw new Error("Not connected to Ledger");
     }
 
     // @TODO: account selection (derivation path changes with account)
@@ -70,10 +70,10 @@ export class LedgerWalletAdapter extends EventEmitter implements WalletAdapter {
       this._transport = await TransportWebUSB.create();
       // @TODO: account selection
       this._publicKey = await getPublicKey(this._transport);
-      this.emit('connect', this._publicKey);
+      this.emit("connect", this._publicKey);
     } catch (error) {
       notify({
-        message: 'Ledger Error',
+        message: "Ledger Error",
         description: error.message,
       });
       await this.disconnect();
@@ -94,7 +94,7 @@ export class LedgerWalletAdapter extends EventEmitter implements WalletAdapter {
     this._publicKey = null;
 
     if (emit) {
-      this.emit('disconnect');
+      this.emit("disconnect");
     }
   }
 }

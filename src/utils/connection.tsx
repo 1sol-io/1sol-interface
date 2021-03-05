@@ -10,7 +10,11 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { setProgramIds } from "./ids";
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
-import { TokenListProvider, ENV as ChainID, TokenInfo } from "@solana/spl-token-registry";
+import {
+  TokenListProvider,
+  ENV as ChainID,
+  TokenInfo,
+} from "@solana/spl-token-registry";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -18,22 +22,22 @@ export const ENDPOINTS = [
   {
     name: "mainnet-beta" as ENV,
     endpoint: "https://solana-api.projectserum.com/",
-    chainID: ChainID.MainnetBeta
+    chainID: ChainID.MainnetBeta,
   },
-  { 
-    name: "testnet" as ENV, 
+  {
+    name: "testnet" as ENV,
     endpoint: clusterApiUrl("testnet"),
-    chainID: ChainID.Testnet
+    chainID: ChainID.Testnet,
   },
-  { 
-    name: "devnet" as ENV, 
+  {
+    name: "devnet" as ENV,
     endpoint: clusterApiUrl("devnet"),
-    chainID: ChainID.Devnet
+    chainID: ChainID.Devnet,
   },
-  { 
-    name: "localnet" as ENV, 
+  {
+    name: "localnet" as ENV,
     endpoint: "http://127.0.0.1:8899",
-    chainID: ChainID.Devnet
+    chainID: ChainID.Devnet,
   },
 ];
 
@@ -83,8 +87,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   ]);
 
   const chain =
-    ENDPOINTS.find((end) => end.endpoint === endpoint) ||
-    ENDPOINTS[0];
+    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[0];
 
   const env = chain.name;
 
@@ -92,7 +95,10 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
   useEffect(() => {
     new TokenListProvider().resolve().then((res) => {
-      const list = res.filterByChainId(chain.chainID).excludeByTag('nft').getList();
+      const list = res
+        .filterByChainId(chain.chainID)
+        .excludeByTag("nft")
+        .getList();
       const knownMints = list.reduce((map, item) => {
         map.set(item.address, item);
         return map;

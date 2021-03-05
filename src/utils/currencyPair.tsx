@@ -132,11 +132,9 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   useEffect(() => {
     const base =
-      tokens.find((t) => t.address === mintAddressA)?.symbol ||
-      mintAddressA;
+      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
     const quote =
-      tokens.find((t) => t.address === mintAddressB)?.symbol ||
-      mintAddressB;
+      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
     document.title = `Swap | Serum (${base}/${quote})`;
   }, [mintAddressA, mintAddressB, tokens, location]);
@@ -145,11 +143,9 @@ export function CurrencyPairProvider({ children = null as any }) {
   useEffect(() => {
     // set history
     const base =
-      tokens.find((t) => t.address === mintAddressA)?.symbol ||
-      mintAddressA;
+      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
     const quote =
-      tokens.find((t) => t.address === mintAddressB)?.symbol ||
-      mintAddressB;
+      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
     if (base && quote && location.pathname.indexOf("info") < 0) {
       history.push({
