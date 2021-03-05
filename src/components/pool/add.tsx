@@ -57,7 +57,7 @@ export const AddToLiquidity = () => {
   const isLatestLayout = programIds().swapLayout === TokenSwapLayout;
 
   const executeAction = !connected
-    ? wallet.connect
+    ? wallet?.connect
     : async (instance?: PoolInfo) => {
         const currentDepositToken = getDepositToken();
         if (
