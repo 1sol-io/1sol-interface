@@ -332,20 +332,20 @@ const UseNativeAccount = () => {
         setNativeAccount(acc);
       }
     });
-  }, [setNativeAccount, wallet, wallet.publicKey, connection]);
+  }, [setNativeAccount, wallet, wallet?.publicKey, connection]);
 
   useEffect(() => {
-    if (!wallet.publicKey) {
+    if (!wallet?.publicKey) {
       return;
     }
 
-    const account = wrapNativeAccount(wallet.publicKey, nativeAccount);
+    const account = wrapNativeAccount(wallet?.publicKey, nativeAccount);
     if (!account) {
       return;
     }
 
     accountsCache.set(account.pubkey.toBase58(), account);
-  }, [wallet.publicKey, nativeAccount]);
+  }, [wallet?.publicKey, nativeAccount]);
 
   return { nativeAccount };
 };

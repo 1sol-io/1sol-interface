@@ -144,7 +144,7 @@ export const TradeEntry = () => {
         className="trade-button"
         type="primary"
         size="large"
-        onClick={connected ? handleSwap : wallet.connect}
+        onClick={connected ? handleSwap : wallet?.connect}
         style={{ width: "100%" }}
         disabled={
           connected &&
