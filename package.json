@@ -4,9 +4,12 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^5.7.0",
+    "@ledgerhq/hw-transport": "^5.45.0",
+    "@ledgerhq/hw-transport-webusb": "^5.45.0",
     "@project-serum/serum": "^0.13.11",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
     "@solana/spl-token": "0.0.11",
+    "@solana/spl-token-registry": "^0.2.0",
     "@solana/spl-token-swap": "0.0.2",
     "@solana/web3.js": "^0.86.2",
     "@testing-library/jest-dom": "^4.2.4",
@@ -61,6 +64,8 @@
   },
   "homepage": ".",
   "devDependencies": {
+    "@types/ledgerhq__hw-transport": "^4.21.3",
+    "@types/ledgerhq__hw-transport-webusb": "^4.70.1",
     "@types/bn.js": "^4.11.6",
     "@types/bs58": "^4.0.1",
     "@types/identicon.js": "^2.3.0",

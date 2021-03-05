@@ -1,11 +1,12 @@
 import React from "react";
-import { Button, Menu, Popover } from "antd";
-import { useWallet } from "../utils/wallet";
+import { Button, Menu } from "antd";
+import { useWallet } from "../context/wallet";
 import { AccountInfo } from "./accountInfo";
+import { WalletConnect } from "./walletConnect";
 import { Link, useHistory, useLocation } from "react-router-dom";
 
 export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
-  const { connected, wallet } = useWallet();
+  const { connected } = useWallet();
   const location = useLocation();
   const history = useHistory();
 
@@ -65,7 +66,9 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         {props.left}
       </div>
       <div className="App-Bar-right">
-        <AccountInfo />
+        <WalletConnect>
+          <AccountInfo />
+        </WalletConnect>
         {connected && (
           <Button
             type="text"
@@ -75,25 +78,6 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
             My Pools
           </Button>
         )}
-        <div>
-          {!connected && (
-            <Button
-              type="text"
-              size="large"
-              onClick={connected ? wallet.disconnect : wallet.connect}
-              style={{ color: "#2abdd2" }}
-            >
-              Connect
-            </Button>
-          )}
-          {connected && (
-            <Popover
-              placement="bottomRight"
-              title="Wallet public key"
-              trigger="click"
-            ></Popover>
-          )}
-        </div>
         {props.right}
       </div>
     </div>

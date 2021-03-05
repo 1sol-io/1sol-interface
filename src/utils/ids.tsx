@@ -34,9 +34,7 @@ export const PROGRAM_IDS = [
         pubkey: new PublicKey("SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8"),
         layout: TokenSwapLayout,
       },
-      legacy: [
-        new PublicKey("9qvG1zUp8xF1Bi4m6UdRNby1BAAuaDrUxSpv4CmRRMjL"),
-      ],
+      legacy: [new PublicKey("9qvG1zUp8xF1Bi4m6UdRNby1BAAuaDrUxSpv4CmRRMjL")],
     }),
   },
   {

@@ -2,15 +2,9 @@ import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
 
 import { PoolInfo, TokenAccount } from "./../models";
+import { TokenInfo } from "@solana/spl-token-registry";
 
-export interface KnownToken {
-  tokenSymbol: string;
-  tokenName: string;
-  icon: string;
-  mintAddress: string;
-}
-
-export type KnownTokenMap = Map<string, KnownToken>;
+export type KnownTokenMap = Map<string, TokenInfo>;
 
 export function useLocalStorageState(key: string, defaultState?: string) {
   const [state, setState] = useState(() => {
@@ -52,7 +46,7 @@ export function getTokenName(
   shorten = true,
   length = 5
 ): string {
-  const knownSymbol = map.get(mintAddress)?.tokenSymbol;
+  const knownSymbol = map.get(mintAddress)?.symbol;
   if (knownSymbol) {
     return knownSymbol;
   }
@@ -64,7 +58,7 @@ export function getTokenIcon(
   map: KnownTokenMap,
   mintAddress: string
 ): string | undefined {
-  return map.get(mintAddress)?.icon;
+  return map.get(mintAddress)?.logoURI;
 }
 
 export function getPoolName(

@@ -5,7 +5,7 @@ import {
   PoolOperation,
 } from "../../utils/pools";
 import { Button, Card, Col, Dropdown, Popover, Radio, Row } from "antd";
-import { useWallet } from "../../utils/wallet";
+import { useWallet } from "../../context/wallet";
 import {
   useConnection,
   useConnectionConfig,

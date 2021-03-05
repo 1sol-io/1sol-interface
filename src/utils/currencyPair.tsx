@@ -19,9 +19,10 @@ import {
   TokenAccount,
   DEFAULT_DENOMINATOR,
 } from "../models";
-import { convert, getTokenIcon, getTokenName, KnownToken } from "./utils";
+import { convert, getTokenIcon, getTokenName } from "./utils";
 import { useHistory, useLocation } from "react-router-dom";
 import bs58 from "bs58";
+import { TokenInfo } from "@solana/spl-token-registry";
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -131,11 +132,9 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   useEffect(() => {
     const base =
-      tokens.find((t) => t.mintAddress === mintAddressA)?.tokenSymbol ||
-      mintAddressA;
+      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
     const quote =
-      tokens.find((t) => t.mintAddress === mintAddressB)?.tokenSymbol ||
-      mintAddressB;
+      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
     document.title = `Swap | Serum (${base}/${quote})`;
   }, [mintAddressA, mintAddressB, tokens, location]);
@@ -144,11 +143,9 @@ export function CurrencyPairProvider({ children = null as any }) {
   useEffect(() => {
     // set history
     const base =
-      tokens.find((t) => t.mintAddress === mintAddressA)?.tokenSymbol ||
-      mintAddressA;
+      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
     const quote =
-      tokens.find((t) => t.mintAddress === mintAddressB)?.tokenSymbol ||
-      mintAddressB;
+      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
     if (base && quote && location.pathname.indexOf("info") < 0) {
       history.push({
@@ -180,12 +177,12 @@ export function CurrencyPairProvider({ children = null as any }) {
     }
 
     setMintAddressA(
-      tokens.find((t) => t.tokenSymbol === defaultBase)?.mintAddress ||
+      tokens.find((t) => t.symbol === defaultBase)?.address ||
         (isValidAddress(defaultBase) ? defaultBase : "") ||
         ""
     );
     setMintAddressB(
-      tokens.find((t) => t.tokenSymbol === defaultQuote)?.mintAddress ||
+      tokens.find((t) => t.symbol === defaultQuote)?.address ||
         (isValidAddress(defaultQuote) ? defaultQuote : "") ||
         ""
     );
@@ -271,12 +268,12 @@ const isValidAddress = (address: string) => {
   }
 };
 
-function getDefaultTokens(tokens: KnownToken[], search: string) {
+function getDefaultTokens(tokens: TokenInfo[], search: string) {
   let defaultBase = "SOL";
   let defaultQuote = "USDC";
 
   const nameToToken = tokens.reduce((map, item) => {
-    map.set(item.tokenSymbol, item);
+    map.set(item.symbol, item);
     return map;
   }, new Map<string, any>());
 

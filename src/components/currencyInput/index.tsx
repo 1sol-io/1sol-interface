@@ -87,15 +87,15 @@ export const CurrencyInput = (props: {
   const renderPopularTokens = tokens.map((item) => {
     return (
       <Option
-        key={item.mintAddress}
-        value={item.mintAddress}
-        name={item.tokenSymbol}
-        title={item.mintAddress}
+        key={item.address}
+        value={item.address}
+        name={item.symbol}
+        title={item.address}
       >
         <TokenDisplay
-          key={item.mintAddress}
-          name={item.tokenSymbol}
-          mintAddress={item.mintAddress}
+          key={item.address}
+          name={item.symbol}
+          mintAddress={item.address}
           showBalance={true}
         />
       </Option>
@@ -124,7 +124,7 @@ export const CurrencyInput = (props: {
 
   const additionalAccounts = [...grouppedUserAccounts.keys()];
   if (
-    tokens.findIndex((t) => t.mintAddress === props.mint) < 0 &&
+    tokens.findIndex((t) => t.address === props.mint) < 0 &&
     props.mint &&
     !grouppedUserAccounts.has(props?.mint)
   ) {
