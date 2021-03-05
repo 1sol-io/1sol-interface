@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { Button, Dropdown, Menu } from 'antd';
+import { Dropdown, Menu } from 'antd';
 import { useWallet } from '../context/wallet';
 import { ExplorerLink } from './explorerLink';
 
