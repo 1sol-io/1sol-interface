@@ -552,7 +552,7 @@ export const usePools = () => {
             [
               ...p.pubkeys.holdingAccounts.map((h) => h.toBase58()),
               ...p.pubkeys.holdingMints.map((h) => h.toBase58()),
-              p.pubkeys.feeAccount?.toBase58(), // used to calculate volume aproximation
+              p.pubkeys.feeAccount?.toBase58(), // used to calculate volume approximation
               p.pubkeys.mint.toBase58(),
             ].filter((p) => p) as string[]
         )
@@ -1138,7 +1138,6 @@ export async function calculateDependentAmount(
 
   const constantPrice = pool.raw?.data?.curve?.constantPrice;
   if (constantPrice) {
-    debugger;
     depAdjustedAmount = (amount * depPrecision) / constantPrice.token_b_price;
   } else {
     switch (+op) {

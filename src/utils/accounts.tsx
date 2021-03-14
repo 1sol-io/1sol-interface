@@ -242,7 +242,11 @@ export const cache = {
 
     return query;
   },
-  getMint: (pubKey: string | PublicKey) => {
+  getMint: (pubKey: string | PublicKey | undefined) => {
+    if (!pubKey) {
+      return;
+    }
+
     let key: string;
     if (typeof pubKey !== "string") {
       key = pubKey.toBase58();

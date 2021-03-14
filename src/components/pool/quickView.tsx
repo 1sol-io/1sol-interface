@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ConfigProvider, Empty } from "antd";
 import { useOwnedPools } from "../../utils/pools";
-import { useMint } from "../../utils/accounts";
+import { cache } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
 import "./quickView.less";
@@ -13,7 +13,7 @@ const PoolItem = (props: {
   poolDetails: any;
 }) => {
   const item = props.item;
-  const mint = useMint(item.account.info.mint.toBase58());
+  const mint = cache.getMint(item.account.info.mint.toBase58());
   const amount =
     item.account.info.amount.toNumber() / Math.pow(10, mint?.decimals || 0);
 

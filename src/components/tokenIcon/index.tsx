@@ -1,5 +1,5 @@
 import { Identicon } from "./../identicon";
-import React from "react";
+import React, { useState } from "react";
 import { getTokenIcon } from "../../utils/utils";
 import { useConnectionConfig } from "../../utils/connection";
 
@@ -9,14 +9,16 @@ export const TokenIcon = (props: {
   className?: string;
 }) => {
   const { tokenMap } = useConnectionConfig();
+  const [failed, setFailed] = useState(false);
   const icon = getTokenIcon(tokenMap, props.mintAddress);
 
-  if (icon) {
+  if (icon && !failed) {
     return (
       <img
         alt="Token icon"
         className={props.className}
         key={props.mintAddress}
+        onError={() => setFailed(true)}
         width="20"
         height="20"
         src={icon}

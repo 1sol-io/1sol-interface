@@ -10,7 +10,7 @@ import {
   usePoolForBasket,
   PoolOperation,
 } from "./pools";
-import { useMint, useAccountByMint } from "./accounts";
+import { cache, useAccountByMint } from "./accounts";
 import { MintInfo } from "@solana/spl-token";
 import { useConnection, useConnectionConfig } from "./connection";
 import {
@@ -60,7 +60,7 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
   const [amount, setAmount] = useState("");
   const [mintAddress, setMintAddress] = useState(defaultMint || "");
   const account = useAccountByMint(mintAddress);
-  const mint = useMint(mintAddress);
+  const mint = cache.getMint(mintAddress);
 
   return useMemo(
     () => ({

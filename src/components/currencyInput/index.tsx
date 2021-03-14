@@ -4,9 +4,9 @@ import { NumericInput } from "../numericInput";
 import { getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
 import {
   useUserAccounts,
-  useMint,
   useCachedPool,
   useAccountByMint,
+  cache,
 } from "../../utils/accounts";
 import "./styles.less";
 import { useConnectionConfig } from "../../utils/connection";
@@ -23,7 +23,7 @@ export const TokenDisplay = (props: {
   showBalance?: boolean;
 }) => {
   const { showBalance, mintAddress, name, icon } = props;
-  const tokenMint = useMint(mintAddress);
+  const tokenMint = cache.getMint(mintAddress);
   const tokenAccount = useAccountByMint(mintAddress);
 
   let balance: number = 0;
@@ -80,7 +80,7 @@ export const CurrencyInput = (props: {
 }) => {
   const { userAccounts } = useUserAccounts();
   const { pools } = useCachedPool();
-  const mint = useMint(props.mint);
+  const mint = cache.getMint(props.mint);
 
   const { tokens, tokenMap } = useConnectionConfig();
 
