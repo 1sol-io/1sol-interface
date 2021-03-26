@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
 
@@ -93,10 +94,10 @@ export function convert(
   }
 
   const amount =
-    typeof account === "number" ? account : account.info.amount?.toNumber();
+    typeof account === "number" ? new BN(account) : account.info.amount;
 
-  const precision = Math.pow(10, mint?.decimals || 0);
-  let result = (amount / precision) * rate;
+  const precision = new BN(10).pow(new BN(mint?.decimals || 0));
+  let result = amount.div(precision).toNumber() * rate;
 
   return result;
 }

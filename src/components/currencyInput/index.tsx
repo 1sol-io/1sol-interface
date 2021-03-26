@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, Select } from "antd";
 import { NumericInput } from "../numericInput";
-import { getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
+import { convert, getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
 import {
   useUserAccounts,
   useCachedPool,
@@ -30,8 +30,7 @@ export const TokenDisplay = (props: {
   let hasBalance: boolean = false;
   if (showBalance) {
     if (tokenAccount && tokenMint) {
-      balance =
-        tokenAccount.info.amount.toNumber() / Math.pow(10, tokenMint.decimals);
+      balance = convert(tokenAccount, tokenMint);
       hasBalance = balance > 0;
     }
   }
@@ -107,7 +106,7 @@ export const CurrencyInput = (props: {
   // group accounts by mint and use one with biggest balance
   const grouppedUserAccounts = userAccounts
     .sort((a, b) => {
-      return b.info.amount.toNumber() - a.info.amount.toNumber();
+      return b.info.amount.gt(a.info.amount) ? 1 : -1;
     })
     .reduce((map, acc) => {
       const mint = acc.info.mint.toBase58();
@@ -171,9 +170,7 @@ export const CurrencyInput = (props: {
       (a) => a.info.mint.toBase58() === props.mint
     );
     if (currentAccount && mint) {
-      return (
-        currentAccount.info.amount.toNumber() / Math.pow(10, mint.decimals)
-      );
+      return convert(currentAccount, mint);
     }
 
     return 0;
