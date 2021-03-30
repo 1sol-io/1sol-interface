@@ -515,8 +515,11 @@ export const getMultipleAccounts = async (
     .map(
       (a) =>
         a.array
-          .filter((acc) => !!acc)
           .map((acc) => {
+            if(!acc) {
+              return undefined;
+            }
+
             const { data, ...rest } = acc;
             const obj = {
               ...rest,

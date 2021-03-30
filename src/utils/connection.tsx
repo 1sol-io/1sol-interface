@@ -111,14 +111,15 @@ export function ConnectionProvider({ children = undefined as any }) {
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
         if(!account) {
+          knownMints.delete(accounts.keys[index]);
           return;
         }
 
         cache.addMint(new PublicKey(key), account);
-      })
+      });
 
       setTokenMap(knownMints);
-      setTokens(list);
+      setTokens([...knownMints.values()]);
     })();
   }, [chain, connection]);
 

@@ -143,7 +143,7 @@ export function MarketProvider({ children = null as any }) {
         return array.map((item, index) => {
           const marketAddress = keys[index];
           const mintAddress = reverseSerumMarketCache.get(marketAddress);
-          if (mintAddress) {
+          if (mintAddress  && item) {
             const market = marketByMint.get(mintAddress);
 
             if (market) {
@@ -607,9 +607,13 @@ const refreshAccounts = async (connection: Connection, keys: string[]) => {
   return getMultipleAccounts(connection, keys, "single").then(
     ({ keys, array }) => {
       return array.map((item, index) => {
+        if (!item) {
+          return undefined;
+        }
+
         const address = keys[index];
         return cache.add(new PublicKey(address), item);
-      });
+      }).filter(a => !!a);
     }
   );
 };

@@ -563,6 +563,10 @@ export const usePools = () => {
       await getMultipleAccounts(connection, toQuery, "single").then(
         ({ keys, array }) => {
           return array.map((obj, index) => {
+            if (!obj) {
+              return undefined;
+            }
+
             const pubKey = new PublicKey(keys[index]);
             if (obj.data.length === AccountLayout.span) {
               return cache.addAccount(pubKey, obj);
@@ -573,7 +577,7 @@ export const usePools = () => {
             }
 
             return obj;
-          }) as any[];
+          }).filter(a => !!a) as any[];
         }
       );
 
