@@ -435,14 +435,13 @@ export function AccountsProvider({ children = null as any }) {
       const tokenSubID = connection.onProgramAccountChange(
         programIds().token,
         (info) => {
-          // TODO: fix type in web3.js
-          const id = (info.accountId as unknown) as string;
+          const id = info.accountId.toBase58();
           // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
           if (info.accountInfo.data.length === AccountLayout.span) {
             const data = deserializeAccount(info.accountInfo.data);
             // TODO: move to web3.js for decoding on the client side... maybe with callback
             const details = {
-              pubkey: new PublicKey((info.accountId as unknown) as string),
+              pubkey: info.accountId,
               account: {
                 ...info.accountInfo,
               },
