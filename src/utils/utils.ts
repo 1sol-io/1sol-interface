@@ -75,7 +75,7 @@ export function isKnownMint(map: KnownTokenMap, mintAddress: string) {
   return !!map.get(mintAddress);
 }
 
-export const STABLE_COINS = new Set(["USDC", "wUSDC", "USDT"]);
+export const STABLE_COINS = new Set(["USDC", "wUSDC", "USDT", "wUSDT", "WUSDT"]);
 
 export function chunks<T>(array: T[], size: number): T[][] {
   return Array.apply<number, T[], T[][]>(
