@@ -115,7 +115,11 @@ export function ConnectionProvider({ children = undefined as any }) {
           return;
         }
 
-        cache.addMint(new PublicKey(key), account);
+        try {
+          cache.addMint(new PublicKey(key), account);
+        } catch {
+          // ignore
+        }
       });
 
       setTokenMap(knownMints);

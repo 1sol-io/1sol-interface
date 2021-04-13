@@ -546,7 +546,7 @@ export const usePools = () => {
           return result;
         });
 
-      const toQuery = poolsArray
+      const toQuery = [...poolsArray
         .map(
           (p) =>
             [
@@ -556,7 +556,14 @@ export const usePools = () => {
               p.pubkeys.mint.toBase58(),
             ].filter((p) => p) as string[]
         )
-        .flat();
+        .flat()
+        .filter(acc => cache.get(acc) === undefined)
+        .reduce((acc, item) => {
+          acc.add(item);
+          return acc;
+        }, new Set<string>())
+        .keys()]
+        .sort();
 
       // This will pre-cache all accounts used by pools
       // All those accounts are updated whenever there is a change

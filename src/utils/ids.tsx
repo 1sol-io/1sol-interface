@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { TokenSwapLayout, TokenSwapLayoutV1 } from "../models";
+import { TokenSwapLayout } from "../models";
 
 export const WRAPPED_SOL_MINT = new PublicKey(
   "So11111111111111111111111111111111111111112"
@@ -54,7 +54,7 @@ export const PROGRAM_IDS = [
         pubkey: new PublicKey("SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8"),
         layout: TokenSwapLayout,
       },
-      legacy: [new PublicKey("BSfTAcBdqmvX5iE2PW88WFNNp2DHhLUaBKk5WrnxVkcJ")],
+      legacy: [],
     }),
   },
   {
@@ -62,7 +62,7 @@ export const PROGRAM_IDS = [
     swap: () => ({
       current: {
         pubkey: new PublicKey("369YmCWHGxznT7GGBhcLZDRcRoGWmGKFWdmtiPy78yj7"),
-        layout: TokenSwapLayoutV1,
+        layout: TokenSwapLayout,
       },
       legacy: [],
     }),

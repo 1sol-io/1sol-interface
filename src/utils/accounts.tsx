@@ -370,11 +370,10 @@ const precacheUserTokenAccounts = async (
   const accounts = await connection.getTokenAccountsByOwner(owner, {
     programId: programIds().token,
   });
+
   accounts.value
     .map((info) => {
       const data = deserializeAccount(info.account.data);
-      // need to query for mint to get decimals
-
       // TODO: move to web3.js for decoding on the client side... maybe with callback
       const details = {
         pubkey: info.pubkey,
@@ -422,8 +421,24 @@ export function AccountsProvider({ children = null as any }) {
       // cache host accounts to avoid query during swap
       precacheUserTokenAccounts(connection, SWAP_HOST_FEE_ADDRESS);
 
-      precacheUserTokenAccounts(connection, publicKey).then(() => {
-        setTokenAccounts(selectUserAccounts());
+      precacheUserTokenAccounts(connection, publicKey).then(async () => {
+        const accounts = selectUserAccounts();
+        const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
+          .filter(a => cache.getMint(a) === undefined))]
+          .sort();
+        const response = await getMultipleAccounts(connection, mints, 'single');
+
+        response.keys.forEach((key, index) => {
+          if (response.array[index]) {
+            try {
+              cache.addMint(new PublicKey(key), response.array[index]);
+            } catch {
+              debugger;
+            }
+          }
+        });
+
+        setTokenAccounts(accounts);
       });
 
       const dispose = accountEmitter.onAccount(() => {
@@ -435,13 +450,13 @@ export function AccountsProvider({ children = null as any }) {
       const tokenSubID = connection.onProgramAccountChange(
         programIds().token,
         (info) => {
-          const id = info.accountId.toBase58();
+          const id = typeof info.accountId === 'string' ? info.accountId as unknown as string : info.accountId.toBase58();
           // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
           if (info.accountInfo.data.length === AccountLayout.span) {
             const data = deserializeAccount(info.accountInfo.data);
             // TODO: move to web3.js for decoding on the client side... maybe with callback
             const details = {
-              pubkey: info.accountId,
+              pubkey: new PublicKey(id),
               account: {
                 ...info.accountInfo,
               },
