@@ -3,6 +3,9 @@ import { Button } from "antd";
 import { useSlippageConfig } from "./../../utils/connection";
 import { NumericInput } from "./../numericInput";
 
+const MAX_SLIPPAGE = 25.0
+const DEFAULT_MIN_SLIPPAGE = 0.1
+
 export const Slippage = () => {
   const { slippage, setSlippage } = useSlippageConfig();
   const slippagePct = slippage * 100;
@@ -50,8 +53,10 @@ export const Slippage = () => {
             outline: "transpaernt",
           }}
           onChange={(x: any) => {
-            setValue(x);
-            const newValue = parseFloat(x) / 100.0;
+            const cappedSlippage = Math.min(parseFloat(x), MAX_SLIPPAGE);
+            const safeCappedSlippage = Number.isNaN(cappedSlippage) ? DEFAULT_MIN_SLIPPAGE.toString() : cappedSlippage.toString();
+            setValue(safeCappedSlippage);
+            const newValue = parseFloat(safeCappedSlippage) / 100.0;
             if (Number.isFinite(newValue)) {
               setSlippage(newValue);
             }
