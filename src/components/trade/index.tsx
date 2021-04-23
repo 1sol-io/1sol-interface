@@ -146,30 +146,32 @@ export const TradeEntry = () => {
         size="large"
         onClick={connected ? handleSwap : connect}
         style={{ width: "100%" }}
-        disabled={
-          connected &&
-          (pendingTx ||
-            !A.account ||
-            !B.mintAddress ||
-            A.account === B.account ||
-            !A.sufficientBalance() ||
-            !pool)
-        }
+        disabled={true}
+        // disabled={
+        //   connected &&
+        //   (pendingTx ||
+        //     !A.account ||
+        //     !B.mintAddress ||
+        //     A.account === B.account ||
+        //     !A.sufficientBalance() ||
+        //     !pool)
+        // }
       >
-        {generateActionLabel(
-          !pool
-            ? POOL_NOT_AVAILABLE(
-                getTokenName(tokenMap, A.mintAddress),
-                getTokenName(tokenMap, B.mintAddress)
-              )
-            : SWAP_LABEL,
-          connected,
-          tokenMap,
-          A,
-          B,
-          true
-        )}
-        {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+        {/*{generateActionLabel(*/}
+        {/*  !pool*/}
+        {/*    ? POOL_NOT_AVAILABLE(*/}
+        {/*        getTokenName(tokenMap, A.mintAddress),*/}
+        {/*        getTokenName(tokenMap, B.mintAddress)*/}
+        {/*      )*/}
+        {/*    : SWAP_LABEL,*/}
+        {/*  connected,*/}
+        {/*  tokenMap,*/}
+        {/*  A,*/}
+        {/*  B,*/}
+        {/*  true*/}
+        {/*)}*/}
+        {/*{pendingTx && <Spin indicator={antIcon} className="add-spinner" />}*/}
+        Swap is being deprecated
       </Button>
       <TradeInfo pool={pool} />
     </>

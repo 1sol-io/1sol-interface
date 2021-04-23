@@ -6,6 +6,37 @@ import { Routes } from "./routes";
 function App() {
   return (
     <div className="App">
+      <div className="Banner">
+        <div
+          className="Banner-description"
+          style={{
+            textAlign: 'left',
+            paddingLeft: '30px',
+            paddingTop: '5px'
+          }}
+        >
+          <strong>Swap is being deprecated.</strong>
+          <div
+            style={{
+              textAlign: 'left',
+              paddingLeft: '10px'
+            }}
+          >
+            <ul>
+              <li>
+                Removing liquidity is enabled through the My Pools tab
+              </li>
+              <li>
+                The Provide Liquidity and Swap functionalities have been disabled
+              </li>
+              <li>
+                For easy swapping using the on-chain Serum orderbook consider using
+                <a href={'https://raydium.io/swap/'} target="_blank" rel="noopener noreferrer"> raydium.io</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <Routes />
       <div className="social-buttons">
         <GitHubButton
