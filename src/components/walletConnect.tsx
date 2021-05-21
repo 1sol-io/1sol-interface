@@ -1,5 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { Dropdown, Menu } from "antd";
+import { LinkOutlined} from '@ant-design/icons'
 import { useWallet } from "../context/wallet";
 import { ExplorerLink } from "./explorerLink";
 
@@ -41,7 +42,7 @@ export const WalletConnect: FunctionComponent = ({ children }) => {
 
   return (
     <Dropdown.Button type="primary" onClick={connected ? disconnect : connect} overlay={menu} icon={null}>
-      {connected ? "Disconnect" : "Connect Wallet"}
+      {connected ? "Disconnect" : <><LinkOutlined /><span style={{marginLeft: '5px'}}>Connect Wallet</span></>}
     </Dropdown.Button>
   );
 };

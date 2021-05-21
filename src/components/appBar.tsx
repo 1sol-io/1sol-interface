@@ -15,7 +15,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
       <div className="App-Bar-left">
         <div className="App-logo" />
         <Menu mode="horizontal" selectedKeys={[location.pathname]}>
-          <Menu.Item key="/">
+          {/* <Menu.Item key="/">
             <Link
               to={{
                 pathname: "/",
@@ -24,7 +24,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Home
             </Link>
           </Menu.Item>
-          {/* <Menu.Item key="/add">
+          <Menu.Item key="/add">
             <Link
               to={{
                 pathname: "/add",
@@ -69,7 +69,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         <WalletConnect>
           <AccountInfo />
         </WalletConnect>
-        {connected && (
+        {/* {connected && (
           <Button
             type="text"
             size="large"
@@ -77,7 +77,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           >
             My Pools
           </Button>
-        )}
+        )} */}
         {props.right}
       </div>
     </div>
