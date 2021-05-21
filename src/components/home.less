@@ -1,0 +1,104 @@
+.page-home {
+  .mod {
+    max-width: 1900px;
+    width: calc(100% - 40px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    background: #0f0657;
+    background-image: url(../assets/bg.png);
+    background-image: url(../assets/bg.png),
+      linear-gradient(270deg, #0f0657, #301c9c 69.78%, #0f0657);
+    background-position: top;
+    background-repeat: no-repeat;
+    border-radius: 20px;
+    padding: 80px 10px 100px;
+    height: 900px;
+
+    > .hd {
+      h1 {
+        padding-top: 25px;
+        max-width: 850px;
+        color: #12dbe4;
+        text-align: center;
+        font-size: 56px;
+        font-weight: 200;
+        line-height: 70px;
+        text-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+        margin-left: auto;
+        margin-right: auto;
+        text-transform: uppercase;
+        background: linear-gradient(180deg, #12dbe4, #02fbab);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: #0000;
+        padding-bottom: 30px;
+      }
+    }
+
+    > .bd {
+      color: #fff;
+      padding: 0 100px;
+
+      p {
+        font-family: "Nunito", sans-serif;
+        font-size: 16px;
+        letter-spacing: 0;
+        line-height: 24px;
+        text-align: justify;
+      }
+    }
+
+    > .ft {
+      .flex {
+        display: flex;
+      }
+
+      .socials {
+        margin-top: 50px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+
+        .icon {
+          width: 30px;
+
+          &:not(:last-of-type) {
+            margin-right: 15px;
+          }
+        }
+      }
+
+      .powerby {
+        margin-left: auto;
+        margin-right: auto;
+        color: #fff;
+        font-size: 14px;
+        font-family: "Nunito", sans-serif;
+        text-align: center;
+        padding-top: 30px;
+
+        img {
+          height: 20px;
+          margin: 0 5px;
+        }
+
+        a {
+          color: #fff;
+          text-decoration: underline;
+        }
+      }
+
+      .buttons {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-top: 40px;
+        padding-bottom: 50px;
+
+        a:first-of-type .custom-btn {
+          margin-right: 15px;
+        }
+      }
+    }
+  }
+}

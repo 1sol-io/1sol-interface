@@ -1,4 +1,4 @@
-@import "~antd/dist/antd.dark.less";
+@import "~antd/dist/antd.less";
 @import "./ant-custom.less";
 
 body {
@@ -43,6 +43,7 @@ body {
   position: relative;
   padding: 1rem;
   z-index: 2;
+  border-bottom: 1px solid #e8e8e8;
 
   .ant-menu-horizontal {
     border-bottom-color: transparent;
@@ -217,5 +218,36 @@ body {
 @media only screen and (max-width: 600px) {
   .exchange-card {
     width: 360px;
+  }
+}
+
+.custom-btn {
+  background: #00ffa3;
+  box-shadow: 0 8px 8px 0 rgb(0 0 0 / 15%);
+  border-radius: 8px;
+  color: #000;
+  font-family: "Raleway", sans-serif;
+  font-size: 18px;
+  letter-spacing: 0;
+  line-height: 2px;
+  font-weight: 300;
+  padding: 25px 40px;
+  border: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+
+  &.purple-btn {
+    color: #fff;
+    background: #aa52ea;
+    background: linear-gradient(180deg, #aa52ea, #cb30f8);
+    transition: none;
+  }
+
+  &.purple-btn-outline {
+    color: #fff;
+    background: #0000;
+    border: 2px solid #cb30f8;
+    padding: 23px 40px;
   }
 }

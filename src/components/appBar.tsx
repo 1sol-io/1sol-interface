@@ -21,10 +21,10 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
                 pathname: "/",
               }}
             >
-              Swap
+              Home
             </Link>
           </Menu.Item>
-          <Menu.Item key="/add">
+          {/* <Menu.Item key="/add">
             <Link
               to={{
                 pathname: "/add",
@@ -61,7 +61,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Help
               <sup>↗</sup>
             </a>
-          </Menu.Item>
+          </Menu.Item> */}
         </Menu>
         {props.left}
       </div>
