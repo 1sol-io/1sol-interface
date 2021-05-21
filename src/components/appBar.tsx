@@ -15,13 +15,13 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
       <div className="App-Bar-left">
         <div className="App-logo" />
         <Menu mode="horizontal" selectedKeys={[location.pathname]}>
-          <Menu.Item key="/">
+          {/* <Menu.Item key="/">
             <Link
               to={{
                 pathname: "/",
               }}
             >
-              Swap
+              Home
             </Link>
           </Menu.Item>
           <Menu.Item key="/add">
@@ -61,7 +61,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Help
               <sup>↗</sup>
             </a>
-          </Menu.Item>
+          </Menu.Item> */}
         </Menu>
         {props.left}
       </div>
@@ -69,7 +69,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         <WalletConnect>
           <AccountInfo />
         </WalletConnect>
-        {connected && (
+        {/* {connected && (
           <Button
             type="text"
             size="large"
@@ -77,7 +77,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           >
             My Pools
           </Button>
-        )}
+        )} */}
         {props.right}
       </div>
     </div>
