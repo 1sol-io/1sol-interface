@@ -18,32 +18,18 @@ export const HomePage = () => {
       <AppBar />
       <div className="mod">
         <div className="hd">
-          <h1>Redefining fundraising through decentralization</h1>
+          <h1>An innovative cross-chain DeFi aggregator on Solana and more</h1>
         </div>
         <div className="bd">
-        <p>
-          The Solanium platform is a decentralized platform on the Solana blockchain.
-          The platform will introduce <b>decentralized fundraising</b>, <b>time-weighted token staking</b> and
-          <b>governance voting</b> to the Solana ecosystem.
-        </p> <p>
-          We are giving high priority to both UI and UX, as we think good UI is one of the core principles
-          that are currently lacking or not prioritized in the ecosystem. We feel that this is one of the most
-          important factors to onboard new(bie) users to the Solana ecosystem.
-        </p> <p>
-          The platform will be an all-in-one solution for Solana, with integrated wallet,
-          DEX and transaction management. All major Solana wallets will be supported.
-          The platform will extend any connected wallet with inline wallet management.
-          The user does not have to leave the platform to see token balances, send or receive tokens or manage token accounts. Experienced users can still manage their wallet through their wallet provider, and any changes will directly be reflected on the platform.
-        </p>
         </div>
         <div className="ft">
           <div className="socials">
             <div className="flex">
               <div className="icon">
-                <a href="/"><img src={twitter} /></a>
+                <a href="https://twitter.com/1solprotocol"><img src={twitter} /></a>
               </div>
               <div className="icon">
-                <a href="/"><img src={telegram} /></a>
+                <a href="https://t.me/onesolcommunity"><img src={telegram} /></a>
               </div>
               <div className="icon">
                 <a href="/"><img src={medium} /></a>
