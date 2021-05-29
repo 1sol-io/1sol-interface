@@ -20,6 +20,8 @@ import {
 import { cache, getMultipleAccounts } from "./accounts";
 
 import { queryJsonFiles } from './utils'
+import customTokenJSON from './solana.tokenlist.json'
+console.log(customTokenJSON)
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -102,8 +104,11 @@ export function ConnectionProvider({ children = undefined as any }) {
     (async () => {
       // const res = await new TokenListProvider().resolve();
 
-      const customTokenJSON = await queryJsonFiles(['https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json'])
-      const customTokenList = new TokenListContainer(customTokenJSON)
+      // const customTokenJSON = await queryJsonFiles([
+      //   // 'https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json',
+      //   'https://storage.googleapis.com/1sol-static-bucket/solana.tokenlist.json'
+      // ])
+      const customTokenList = new TokenListContainer(customTokenJSON.tokens)
 
       // const list = res
       //   .filterByChainId(chain.chainID)
