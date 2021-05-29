@@ -16,6 +16,7 @@ import {
 import {
   swap,
   usePoolForBasket,
+  usePool1ForBasket,
   PoolOperation,
   LIQUIDITY_PROVIDER_FEE,
 } from "../../utils/pools";
@@ -45,7 +46,10 @@ export const TradeEntry = () => {
     setLastTypedAccount,
     setPoolOperation,
   } = useCurrencyPairState();
+
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
+  const pool1 = usePool1ForBasket([A?.mintAddress, B?.mintAddress]);
+
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
 

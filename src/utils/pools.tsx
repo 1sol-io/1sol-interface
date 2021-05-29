@@ -592,7 +592,7 @@ export const usePools = () => {
     };
 
     Promise.all([
-      queryPools(programIds().swap),
+      ...programIds().swaps.map(swap => queryPools(swap)),
       ...programIds().swap_legacy.map((leg) => queryPools(leg, true)),
     ]).then((all) => {
       setPools(all.flat());
@@ -655,7 +655,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
       // reset pool during query
       setPool(undefined);
 
-      let matchingPool = pools
+      let matchingPool = pools.filter(p => p.pubkeys.program.toBase58() === programIds().swaps[0].toBase58())
         .filter((p) => !p.legacy)
         .filter((p) =>
           p.pubkeys.holdingMints
@@ -698,6 +698,61 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
 
   return pool;
 };
+
+export const usePool1ForBasket = (mints: (string | undefined)[]) => {
+  const connection = useConnection();
+  const { pools } = useCachedPool();
+  const [pool, setPool] = useState<PoolInfo>();
+  const sortedMints = useMemo(() => [...mints].sort(), [...mints]); // eslint-disable-line
+  
+  useEffect(() => {
+    (async () => {
+      // reset pool during query
+      setPool(undefined);
+
+      let matchingPool = pools.filter(p => p.pubkeys.program.toBase58() === programIds().swaps[1].toBase58())
+        .filter((p) => !p.legacy)
+        .filter((p) =>
+          p.pubkeys.holdingMints
+            .map((a) => a.toBase58())
+            .sort()
+            .every((address, i) => address === sortedMints[i])
+        );
+
+      const poolQuantities: { [pool: string]: number } = {};
+
+      for (let i = 0; i < matchingPool.length; i++) {
+        const p = matchingPool[i];
+
+        const [account0, account1] = await Promise.all([
+          cache.queryAccount(connection, p.pubkeys.holdingAccounts[0]),
+          cache.queryAccount(connection, p.pubkeys.holdingAccounts[1]),
+        ]);
+
+        const amount =
+          (account0.info.amount.toNumber() || 0) +
+          (account1.info.amount.toNumber() || 0);
+
+        if (amount > 0) {
+          poolQuantities[i.toString()] = amount;
+        }
+      }
+
+      if (Object.keys(poolQuantities).length > 0) {
+        const sorted = Object.entries(
+          poolQuantities
+        ).sort(([pool0Idx, amount0], [pool1Idx, amount1]) =>
+          amount0 > amount1 ? -1 : 1
+        );
+        const bestPool = matchingPool[parseInt(sorted[0][0])];
+        setPool(bestPool);
+        return;
+      }
+    })();
+  }, [connection, sortedMints, pools]);
+
+  return pool;
+}
 
 export const useOwnedPools = (legacy = false) => {
   const { pools } = useCachedPool(legacy);
