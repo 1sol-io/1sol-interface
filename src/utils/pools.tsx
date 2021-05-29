@@ -649,10 +649,12 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
   const { pools } = useCachedPool();
   const [pool, setPool] = useState<PoolInfo>();
   const sortedMints = useMemo(() => [...mints].sort(), [...mints]); // eslint-disable-line
+  
   useEffect(() => {
     (async () => {
       // reset pool during query
       setPool(undefined);
+
       let matchingPool = pools
         .filter((p) => !p.legacy)
         .filter((p) =>
@@ -663,6 +665,7 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
         );
 
       const poolQuantities: { [pool: string]: number } = {};
+
       for (let i = 0; i < matchingPool.length; i++) {
         const p = matchingPool[i];
 
@@ -670,13 +673,16 @@ export const usePoolForBasket = (mints: (string | undefined)[]) => {
           cache.queryAccount(connection, p.pubkeys.holdingAccounts[0]),
           cache.queryAccount(connection, p.pubkeys.holdingAccounts[1]),
         ]);
+
         const amount =
           (account0.info.amount.toNumber() || 0) +
           (account1.info.amount.toNumber() || 0);
+
         if (amount > 0) {
           poolQuantities[i.toString()] = amount;
         }
       }
+
       if (Object.keys(poolQuantities).length > 0) {
         const sorted = Object.entries(
           poolQuantities

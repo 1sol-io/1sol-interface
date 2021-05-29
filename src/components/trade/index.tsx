@@ -120,9 +120,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className="swap-button" onClick={swapAccounts}>
-          ⇅
-        </Button>
+        <Button type="primary" className="swap-button" onClick={swapAccounts}>⇅</Button>
         <CurrencyInput
           title="To (Estimate)"
           onInputChange={(val: any) => {

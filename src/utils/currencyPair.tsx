@@ -195,6 +195,7 @@ export function CurrencyPairProvider({ children = null as any }) {
       let setDependent;
       let amount;
       let independent;
+
       if (lastTypedAccount === mintAddressA) {
         independent = mintAddressA;
         setDependent = setAmountB;
@@ -205,6 +206,7 @@ export function CurrencyPairProvider({ children = null as any }) {
         amount = parseFloat(amountB);
       }
 
+      // 通过 api 获取到 A B 可换取到的数量
       const result = await calculateDependentAmount(
         connection,
         independent,
@@ -212,6 +214,7 @@ export function CurrencyPairProvider({ children = null as any }) {
         pool,
         poolOperation
       );
+
       if (typeof result === "string") {
         setDependent(result);
       } else if (result !== undefined && Number.isFinite(result)) {

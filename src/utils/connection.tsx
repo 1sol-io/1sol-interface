@@ -121,6 +121,7 @@ export function ConnectionProvider({ children = undefined as any }) {
       }, new Map<string, TokenInfo>());
 
       const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
+      
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
         if(!account) {
