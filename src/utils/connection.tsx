@@ -15,8 +15,11 @@ import {
   TokenListProvider,
   ENV as ChainID,
   TokenInfo,
+  TokenListContainer
 } from "@solana/spl-token-registry";
 import { cache, getMultipleAccounts } from "./accounts";
+
+import { queryJsonFiles } from './utils'
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -97,12 +100,22 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
   useEffect(() => {
     (async () => {
-      const res = await new TokenListProvider().resolve();
-      const list = res
+      // const res = await new TokenListProvider().resolve();
+
+      const customTokenJSON = await queryJsonFiles(['https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json'])
+      const customTokenList = new TokenListContainer(customTokenJSON)
+
+      // const list = res
+      //   .filterByChainId(chain.chainID)
+      //   .excludeByTag("nft")
+      //   .getList();
+
+      const customList = customTokenList
         .filterByChainId(chain.chainID)
         .excludeByTag("nft")
         .getList();
-      const knownMints = list.reduce((map, item) => {
+
+      const knownMints = customList.reduce((map, item) => {
         map.set(item.address, item);
         return map;
       }, new Map<string, TokenInfo>());

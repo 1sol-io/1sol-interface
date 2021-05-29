@@ -22,28 +22,33 @@ const ASSET_URL =
   "https://cdn.jsdelivr.net/gh/solana-labs/oyster@main/assets/wallets";
 export const WALLET_PROVIDERS = [
   {
+    key: "sollet.io",
     name: "sollet.io",
     url: "https://www.sollet.io",
     icon: `${ASSET_URL}/sollet.svg`,
   },
   {
+    key: "Solflare",
     name: "Solflare",
     url: "https://solflare.com/access-wallet",
     icon: `${ASSET_URL}/solflare.svg`,
   },
   {
+    key: "Ledger",
     name: "Ledger",
     url: "https://www.ledger.com",
     icon: `${ASSET_URL}/ledger.svg`,
     adapter: LedgerWalletAdapter,
   },
   {
+    key: "Solong",
     name: "Solong",
     url: "https://www.solong.com",
     icon: `${ASSET_URL}/solong.png`,
     adapter: SolongWalletAdapter,
   },
   {
+    key: "MathWallet",
     name: "MathWallet",
     url: "https://www.mathwallet.org",
     icon: `${ASSET_URL}/mathwallet.svg`,
@@ -174,6 +179,7 @@ export function WalletProvider({ children = null as any }) {
 
           return (
             <Button
+              key={provider.name}
               size="large"
               type={providerUrl === provider.url ? "primary" : "ghost"}
               onClick={onClick}

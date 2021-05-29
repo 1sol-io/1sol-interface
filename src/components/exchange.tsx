@@ -33,7 +33,7 @@ export const ExchangeView = (props: {}) => {
   const handleTabChange = (key: any) => {
     if (activeTab !== key) {
       if (key === "trade") {
-        history.push("/");
+        history.push("/trade");
       } else {
         history.push("/add");
       }
@@ -63,10 +63,11 @@ export const ExchangeView = (props: {}) => {
         className="exchange-card"
         headStyle={{ padding: 0 }}
         bodyStyle={{ position: "relative" }}
-        tabList={tabList}
-        tabProps={{
-          tabBarGutter: 0,
-        }}
+        title="Trade"
+        // tabList={tabList}
+        // tabProps={{
+        //   tabBarGutter: 0,
+        // }}
         activeTabKey={activeTab}
         onTabChange={(key) => {
           handleTabChange(key);

@@ -21,7 +21,7 @@ export function Routes() {
               <MarketProvider>
                 <CurrencyPairProvider>
                   <Route exact path="/" component={HomePage} />
-                  <Route exact path="/add" component={ExchangeView} />
+                  <Route exact path="/trade" component={ExchangeView} />
                   <Route exact path="/info" component={() => <ChartsView />} />
                   <Route
                     exact

@@ -195,3 +195,22 @@ export const colorWarning = (value = 0, valueCheckpoints = [1, 3, 5, 100]) => {
   }
   return colorCodes[defaultIndex];
 };
+
+export const queryJsonFiles = async (files: string[]) => {
+  const responses  = (await Promise.all(
+    files.map(async (repo) => {
+      try {
+        const response = await fetch(repo);
+        const json = (await response.json());
+
+        return json;
+      } catch {
+        return []        
+      }
+    })
+  )) 
+
+  return responses
+    .map((tokenlist) => tokenlist.tokens)
+    .reduce((acc, arr) => (acc as TokenInfo[]).concat(arr), []);
+};
