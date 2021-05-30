@@ -198,19 +198,23 @@ export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
       const swapKeys = []
 
       if (pool) {
-        swapKeys.push(pool.pubkeys.program.toString())
+        swapKeys.push(pool.pubkeys.account.toString())
       }
 
       if (pool1) {
-        swapKeys.push(pool1.pubkeys.program.toString())
+        swapKeys.push(pool1.pubkeys.account.toString())
       }
 
-      axios({url: 'http://192.168.4.11:8080/distribution', method: 'post', data: {
-        amount: Number(A.amount),
-        swap_keys: swapKeys,
-        source_key: '',
-        destination_key: ''
-      }, withCredentials: true}).then(({data}) => console.log(data))  }
+      axios({
+        url: 'http://192.168.4.11:8080/distribution', 
+        method: 'post', 
+        data: {
+          amount: Number(A.amount),
+          swapKeys: swapKeys,
+          sourceKey: A.mintAddress,
+          destinationKey: B.mintAddress 
+        }, 
+    }).then(({data}) => console.log(data))  }
   }, [A, B, pool, pool1])
 
 

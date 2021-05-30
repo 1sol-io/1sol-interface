@@ -349,7 +349,7 @@ const UseNativeAccount = () => {
     }
 
     accountsCache.set(account.pubkey.toBase58(), account);
-  }, [wallet?.publicKey, nativeAccount]);
+  }, [nativeAccount, wallet]);
 
   return { nativeAccount };
 };
@@ -423,9 +423,11 @@ export function AccountsProvider({ children = null as any }) {
 
       precacheUserTokenAccounts(connection, publicKey).then(async () => {
         const accounts = selectUserAccounts();
+
         const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
           .filter(a => cache.getMint(a) === undefined))]
           .sort();
+
         const response = await getMultipleAccounts(connection, mints, 'single');
 
         response.keys.forEach((key, index) => {
@@ -497,6 +499,7 @@ export function AccountsProvider({ children = null as any }) {
   return (
     <AccountsContext.Provider
       value={{
+        tokenAccounts,
         userAccounts,
         pools,
         nativeAccount,
