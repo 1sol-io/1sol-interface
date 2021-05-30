@@ -1,5 +1,7 @@
 import { Button, Card, Popover, Spin, Typography } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
+import axios from 'axios'
+
 import {
   useConnection,
   useConnectionConfig,
@@ -124,7 +126,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className="swap-button" onClick={swapAccounts}>⇅</Button>
+        <Button type="primary" className="swap-button" onClick={swapAccounts} style={{display: 'flex', justifyContent: 'space-around'}}>⇅</Button>
         <CurrencyInput
           title="To (Estimate)"
           onInputChange={(val: any) => {
@@ -173,14 +175,14 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
-      <TradeInfo pool={pool} />
+      <TradeInfo pool={pool} pool1={pool1}/>
     </>
   );
 };
 
-export const TradeInfo = (props: { pool?: PoolInfo }) => {
+export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
   const { A, B } = useCurrencyPairState();
-  const { pool } = props;
+  const { pool, pool1 } = props;
   const { slippage } = useSlippageConfig();
   const pools = useMemo(() => (pool ? [pool] : []), [pool]);
   const enriched = useEnrichedPools(pools);
@@ -190,6 +192,27 @@ export const TradeInfo = (props: { pool?: PoolInfo }) => {
   const [lpFee, setLpFee] = useState(0);
   const [exchangeRate, setExchangeRate] = useState(0);
   const [priceAccount, setPriceAccount] = useState("");
+
+  useEffect(() => {
+    if (pool || pool1) {
+      const swapKeys = []
+
+      if (pool) {
+        swapKeys.push(pool.pubkeys.program.toString())
+      }
+
+      if (pool1) {
+        swapKeys.push(pool1.pubkeys.program.toString())
+      }
+
+      axios({url: 'http://192.168.4.11:8080/distribution', method: 'post', data: {
+        amount: Number(A.amount),
+        swap_keys: swapKeys,
+        source_key: '',
+        destination_key: ''
+      }, withCredentials: true}).then(({data}) => console.log(data))  }
+  }, [A, B, pool, pool1])
+
 
   useEffect(() => {
     if (!pool || enriched.length === 0) {
