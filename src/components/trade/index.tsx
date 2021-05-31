@@ -14,6 +14,8 @@ import {
   SwapOutlined,
   QuestionCircleOutlined,
   SettingOutlined,
+  PlusOutlined ,
+  RightOutlined,
 } from "@ant-design/icons";
 import {
   swap,
@@ -33,6 +35,8 @@ import { useEnrichedPools } from "../../context/market";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 import { MigrationModal } from "../migration";
+
+import { TokenIcon } from "../tokenIcon";
 
 const { Text } = Typography;
 
@@ -175,23 +179,14 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
-      <TradeInfo pool={pool} pool1={pool1}/>
+      <TradeInfo pool={pool} pool1={pool1} />
     </>
   );
 };
 
-export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
+export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
   const { A, B } = useCurrencyPairState();
   const { pool, pool1 } = props;
-  const { slippage } = useSlippageConfig();
-  const pools = useMemo(() => (pool ? [pool] : []), [pool]);
-  const enriched = useEnrichedPools(pools);
-
-  const [amountOut, setAmountOut] = useState(0);
-  const [priceImpact, setPriceImpact] = useState(0);
-  const [lpFee, setLpFee] = useState(0);
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [priceAccount, setPriceAccount] = useState("");
 
   useEffect(() => {
     if (pool || pool1) {
@@ -206,18 +201,53 @@ export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
       }
 
       axios({
-        url: 'http://192.168.4.11:8080/distribution', 
+        url: 'https://api.1sol.io/distribution', 
         method: 'post', 
         data: {
           amount: Number(A.amount),
-          swapKeys: swapKeys,
-          sourceKey: A.mintAddress,
-          destinationKey: B.mintAddress 
+          rpc: "https://api.devnet.solana.com",
+          tokenSwap: swapKeys,
+          sourceToken: A.mintAddress,
+          destinationToken: B.mintAddress 
         }, 
     }).then(({data}) => console.log(data))  }
   }, [A, B, pool, pool1])
 
+  return (
+    <div className="trade-route">
+      <div className="hd"><TokenIcon mintAddress={A.mintAddress} style={{width: '30px', height: '30px'}} /></div>
+      <RightOutlined style={{margin: '0 5px'}} />
+      <div className="bd">
+        <div className="pool">
+          <div className="name">Test Swap1</div>
+          <div className="amount">100</div>
+        </div>
+        <PlusOutlined style={{margin: '10px 0'}} />
+        <div className="pool">
+          <div className="name">Test Swap2</div>
+          <div className="amount">100</div>
+        </div>
+      </div>
+      <RightOutlined style={{margin: '0 5px'}} />
+      <div className="ft"><TokenIcon mintAddress={B.mintAddress} style={{width: '30px', height: '30px', margin: '0.11rem 0 0 0.5rem'}} /></div>
+    </div>
+  )
+}
 
+export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
+  const { A, B } = useCurrencyPairState();
+  const { pool, pool1 } = props;
+  const { slippage } = useSlippageConfig();
+  const pools = useMemo(() => (pool ? [pool] : []), [pool]);
+  const enriched = useEnrichedPools(pools);
+
+  const [amountOut, setAmountOut] = useState(0);
+  const [priceImpact, setPriceImpact] = useState(0);
+  const [lpFee, setLpFee] = useState(0);
+  const [exchangeRate, setExchangeRate] = useState(0);
+  const [priceAccount, setPriceAccount] = useState("");
+
+  
   useEffect(() => {
     if (!pool || enriched.length === 0) {
       return;
@@ -331,6 +361,7 @@ export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
           {lpFee} {A.name}
         </div>
       </div>
+        <TradeRoute pool={pool} pool1={pool1} />
     </div>
   ) : null;
 };

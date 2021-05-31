@@ -31,3 +31,63 @@
   right: 0;
   top: 0;
 }
+
+.trade-route {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+
+  > .hd {
+    position: relative;
+
+    &:after {
+      content: "";
+      position: absolute;
+      width: 1px;
+      background: linear-gradient(180deg, #273a5500, #273a55 50.65%, #273a5500);
+      top: 0;
+      bottom: 0;
+      right: -1px;
+    }
+  }
+
+  > .bd {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+
+    .pool {
+      border: 1px solid #273a55;
+      border-radius: 16px;
+      padding: 14px 16px;
+      text-align: left;
+
+      .name {
+        color: rgb(126, 150, 184);
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+
+      .amount {
+        color: #fff;
+        font-size: 16px;
+      }
+    }
+  }
+
+  > .ft {
+    position: relative;
+
+    &:before {
+      content: "";
+      position: absolute;
+      width: 1px;
+      background: linear-gradient(180deg, #273a5500, #273a55 50.65%, #273a5500);
+      top: 0;
+      bottom: 0;
+      left: -1px;
+    }
+  }
+}
