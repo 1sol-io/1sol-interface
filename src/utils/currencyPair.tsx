@@ -273,7 +273,7 @@ const isValidAddress = (address: string) => {
 
 function getDefaultTokens(tokens: TokenInfo[], search: string) {
   let defaultBase = "SOL";
-  let defaultQuote = "USDC";
+  let defaultQuote = "AJN";
 
   const nameToToken = tokens.reduce((map, item) => {
     map.set(item.symbol, item);

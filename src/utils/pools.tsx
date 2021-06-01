@@ -38,6 +38,8 @@ import {
   depositExactOneInstruction,
   withdrawExactOneInstruction,
 } from "./../models";
+import {deserializeAccount, getTokenSwapInfo, getOneSolProtocol} from '../utils/onesol-protocol'
+
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -1484,12 +1486,12 @@ function approveAmount(
 function getWrappedAccount(
   instructions: TransactionInstruction[],
   cleanupInstructions: TransactionInstruction[],
-  toCheck: TokenAccount,
+  toCheck: TokenAccount | undefined,
   payer: PublicKey,
   amount: number,
   signers: Account[]
 ) {
-  if (!toCheck.info.isNative) {
+  if (toCheck && !toCheck.info.isNative) {
     return toCheck.pubkey;
   }
 
@@ -1557,4 +1559,115 @@ function createSplAccount(
   );
 
   return account;
+}
+
+export async function onesolProtocolSwap (
+  connection: Connection, 
+  wallet: any, 
+  B: any, 
+  pool0: any, 
+  pool1: any, 
+  slippage: number, 
+  components: LiquidityComponent[]
+) {
+  const onesolProgramId =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
+
+  const fetchAccounts = async () => {
+    const accounts = await connection.getProgramAccounts(onesolProgramId)
+    const [deserialized] = accounts.map((info: any) => deserializeAccount(info)).filter((account: any) =>  new PublicKey(account.info.mint).toString() === B.mintAddress)
+    console.log(deserialized)
+
+    let onesolProtocal 
+
+    if (deserialized) {
+      onesolProtocal = getOneSolProtocol(deserialized.info, connection, deserialized.pubkey, onesolProgramId, wallet.publicKey)
+    }
+
+    return onesolProtocal
+  }
+
+
+  const onesolProtocol = await fetchAccounts()
+
+  if (!onesolProtocol) {
+    return
+  }
+
+  let tokenSwapInfo0 = null
+  let tokenSwapInfo1 = null
+
+  if (pool0) {
+    tokenSwapInfo0 = await getTokenSwapInfo(pool0.raw.data, pool0.pubkeys.account, programIds().swaps[0])
+  }
+
+  if (pool1) {
+    tokenSwapInfo1 = await getTokenSwapInfo(pool1.raw.data, pool1.pubkeys.account, programIds().swaps[1])
+  }
+
+  const amountIn = components[0].amount; // these two should include slippage
+  const minAmountOut = components[1].amount * (1 - slippage);
+
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
+
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+  const signers: Account[] = [];
+
+  const fromAccount = getWrappedAccount(
+    instructions,
+    cleanupInstructions,
+    components[0].account,
+    wallet.publicKey,
+    amountIn + accountRentExempt,
+    signers
+  );
+
+  let toAccount = findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    instructions,
+    cleanupInstructions,
+    accountRentExempt,
+    new PublicKey(components[1].mintAddress),
+    signers
+  );
+
+  const transferAuthority = approveAmount(
+    instructions,
+    cleanupInstructions,
+    fromAccount,
+    wallet.publicKey,
+    amountIn,
+    undefined
+  );
+
+  signers.push(transferAuthority);
+
+  const swapInstruction = onesolProtocol.newSwapInstruction(
+    transferAuthority,
+    fromAccount,
+    toAccount,
+    amountIn,
+    minAmountOut,
+    tokenSwapInfo0,
+    tokenSwapInfo1,
+  )
+
+  instructions.push(swapInstruction)
+
+  let tx = await sendTransaction(
+    connection,
+    wallet,
+    instructions.concat(cleanupInstructions),
+    signers
+  );
+
+  notify({
+    message: "Trade executed.",
+    type: "success",
+    description: `Transaction - ${tx}`,
+  });
+  
 }
