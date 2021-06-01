@@ -1,5 +1,5 @@
 import { Button, Card, Popover, Spin, Typography } from "antd";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from 'axios'
 
 import {
@@ -195,7 +195,7 @@ export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
 
   const [amounts, setAmounts] = useState([])
 
-  useEffect(() => {
+  const fetchDistrubition = useCallback(async () => {
       if ((pool || pool1) && A && A.mint && B && B.mint) {
         const swapKeys = []
 
@@ -223,7 +223,14 @@ export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
         setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
       })  
     }
-  }, [A, B, pool, pool1])
+
+  }, [A, B, pool, pool1, setAmounts])
+
+  useEffect(() => {
+      if ((pool || pool1) && A && A.mint && B && B.mint) {
+        fetchDistrubition()
+    }
+  }, [A, B, fetchDistrubition, pool, pool1])
 
   return (
     <div className="trade-route">

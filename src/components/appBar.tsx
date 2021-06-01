@@ -15,7 +15,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
       <div className="App-Bar-left">
         <div className="App-logo" />
         <Menu mode="horizontal" selectedKeys={[location.pathname]}>
-          {/* <Menu.Item key="/">
+          <Menu.Item key="/">
             <Link
               to={{
                 pathname: "/",
@@ -24,16 +24,16 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Home
             </Link>
           </Menu.Item>
-          <Menu.Item key="/add">
+          <Menu.Item key="/trade">
             <Link
               to={{
-                pathname: "/add",
+                pathname: "/trade",
               }}
             >
-              Pool
+              Trade
             </Link>
           </Menu.Item>
-          <Menu.Item key="/info">
+          {/* <Menu.Item key="/info">
             <Link
               to={{
                 pathname: "/info",
