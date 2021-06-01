@@ -30,13 +30,16 @@ import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
 import { colorWarning, getTokenName } from "../../utils/utils";
 import { AdressesPopover } from "../pool/address";
-import { PoolInfo } from "../../models";
+import { TokenAccount, PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 import { MigrationModal } from "../migration";
 
 import { TokenIcon } from "../tokenIcon";
+import { PublicKey } from "@solana/web3.js";
+import { programIds } from "../../utils/ids";
+
 
 const { Text } = Typography;
 
@@ -187,9 +190,30 @@ export const TradeEntry = () => {
 export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
   const { A, B } = useCurrencyPairState();
   const { pool, pool1 } = props;
+  const connection = useConnection();
+
+  const [amounts, setAmounts] = useState([])
+  const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]) 
 
   useEffect(() => {
-    if (pool || pool1) {
+    const fetchAccounts = async () => {
+
+      const accounts = await connection.getProgramAccounts(
+        programIds().swaps[1]
+        // new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
+        )
+      console.log(accounts)
+
+      // setTokenAccounts(accounts)
+    }
+
+    if (connection) {
+      fetchAccounts()
+    }
+  }, [connection])
+
+  useEffect(() => {
+    if ((pool || pool1) && A && A.mint && B && B.mint) {
       const swapKeys = []
 
       if (pool) {
@@ -200,17 +224,21 @@ export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
         swapKeys.push(pool1.pubkeys.account.toString())
       }
 
+      const decimals = [A.mint.decimals, B.mint.decimals]
+
       axios({
         url: 'https://api.1sol.io/distribution', 
         method: 'post', 
         data: {
-          amount: Number(A.amount),
+          amount: Number(A.amount) * 10 ** A.mint.decimals,
           rpc: "https://api.devnet.solana.com",
           tokenSwap: swapKeys,
           sourceToken: A.mintAddress,
           destinationToken: B.mintAddress 
         }, 
-    }).then(({data}) => console.log(data))  }
+    }).then(({data: {amounts}}) => {
+      setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
+    })  }
   }, [A, B, pool, pool1])
 
   return (
@@ -220,12 +248,12 @@ export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
       <div className="bd">
         <div className="pool">
           <div className="name">Test Swap1</div>
-          <div className="amount">100</div>
+          <div className="amount">{amounts[0]}</div>
         </div>
         <PlusOutlined style={{margin: '10px 0'}} />
         <div className="pool">
           <div className="name">Test Swap2</div>
-          <div className="amount">100</div>
+          <div className="amount">{amounts[1]}</div>
         </div>
       </div>
       <RightOutlined style={{margin: '0 5px'}} />
