@@ -1,0 +1,10 @@
+steps:
+- name: node
+  entrypoint: yarn
+  args: ['install']
+- name: node
+  entrypoint: yarn
+  args: ['build']
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk:alpine
+  entrypoint: 'gsutil'
+  args: ['rsync', '-r', '-d', 'build', '${_BUCKET_ID}']
