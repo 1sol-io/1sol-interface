@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import {
   swap,
+  onesolProtocolSwap,
   usePoolForBasket,
   usePool1ForBasket,
   PoolOperation,
@@ -37,8 +38,7 @@ import { Settings } from "../settings";
 import { MigrationModal } from "../migration";
 
 import { TokenIcon } from "../tokenIcon";
-import { PublicKey } from "@solana/web3.js";
-import { programIds } from "../../utils/ids";
+
 
 
 const { Text } = Typography;
@@ -99,8 +99,10 @@ export const TradeEntry = () => {
           },
         ];
 
-        await swap(connection, wallet, components, slippage, pool);
-      } catch {
+        // await swap(connection, wallet, components, slippage, pool);
+        await onesolProtocolSwap(connection, wallet, B, pool, pool1, slippage, components);
+      } catch (e) {
+        console.log(e)
         notify({
           description:
             "Please try again and approve transactions from your wallet",
@@ -190,55 +192,37 @@ export const TradeEntry = () => {
 export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
   const { A, B } = useCurrencyPairState();
   const { pool, pool1 } = props;
-  const connection = useConnection();
 
   const [amounts, setAmounts] = useState([])
-  const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]) 
 
   useEffect(() => {
-    const fetchAccounts = async () => {
+      if ((pool || pool1) && A && A.mint && B && B.mint) {
+        const swapKeys = []
 
-      const accounts = await connection.getProgramAccounts(
-        programIds().swaps[1]
-        // new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
-        )
-      console.log(accounts)
+        if (pool) {
+          swapKeys.push(pool.pubkeys.account.toString())
+        }
 
-      // setTokenAccounts(accounts)
+        if (pool1) {
+          swapKeys.push(pool1.pubkeys.account.toString())
+        }
+
+        const decimals = [A.mint.decimals, B.mint.decimals]
+
+        axios({
+          url: 'https://api.1sol.io/distribution', 
+          method: 'post', 
+          data: {
+            amount: Number(A.amount) * 10 ** A.mint.decimals,
+            rpc: "https://api.devnet.solana.com",
+            tokenSwap: swapKeys,
+            sourceToken: A.mintAddress,
+            destinationToken: B.mintAddress 
+          }, 
+      }).then(({data: {amounts}}) => {
+        setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
+      })  
     }
-
-    if (connection) {
-      fetchAccounts()
-    }
-  }, [connection])
-
-  useEffect(() => {
-    if ((pool || pool1) && A && A.mint && B && B.mint) {
-      const swapKeys = []
-
-      if (pool) {
-        swapKeys.push(pool.pubkeys.account.toString())
-      }
-
-      if (pool1) {
-        swapKeys.push(pool1.pubkeys.account.toString())
-      }
-
-      const decimals = [A.mint.decimals, B.mint.decimals]
-
-      axios({
-        url: 'https://api.1sol.io/distribution', 
-        method: 'post', 
-        data: {
-          amount: Number(A.amount) * 10 ** A.mint.decimals,
-          rpc: "https://api.devnet.solana.com",
-          tokenSwap: swapKeys,
-          sourceToken: A.mintAddress,
-          destinationToken: B.mintAddress 
-        }, 
-    }).then(({data: {amounts}}) => {
-      setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
-    })  }
   }, [A, B, pool, pool1])
 
   return (
@@ -274,7 +258,6 @@ export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
   const [lpFee, setLpFee] = useState(0);
   const [exchangeRate, setExchangeRate] = useState(0);
   const [priceAccount, setPriceAccount] = useState("");
-
   
   useEffect(() => {
     if (!pool || enriched.length === 0) {
