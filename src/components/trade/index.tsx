@@ -39,8 +39,6 @@ import { MigrationModal } from "../migration";
 
 import { TokenIcon } from "../tokenIcon";
 
-
-
 const { Text } = Typography;
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -56,11 +54,51 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
+  const [amounts, setAmounts] = useState([])
+
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const pool1 = usePool1ForBasket([A?.mintAddress, B?.mintAddress]);
 
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
+
+  const fetchDistrubition = useCallback(async () => {
+    if (!A.mint || !B.mint) {
+      return
+    }
+
+        const swapKeys = []
+
+        if (pool) {
+          swapKeys.push(pool.pubkeys.account.toString())
+        }
+
+        if (pool1) {
+          swapKeys.push(pool1.pubkeys.account.toString())
+        }
+
+        const decimals = [A.mint.decimals, B.mint.decimals]
+
+        axios({
+          url: 'https://api.1sol.io/distribution', 
+          method: 'post', 
+          data: {
+            amount: Number(A.amount) * 10 ** A.mint.decimals,
+            rpc: "https://api.devnet.solana.com",
+            tokenSwap: swapKeys,
+            sourceToken: A.mintAddress,
+            destinationToken: B.mintAddress 
+          }, 
+      }).then(({data: {amounts}}) => {
+        setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
+      })  
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, pool, pool1])
+
+  useEffect(() => {
+    if (Number(A.amount)) {
+      fetchDistrubition()
+    }
+  }, [A.amount, fetchDistrubition])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
@@ -120,7 +158,7 @@ export const TradeEntry = () => {
       <div className="input-card">
         <AdressesPopover pool={pool} />
         <CurrencyInput
-          title="Input"
+          title="From"
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.SwapGivenInput);
             if (A.amount !== val) {
@@ -135,7 +173,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className="swap-button" onClick={swapAccounts} style={{display: 'flex', justifyContent: 'space-around'}}>⇅</Button>
+        <Button type="primary" className="swap-button" onClick={swapAccounts} style={{display: 'flex', justifyContent: 'space-around', margin: '20px auto'}}>⇅</Button>
         <CurrencyInput
           title="To (Estimate)"
           onInputChange={(val: any) => {
@@ -157,8 +195,10 @@ export const TradeEntry = () => {
         className="trade-button"
         type="primary"
         size="large"
+        shape="round"
+        block
         onClick={connected ? handleSwap : connect}
-        style={{ width: "100%" }}
+        style={{ marginTop: '20px' }}
         disabled={
           connected &&
           (pendingTx ||
@@ -185,52 +225,52 @@ export const TradeEntry = () => {
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
       <TradeInfo pool={pool} pool1={pool1} />
+      {amounts.length  ? <TradeRoute amounts={amounts} /> : null}
     </>
   );
 };
 
-export const TradeRoute = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
+export const TradeRoute = (props: { amounts: number[] }) => {
   const { A, B } = useCurrencyPairState();
-  const { pool, pool1 } = props;
+  // const { pool, pool1 } = props;
+  const {amounts} = props
 
-  const [amounts, setAmounts] = useState([])
+  // const [amounts, setAmounts] = useState([])
 
-  const fetchDistrubition = useCallback(async () => {
-      if ((pool || pool1) && A && A.mint && B && B.mint) {
-        const swapKeys = []
+  // const fetchDistrubition = useCallback(async () => {
+  //     if ((pool || pool1) && A && A.mint && B && B.mint) {
+  //       const swapKeys = []
 
-        if (pool) {
-          swapKeys.push(pool.pubkeys.account.toString())
-        }
+  //       if (pool) {
+  //         swapKeys.push(pool.pubkeys.account.toString())
+  //       }
 
-        if (pool1) {
-          swapKeys.push(pool1.pubkeys.account.toString())
-        }
+  //       if (pool1) {
+  //         swapKeys.push(pool1.pubkeys.account.toString())
+  //       }
 
-        const decimals = [A.mint.decimals, B.mint.decimals]
+  //       const decimals = [A.mint.decimals, B.mint.decimals]
 
-        axios({
-          url: 'https://api.1sol.io/distribution', 
-          method: 'post', 
-          data: {
-            amount: Number(A.amount) * 10 ** A.mint.decimals,
-            rpc: "https://api.devnet.solana.com",
-            tokenSwap: swapKeys,
-            sourceToken: A.mintAddress,
-            destinationToken: B.mintAddress 
-          }, 
-      }).then(({data: {amounts}}) => {
-        setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
-      })  
-    }
+  //       axios({
+  //         url: 'https://api.1sol.io/distribution', 
+  //         method: 'post', 
+  //         data: {
+  //           amount: Number(A.amount) * 10 ** A.mint.decimals,
+  //           rpc: "https://api.devnet.solana.com",
+  //           tokenSwap: swapKeys,
+  //           sourceToken: A.mintAddress,
+  //           destinationToken: B.mintAddress 
+  //         }, 
+  //     }).then(({data: {amounts}}) => {
+  //       setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
+  //     })  
+  //   }
 
-  }, [A, B, pool, pool1, setAmounts])
+  // }, [A, B, pool, pool1])
 
-  useEffect(() => {
-      if ((pool || pool1) && A && A.mint && B && B.mint) {
-        fetchDistrubition()
-    }
-  }, [A, B, fetchDistrubition, pool, pool1])
+  // useEffect(() => {
+  //       fetchDistrubition()
+  // }, [fetchDistrubition])
 
   return (
     <div className="trade-route">
@@ -379,7 +419,6 @@ export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
           {lpFee} {A.name}
         </div>
       </div>
-        <TradeRoute pool={pool} pool1={pool1} />
     </div>
   ) : null;
 };

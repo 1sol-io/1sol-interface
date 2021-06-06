@@ -41,7 +41,7 @@ export const HomePage = () => {
           </div>
           <div className="powerby">Built on: <img src={solana} /><a href="">Solana</a></div>
           <div className="buttons">
-            <div className="flex">
+            <div className="flex btn-flex">
               <a href="/">
                 <Button className="custom-btn purple-btn" type="text" size="large">Download onepager</Button>
               </a>
