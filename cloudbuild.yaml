@@ -8,3 +8,12 @@ steps:
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk:alpine
   entrypoint: 'gsutil'
   args: ['rsync', '-r', '-d', 'build', '${_BUCKET_ID}']
+- name: launcher.gcr.io/google/ubuntu1604
+  entrypoint: 'bash'
+  args: 
+    - '-c'
+    - |
+      curl -X "POST" "https://api.cloudflare.com/client/v4/zones/${_C_IDENTIFIER}/purge_cache" \
+          -H 'Authorization: Bearer ${_C_TOKEN}' \
+          -H 'Content-Type: application/json; charset=utf-8' \
+          -d $$'{"purge_everything": true}'
