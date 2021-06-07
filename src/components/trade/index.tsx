@@ -1,5 +1,5 @@
 import { Button, Card, Popover, Spin, Typography } from "antd";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from 'axios'
 
 import {
@@ -62,10 +62,18 @@ export const TradeEntry = () => {
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
 
+  const CancelToken = axios.CancelToken;
+  const cancel = useRef(function () {})
+
   const fetchDistrubition = useCallback(async () => {
-    if (!A.mint || !B.mint) {
-      return
-    }
+      if (!A.mint || !B.mint) {
+        return
+      }
+
+      if (cancel.current) {
+        cancel.current()
+      }
+      setAmounts([])
 
         const swapKeys = []
 
@@ -89,10 +97,11 @@ export const TradeEntry = () => {
             sourceToken: A.mintAddress,
             destinationToken: B.mintAddress 
           }, 
+          cancelToken: new CancelToken((c) => cancel.current = c)
       }).then(({data: {amounts}}) => {
         setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
       })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, pool, pool1])
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, pool1])
 
   useEffect(() => {
     if (Number(A.amount)) {
