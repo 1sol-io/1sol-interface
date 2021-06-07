@@ -136,7 +136,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     const quote =
       tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
-    document.title = `Swap | Serum (${base}/${quote})`;
+    document.title = `Trade | 1Sol (${base}/${quote})`;
   }, [mintAddressA, mintAddressB, tokens, location]);
 
   // updates browser history on token changes

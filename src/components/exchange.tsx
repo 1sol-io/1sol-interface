@@ -63,7 +63,7 @@ export const ExchangeView = (props: {}) => {
         className="exchange-card"
         headStyle={{ padding: 0 }}
         bodyStyle={{ position: "relative" }}
-        title="Trade"
+        title="Trade(devnet)"
         // tabList={tabList}
         // tabProps={{
         //   tabBarGutter: 0,
