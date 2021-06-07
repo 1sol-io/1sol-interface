@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "antd";
 
 import { AppBar } from "./appBar";
@@ -32,22 +33,22 @@ export const HomePage = () => {
                 <a href="https://t.me/onesolcommunity"><img src={telegram} /></a>
               </div>
               <div className="icon">
-                <a href="/"><img src={medium} /></a>
+                <a href="https://medium.com/@1solProtocol"><img src={medium} /></a>
               </div>
               <div className="icon">
-                <a href="/"><img src={github} /></a>
+                <a href="https://github.com/1sol-io"><img src={github} /></a>
               </div>
             </div>
           </div>
-          <div className="powerby">Built on: <img src={solana} /><a href="">Solana</a></div>
+          <div className="powerby">Built on: <img src={solana} /><a href="https://solana.com">Solana</a></div>
           <div className="buttons">
             <div className="flex btn-flex">
-              <a href="/">
-                <Button className="custom-btn purple-btn" type="text" size="large">Download onepager</Button>
+              <a href="https://drive.google.com/drive/folders/1EsI_GExrzgD-eQ25nozvgFKYjZhkVVLC?usp=sharing">
+                <Button className="custom-btn purple-btn" type="text" size="large">Download Whitepaper</Button>
               </a>
-              <a href="/">
-                <Button className="custom-btn purple-btn-outline" type="text" size="large">Read documentation</Button>
-              </a>
+              <Link to={{pathname: '/trade'}}>
+                <Button className="custom-btn purple-btn-outline" type="text" size="large">Trade(devnet)</Button>
+              </Link>
             </div>
           </div>
         </div>

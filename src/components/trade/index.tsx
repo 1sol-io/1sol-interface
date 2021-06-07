@@ -1,5 +1,5 @@
 import { Button, Card, Popover, Spin, Typography } from "antd";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from 'axios'
 
 import {
@@ -16,6 +16,7 @@ import {
   SettingOutlined,
   PlusOutlined ,
   RightOutlined,
+  ArrowRightOutlined
 } from "@ant-design/icons";
 import {
   swap,
@@ -62,10 +63,19 @@ export const TradeEntry = () => {
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
 
+  const CancelToken = axios.CancelToken;
+  const cancel = useRef(function () {})
+
   const fetchDistrubition = useCallback(async () => {
-    if (!A.mint || !B.mint) {
-      return
-    }
+      if (!A.mint || !B.mint) {
+        return
+      }
+
+      if (cancel.current) {
+        cancel.current()
+      }
+
+      setAmounts([])
 
         const swapKeys = []
 
@@ -89,10 +99,12 @@ export const TradeEntry = () => {
             sourceToken: A.mintAddress,
             destinationToken: B.mintAddress 
           }, 
+          cancelToken: new CancelToken((c) => cancel.current = c)
       }).then(({data: {amounts}}) => {
-        setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
+        setAmounts(amounts.map(({input, output}: {input: any, output: any}) => ({input: input  / 10 ** decimals[0
+        ], output: output  / 10 ** decimals[1]})))
       })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, pool, pool1])
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, pool1])
 
   useEffect(() => {
     if (Number(A.amount)) {
@@ -230,47 +242,9 @@ export const TradeEntry = () => {
   );
 };
 
-export const TradeRoute = (props: { amounts: number[] }) => {
+export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
   const { A, B } = useCurrencyPairState();
-  // const { pool, pool1 } = props;
   const {amounts} = props
-
-  // const [amounts, setAmounts] = useState([])
-
-  // const fetchDistrubition = useCallback(async () => {
-  //     if ((pool || pool1) && A && A.mint && B && B.mint) {
-  //       const swapKeys = []
-
-  //       if (pool) {
-  //         swapKeys.push(pool.pubkeys.account.toString())
-  //       }
-
-  //       if (pool1) {
-  //         swapKeys.push(pool1.pubkeys.account.toString())
-  //       }
-
-  //       const decimals = [A.mint.decimals, B.mint.decimals]
-
-  //       axios({
-  //         url: 'https://api.1sol.io/distribution', 
-  //         method: 'post', 
-  //         data: {
-  //           amount: Number(A.amount) * 10 ** A.mint.decimals,
-  //           rpc: "https://api.devnet.solana.com",
-  //           tokenSwap: swapKeys,
-  //           sourceToken: A.mintAddress,
-  //           destinationToken: B.mintAddress 
-  //         }, 
-  //     }).then(({data: {amounts}}) => {
-  //       setAmounts(amounts.map((a: any, i: any) => a / 10 ** decimals[i]))
-  //     })  
-  //   }
-
-  // }, [A, B, pool, pool1])
-
-  // useEffect(() => {
-  //       fetchDistrubition()
-  // }, [fetchDistrubition])
 
   return (
     <div className="trade-route">
@@ -279,12 +253,20 @@ export const TradeRoute = (props: { amounts: number[] }) => {
       <div className="bd">
         <div className="pool">
           <div className="name">Test Swap1</div>
-          <div className="amount">{amounts[0]}</div>
+          <div className="amount">
+            <span>{A.name} {amounts[0].input}</span>
+            <ArrowRightOutlined />
+            <span>{amounts[0].output} {B.name}</span>
+          </div>
         </div>
         <PlusOutlined style={{margin: '10px 0'}} />
         <div className="pool">
           <div className="name">Test Swap2</div>
-          <div className="amount">{amounts[1]}</div>
+          <div className="amount">
+            <span>{A.name} {amounts[1].input}</span>
+            <ArrowRightOutlined />
+            <span>{amounts[1].output} {B.name}</span>
+          </div>
         </div>
       </div>
       <RightOutlined style={{margin: '0 5px'}} />

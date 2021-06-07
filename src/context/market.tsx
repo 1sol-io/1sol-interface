@@ -97,27 +97,27 @@ export function MarketProvider({ children = null as any }) {
       timer = window.setTimeout(() => updateData(), REFRESH_INTERVAL);
     };
 
-    const bonfidaQuery = async () => {
-      try {
-        const resp = await window.fetch(
-          "https://serum-api.bonfida.com/pools-recent"
-        );
-        const data = await resp.json();
-        const map = (data?.data as RecentPoolData[]).reduce((acc, item) => {
-          acc.set(item.pool_identifier, item);
-          return acc;
-        }, new Map<string, RecentPoolData>());
+    // const bonfidaQuery = async () => {
+    //   try {
+    //     const resp = await window.fetch(
+    //       "https://serum-api.bonfida.com/pools-recent"
+    //     );
+    //     const data = await resp.json();
+    //     const map = (data?.data as RecentPoolData[]).reduce((acc, item) => {
+    //       acc.set(item.pool_identifier, item);
+    //       return acc;
+    //     }, new Map<string, RecentPoolData>());
 
-        setDailyVolume(map);
-      } catch {
-        // ignore
-      }
+    //     setDailyVolume(map);
+    //   } catch {
+    //     // ignore
+    //   }
 
-      bonfidaTimer = window.setTimeout(
-        () => bonfidaQuery(),
-        BONFIDA_POOL_INTERVAL
-      );
-    };
+    //   bonfidaTimer = window.setTimeout(
+    //     () => bonfidaQuery(),
+    //     BONFIDA_POOL_INTERVAL
+    //   );
+    // };
 
     const initalQuery = async () => {
       const reverseSerumMarketCache = new Map<string, string>();
@@ -203,7 +203,7 @@ export function MarketProvider({ children = null as any }) {
 
       // start update loop
       updateData();
-      bonfidaQuery();
+      // bonfidaQuery();
     };
 
     initalQuery();
