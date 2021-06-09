@@ -78,7 +78,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
 export function ConnectionProvider({ children = undefined as any }) {
   const [endpoint, setEndpoint] = useLocalStorageState(
     "connectionEndpts",
-    ENDPOINTS[0].endpoint
+    ENDPOINTS[2].endpoint
   );
 
   const [slippage, setSlippage] = useLocalStorageState(
@@ -94,7 +94,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   ]);
 
   const chain =
-    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[0];
+    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[2];
 
   const env = chain.name;
 
