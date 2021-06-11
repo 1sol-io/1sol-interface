@@ -1586,7 +1586,6 @@ export async function onesolProtocolSwap (
     return onesolProtocal
   }
 
-
   const onesolProtocol = await fetchAccounts()
 
   if (!onesolProtocol) {
@@ -1611,6 +1610,29 @@ export async function onesolProtocolSwap (
     AccountLayout.span
   );
 
+  const toAccountInstructions: TransactionInstruction[] = [];
+  const cleanupToAccountInstructions: TransactionInstruction[] = [];
+  const toAccountigners: Account[] = [];
+
+  let toAccount = findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    toAccountInstructions,
+    cleanupToAccountInstructions,
+    accountRentExempt,
+    new PublicKey(components[1].mintAddress),
+    toAccountigners
+  );
+
+  if (toAccountInstructions.length) {
+    await sendTransaction(
+      connection,
+      wallet,
+      toAccountInstructions,
+      toAccountigners
+    )
+  }
+
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];
   const signers: Account[] = [];
@@ -1621,16 +1643,6 @@ export async function onesolProtocolSwap (
     components[0].account,
     wallet.publicKey,
     amountIn + accountRentExempt,
-    signers
-  );
-
-  let toAccount = findOrCreateAccountByMint(
-    wallet.publicKey,
-    wallet.publicKey,
-    instructions,
-    cleanupInstructions,
-    accountRentExempt,
-    new PublicKey(components[1].mintAddress),
     signers
   );
 
