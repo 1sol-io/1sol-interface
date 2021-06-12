@@ -3,7 +3,6 @@ import { Button, Card, Popover, Typography } from "antd";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
-import "./view.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatNumber, formatPct, formatUSD } from "../../utils/utils";
 import { ExplorerLink } from "../explorerLink";
