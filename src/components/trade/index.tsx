@@ -19,7 +19,6 @@ import {
   ArrowRightOutlined
 } from "@ant-design/icons";
 import {
-  swap,
   onesolProtocolSwap,
   usePoolForBasket,
   usePool1ForBasket,
@@ -36,7 +35,6 @@ import { TokenAccount, PoolInfo } from "../../models";
 import { useEnrichedPools } from "../../context/market";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
-import { MigrationModal } from "../migration";
 
 import { TokenIcon } from "../tokenIcon";
 
@@ -432,7 +430,6 @@ export const TradeView = () => {
       >
         <TradeEntry />
       </Card>
-      <MigrationModal />
     </>
   );
 };

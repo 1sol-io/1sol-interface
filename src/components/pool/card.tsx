@@ -1,14 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Button, Card, Popover, Typography } from "antd";
-import { RemoveLiquidityEntry } from "./remove";
 import { useMint, useUserAccounts } from "../../utils/accounts";
 import { PoolIcon } from "../tokenIcon";
 import { PoolInfo, TokenAccount } from "../../models";
-import "./view.less";
 import { useEnrichedPools } from "../../context/market";
 import { formatNumber, formatPct, formatUSD } from "../../utils/utils";
 import { ExplorerLink } from "../explorerLink";
-import { SupplyOverview } from "./supplyOverview";
 import { HistoricalLiquidity, HistoricalVolume } from "../charts/historical";
 import { LineChartOutlined, AlignLeftOutlined } from "@ant-design/icons";
 
@@ -251,7 +248,6 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
             </div>
           </div>
 
-          <SupplyOverview pool={pool} />
           <div className="pool-card-row">
             {/* {item && <Button type="default" onClick={setPair}>Add</Button>} */}
             {props.account && (
@@ -271,12 +267,6 @@ export const PoolCard = (props: { pool: PoolInfo; account?: TokenAccount }) => {
             current={formatUSD.format(enriched.volume24h)}
           />
         </>
-      )}
-      {displayMode === "remove" && account && (
-        <RemoveLiquidityEntry
-          instance={{ pool: pool, account: account }}
-          enriched={enriched}
-        />
       )}
     </Card>
   );
