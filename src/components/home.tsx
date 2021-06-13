@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, {useEffect} from "react";
 import { Link } from "react-router-dom";
 import { Button } from "antd";
 
@@ -14,6 +14,9 @@ import solana from '../assets/solana.svg'
 import './home.less'
 
 export const HomePage = () => {
+  useEffect(() => {
+    document.title = '1Sol Dex Aggregator'
+  })
   return (
     <div className="page-home">
       <AppBar />
