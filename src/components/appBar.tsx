@@ -24,6 +24,15 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Home
             </Link>
           </Menu.Item>
+          <Menu.Item key="/dashboard">
+            <Link
+              to={{
+                pathname: "/dashboard",
+              }}
+            >
+              Dashboard
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/trade">
             <Link
               to={{
@@ -31,6 +40,15 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               }}
             >
               Trade
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/crosschain">
+            <Link
+              to={{
+                pathname: "/crosschain",
+              }}
+            >
+              Crosschain
             </Link>
           </Menu.Item>
           {/* <Menu.Item key="/info">
