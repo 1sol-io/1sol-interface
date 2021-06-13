@@ -1504,7 +1504,7 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/sol-wallet-adapter@^0.1.1":
+"@project-serum/sol-wallet-adapter@^0.1.8":
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/@project-serum/sol-wallet-adapter/-/sol-wallet-adapter-0.1.8.tgz#90c6c1da793d32ed4ba3c67c5702a5bc804ef197"
   integrity sha512-lKMgp7bsKpkrtBtIaEjtGuUMke0GUqFUL39Z7cjqsQpTVhkU5Ez4zHyjhXqAEORRGLFbwx/+H6HLpwppxpUDMQ==

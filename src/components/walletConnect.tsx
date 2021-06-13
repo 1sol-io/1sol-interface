@@ -41,7 +41,7 @@ export const WalletConnect: FunctionComponent = ({ children }) => {
   }
 
   return (
-    <Dropdown.Button type="primary" onClick={connected ? disconnect : connect} overlay={menu} icon={null}>
+    <Dropdown.Button type="primary" onClick={connected ? disconnect : select} overlay={menu} icon={null}>
       {connected ? "Disconnect" : <><LinkOutlined /><span style={{marginLeft: '5px'}}>Connect Wallet</span></>}
     </Dropdown.Button>
   );
