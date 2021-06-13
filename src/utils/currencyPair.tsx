@@ -147,7 +147,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     const quote =
       tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
-    if (base && quote && location.pathname !=='/' && location.pathname.indexOf("info") < 0) {
+    if (base && quote && location.pathname.indexOf("trade") > -1) {
       history.push({
         search: `?pair=${base}-${quote}`,
       });
