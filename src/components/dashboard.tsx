@@ -17,7 +17,7 @@ export const Dashboard = () => {
 	const fetchData = useCallback(async () => {
 		setLoading(true)
 		const {data: {data}} = await axios({
-      url: 'http://192.168.4.11:8080/chart', 
+      url: 'https://api.1sol.io/chart', 
     })
 
 		let columns: Array<{title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined}> = [{title: 'Token Pair', dataIndex: 'pair', key: 'pair', align: 'left'}]
@@ -47,7 +47,7 @@ export const Dashboard = () => {
 		<div className="page-dashboard">
 			<AppBar />
 			<div className="bd">
-				<Table loading={loading} dataSource={dataSource} columns={columns} bordered pagination={false} />;
+				<Table loading={loading} dataSource={dataSource} columns={columns} bordered pagination={false} />
 			</div>
 		</div>
 	)
