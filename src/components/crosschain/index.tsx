@@ -2,15 +2,11 @@ import React, {useCallback, useEffect, useState, useRef} from "react";
 import axios from 'axios'
 import { Button, Card, Popover, Spin, Typography, Select } from "antd";
 
-import { ChainId, Token, WETH, Fetcher, Route } from '@uniswap/sdk'
+import Web3 from 'web3'
+import {AbiItem} from 'web3-utils';
 
 import {
-  LoadingOutlined,
-  SwapOutlined,
-  QuestionCircleOutlined,
   SettingOutlined,
-  PlusOutlined ,
-  RightOutlined,
   ArrowRightOutlined,
 	ArrowDownOutlined
 } from "@ant-design/icons";
@@ -18,15 +14,12 @@ import {
 import {AppBar} from '../appBar'
 import { Settings } from "../settings";
 import { NumericInput } from "../numericInput";
-import { PoolIcon, TokenIcon } from "../tokenIcon";
 
 import { useWallet } from "../../context/wallet";
 
 import './index.less'
 
 const { Option } = Select;
-
-const USDT = new Token(ChainId.MAINNET, '0xdAC17F958D2ee523a2206206994597C13D831ec7', 6)
 
 export const TokenDisplay = (props: {
   name: string;
@@ -175,13 +168,71 @@ export const TradeEntry = () => {
 	const fetchData = useCallback(async () => {
 		setChains([])
 		setAmountB('')
-		// const token = tokenB.address === 'BTC' ? '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599' : WETH[USDT.chainId]
-		const pair = await Fetcher.fetchPairData(USDT, WETH[USDT.chainId])
-		const route = new Route([pair], WETH[USDT.chainId])
 
-		const amountB = Number(route.midPrice.invert().toSignificant(6)) * Number(amountA) 
+		const uniRouterV2ABI: Array<AbiItem> = [{"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"reserveIn","type":"uint256"},{"internalType":"uint256","name":"reserveOut","type":"uint256"}],"name":"getAmountOut","outputs":[{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"pure","type":"function"}];
+		const uniV2PairABI: Array<AbiItem> = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"}];
 
-		setAmountB(`${amountB}`)
+		const eth3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/c28b2300f99b4ca9a2926815f874d27e'));
+		const ethRouterAddr = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d";
+		const ethusdtpairAddr = '0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852';
+		const wbtcusdtpairAddr = '0x0de0fa91b6dbab8c8503aaa2d1dfa91a192cb149'
+		const router = new eth3.eth.Contract(uniRouterV2ABI , ethRouterAddr);
+		const ethusdtpair = new eth3.eth.Contract(uniV2PairABI , ethusdtpairAddr);
+		const wbtcusdtpair = new eth3.eth.Contract(uniV2PairABI, wbtcusdtpairAddr)
+
+		const amountInNumber = Number(amountA) * 1e6;
+
+		let ethAmount = 0
+
+		if (tokenB.address === 'BTC') {
+			ethAmount = await wbtcusdtpair.methods.getReserves().call().then((result: any) => {
+				return router.methods.getAmountOut(
+					amountInNumber, 
+					result._reserve1,
+					result._reserve0,
+				).call()
+			}).then((result: any) => result / 1e8)
+		}
+
+		if (tokenB.address === 'ETH') {
+			ethAmount = await ethusdtpair.methods.getReserves().call().then((result: any) => {
+				return router.methods.getAmountOut(
+					amountInNumber, 
+					result._reserve1,
+					result._reserve0,
+				).call()
+			}).then((result: any) => result / 1e18)
+		}
+
+		const bsc3 = new Web3('https://bsc-dataseed1.binance.org:443');
+		const bscRouterAddr = '0x05ff2b0db69458a0750badebc4f9e13add608c7f'
+		const bscethusdtpairAddr = '0x531febfeb9a61d948c384acfbe6dcc51057aea7e'
+		const bscbtcbusdtpairAddr = '0x3f803ec2b816ea7f06ec76aa2b6f2532f9892d62'
+		const bscrouter = new bsc3.eth.Contract(uniRouterV2ABI , bscRouterAddr);
+		const bscethusdtpair = new bsc3.eth.Contract(uniV2PairABI , bscethusdtpairAddr);
+		const bscbtcbusdtpair = new bsc3.eth.Contract(uniV2PairABI, bscbtcbusdtpairAddr)
+
+		let bscAmount = 0
+
+		if (tokenB.address === 'BTC') {
+			bscAmount = await bscbtcbusdtpair.methods.getReserves().call().then((result: any) => {
+				return bscrouter.methods.getAmountOut(
+					'10000000000000000000000',
+					result._reserve0,
+					result._reserve1,
+				).call()
+			}).then((result: any) => result / 1e18)
+		}
+
+		if (tokenB.address === 'ETH') {
+			bscAmount = await bscethusdtpair.methods.getReserves().call().then((result: any) => {
+				return bscrouter.methods.getAmountOut(
+					'10000000000000000000000',
+					result._reserve1,
+					result._reserve0,
+				).call()
+			}).then((result: any) => result / 1e18)
+		}
 
       if (cancel.current) {
         cancel.current()
@@ -198,7 +249,7 @@ export const TradeEntry = () => {
         cancelToken: new CancelToken((c) => cancel.current = c)
 			})
 
-			setChains([...data.map(({chain, amount_out, decimals}: {chain: string, amount_out: number, decimals: number}) => ({
+			setChains([{chain: 'ETH', amount: ethAmount}, {chain: 'BSC', amount: bscAmount}, ...data.map(({chain, amount_out, decimals}: {chain: string, amount_out: number, decimals: number}) => ({
 				chain,
 				amount: amount_out / (10 ** decimals)
 			}))])
@@ -260,11 +311,11 @@ export const TradeEntry = () => {
 			</Button>
 			<div className="chains">
 				{chains.length ? chains.map(({chain, amount}) => (
-					<div className="chain">
+					<div className="chain" key={chain}>
 						<div>{chain}</div>
 						<div className="hd">{tokenA.address} {amountA}</div>
             <ArrowRightOutlined />
-						<div className="bd">{amount} {tokenB.address}</div>
+						<div className="bd">{amount.toFixed(8)} {tokenB.address}</div>
 					</div>
 				)) : null}
 			</div>
