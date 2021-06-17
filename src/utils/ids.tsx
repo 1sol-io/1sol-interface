@@ -23,8 +23,8 @@ export const SWAP_HOST_FEE_ADDRESS = process.env.REACT_APP_SWAP_HOST_FEE_ADDRESS
 
 export const ENABLE_FEES_INPUT = false;
 
-console.debug(`Host address: ${SWAP_HOST_FEE_ADDRESS?.toBase58()}`);
-console.debug(`Owner address: ${SWAP_PROGRAM_OWNER_FEE_ADDRESS?.toBase58()}`);
+// console.debug(`Host address: ${SWAP_HOST_FEE_ADDRESS?.toBase58()}`);
+// console.debug(`Owner address: ${SWAP_PROGRAM_OWNER_FEE_ADDRESS?.toBase58()}`);
 
 // legacy pools are used to show users contributions in those pools to allow for withdrawals of funds
 export const PROGRAM_IDS = [

@@ -20,15 +20,24 @@ export const Dashboard = () => {
       url: 'https://api.1sol.io/chart', 
     })
 
+		let tokenPairs: string[] = []
+		let exchanges: string[] = []
+
 		let columns: Array<{title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined}> = [{title: 'Token Pair', dataIndex: 'pair', key: 'pair', align: 'left'}]
 		let dataSource: Array<{pair: string, price: number}> = []
 
 		data.forEach(({name, token_pair: pair, price}: {name: string, token_pair: string, price: number}) => {
-			const column: {title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined} = {title: name, dataIndex: 'price', key: name, align: 'left'}
+			tokenPairs = [...new Set([...tokenPairs, pair])]
+			exchanges = [...new Set([...exchanges, name])]
 
-			columns =[...columns, column]
 			dataSource.push({pair, price})
 		})
+
+		columns = [...columns, ...exchanges.map((title: string) => {
+			const column: {title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined} = { title, dataIndex: 'price', key: title, align: 'left'}
+
+			return column
+		})]
 
 		setColumns(columns)
 		setDataSource(dataSource)

@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState, useRef} from "react";
 import axios from 'axios'
 import { Button, Card, Popover, Spin, Typography, Select } from "antd";
 
+import BigNumber from 'bignumber.js'
 import Web3 from 'web3'
 import {AbiItem} from 'web3-utils';
 
@@ -20,6 +21,11 @@ import { useWallet } from "../../context/wallet";
 import './index.less'
 
 const { Option } = Select;
+
+BigNumber.config({
+  EXPONENTIAL_AT: 1000,
+  DECIMAL_PLACES: 80,
+})
 
 export const TokenDisplay = (props: {
   name: string;
@@ -162,6 +168,10 @@ export const TradeEntry = () => {
 	const defaultChains : Array<{chain: string, amount: number}> = []
 	const [chains, setChains] = useState(defaultChains)
 
+	const [ethAmount, setEthAmount] = useState(0)
+	const [bscAmount, setBscAmount] = useState(0)
+	const [hecoAmount, setHecoAmount] = useState(0)
+
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
 
@@ -182,26 +192,24 @@ export const TradeEntry = () => {
 
 		const amountInNumber = Number(amountA) * 1e6;
 
-		let ethAmount = 0
-
 		if (tokenB.address === 'BTC') {
-			ethAmount = await wbtcusdtpair.methods.getReserves().call().then((result: any) => {
+			wbtcusdtpair.methods.getReserves().call().then((result: any) => {
 				return router.methods.getAmountOut(
 					amountInNumber, 
 					result._reserve1,
 					result._reserve0,
 				).call()
-			}).then((result: any) => result / 1e8)
+			}).then((result: any) => setEthAmount(result / 1e8))
 		}
 
 		if (tokenB.address === 'ETH') {
-			ethAmount = await ethusdtpair.methods.getReserves().call().then((result: any) => {
+			ethusdtpair.methods.getReserves().call().then((result: any) => {
 				return router.methods.getAmountOut(
 					amountInNumber, 
 					result._reserve1,
 					result._reserve0,
 				).call()
-			}).then((result: any) => result / 1e18)
+			}).then((result: any) => setEthAmount(result / 1e18))
 		}
 
 		const bsc3 = new Web3('https://bsc-dataseed1.binance.org:443');
@@ -212,26 +220,61 @@ export const TradeEntry = () => {
 		const bscethusdtpair = new bsc3.eth.Contract(uniV2PairABI , bscethusdtpairAddr);
 		const bscbtcbusdtpair = new bsc3.eth.Contract(uniV2PairABI, bscbtcbusdtpairAddr)
 
-		let bscAmount = 0
-
 		if (tokenB.address === 'BTC') {
-			bscAmount = await bscbtcbusdtpair.methods.getReserves().call().then((result: any) => {
+			bscbtcbusdtpair.methods.getReserves().call().then((result: any) => {
 				return bscrouter.methods.getAmountOut(
-					'10000000000000000000000',
+					new BigNumber(Number(amountA) * 10e18).toString(),
 					result._reserve0,
 					result._reserve1,
 				).call()
-			}).then((result: any) => result / 1e18)
+			}).then((result: any) => setBscAmount(result / 1e18))
 		}
 
 		if (tokenB.address === 'ETH') {
-			bscAmount = await bscethusdtpair.methods.getReserves().call().then((result: any) => {
+			bscethusdtpair.methods.getReserves().call().then((result: any) => {
 				return bscrouter.methods.getAmountOut(
-					'10000000000000000000000',
+					new BigNumber(Number(amountA) * 10e18).toString(),
 					result._reserve1,
 					result._reserve0,
 				).call()
-			}).then((result: any) => result / 1e18)
+			}).then((result: any) => setBscAmount(result / 1e18))
+		}
+
+		// tron
+		const tron3 = new Web3('https://api.trongrid.io');
+		// const tronRouterAddr = 'THPMGRqM7asytcp7nMu6MBR8X3dV3NiLa8'
+		// const tronethusdtpairAddr = '0x531febfeb9a61d948c384acfbe6dcc51057aea7e'
+		// const tronbtcbusdtpairAddr = '0x3f803ec2b816ea7f06ec76aa2b6f2532f9892d62'
+		// const tronrouter = new bsc3.eth.Contract(uniRouterV2ABI , bscRouterAddr);
+		// const tronethusdtpair = new bsc3.eth.Contract(uniV2PairABI , bscethusdtpairAddr);
+		// const tronbtcbusdtpair = new bsc3.eth.Contract(uniV2PairABI, bscbtcbusdtpairAddr)
+
+		const heco3 = new Web3('https://http-mainnet.hecochain.com')
+		const hecoRouterAddr = '0xED7d5F38C79115ca12fe6C0041abb22F0A06C300'
+		const hecoethusdtpairAddr = '0x531febfeb9a61d948c384acfbe6dcc51057aea7e'
+		const hecobtcbusdtpairAddr = '0x3f803ec2b816ea7f06ec76aa2b6f2532f9892d62'
+		const hecorouter = new heco3.eth.Contract(uniRouterV2ABI , hecoRouterAddr);
+		const hecoethusdtpair = new heco3.eth.Contract(uniV2PairABI , hecoethusdtpairAddr);
+		const hecobtcbusdtpair = new heco3.eth.Contract(uniV2PairABI, hecobtcbusdtpairAddr)
+
+		if (tokenB.address === 'BTC') {
+			hecobtcbusdtpair.methods.getReserves().call().then((result: any) => {
+				return hecorouter.methods.getAmountOut(
+					new BigNumber(Number(amountA) * 10e18).toString(),
+					result._reserve0,
+					result._reserve1,
+				).call()
+			}).then((result: any) => setHecoAmount(result / 1e18)).catch((e: any) => console.error(e))
+		}
+
+		if (tokenB.address === 'ETH') {
+			hecoethusdtpair.methods.getReserves().call().then((result: any) => {
+				return hecorouter.methods.getAmountOut(
+					new BigNumber(Number(amountA) * 10e18).toString(),
+					result._reserve1,
+					result._reserve0,
+				).call()
+			}).then((result: any) => setHecoAmount(result / 1e18))
 		}
 
       if (cancel.current) {
@@ -249,10 +292,10 @@ export const TradeEntry = () => {
         cancelToken: new CancelToken((c) => cancel.current = c)
 			})
 
-			setChains([{chain: 'ETH', amount: ethAmount}, {chain: 'BSC', amount: bscAmount}, ...data.map(({chain, amount_out, decimals}: {chain: string, amount_out: number, decimals: number}) => ({
+			setChains(data.map(({chain, amount_out, decimals}: {chain: string, amount_out: number, decimals: number}) => ({
 				chain,
 				amount: amount_out / (10 ** decimals)
-			}))])
+			})))
 	}, [CancelToken, amountA, tokenA.address, tokenB.address])
 
 	useEffect(() => {
@@ -312,12 +355,36 @@ export const TradeEntry = () => {
 			<div className="chains">
 				{chains.length ? chains.map(({chain, amount}) => (
 					<div className="chain" key={chain}>
-						<div>{chain}</div>
+						<div style={{width: '40px'}}>{chain}</div>
 						<div className="hd">{tokenA.address} {amountA}</div>
             <ArrowRightOutlined />
 						<div className="bd">{amount.toFixed(8)} {tokenB.address}</div>
 					</div>
 				)) : null}
+				{ethAmount ? (
+					<div className="chain">
+						<div style={{width: '40px'}}>ETH</div>
+						<div className="hd">{tokenA.address} {amountA}</div>
+            <ArrowRightOutlined />
+						<div className="bd">{ethAmount.toFixed(8)} {tokenB.address}</div>
+					</div>
+				) : null}
+				{bscAmount ? (
+					<div className="chain">
+						<div style={{width: '40px'}}>BSC</div>
+						<div className="hd">{tokenA.address} {amountA}</div>
+            <ArrowRightOutlined />
+						<div className="bd">{bscAmount.toFixed(8)} {tokenB.address}</div>
+					</div>
+				) : null}
+				{hecoAmount ? (
+					<div className="chain">
+						<div style={{width: '40px'}}>HECO</div>
+						<div className="hd">{tokenA.address} {amountA}</div>
+            <ArrowRightOutlined />
+						<div className="bd">{hecoAmount.toFixed(8)} {tokenB.address}</div>
+					</div>
+				) : null}
 			</div>
 		</>
 	)

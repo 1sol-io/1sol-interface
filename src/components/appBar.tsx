@@ -42,7 +42,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Trade
             </Link>
           </Menu.Item>
-          <Menu.Item key="/crosschain">
+          {/* <Menu.Item key="/crosschain">
             <Link
               to={{
                 pathname: "/crosschain",
@@ -50,7 +50,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
             >
               Crosschain
             </Link>
-          </Menu.Item>
+          </Menu.Item> */}
           {/* <Menu.Item key="/info">
             <Link
               to={{

@@ -102,9 +102,7 @@ export function ConnectionProvider({ children = undefined as any }) {
       const customTokenJSON = await queryJsonFiles([
         "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/tokens/solana.tokenlist.json",
       ]);
-      console.log(customTokenJSON);
       const customTokenList = new TokenListContainer(customTokenJSON);
-      console.log(customTokenList);
 
       // const list = res
       //   .filterByChainId(chain.chainID)
