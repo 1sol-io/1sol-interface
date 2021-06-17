@@ -9,6 +9,8 @@ import { CurrencyPairProvider } from "./utils/currencyPair";
 import { MarketProvider } from "./context/market";
 import { ExchangeView } from "./components/exchange";
 import { HomePage } from "./components/home";
+import {Dashboard} from './components/dashboard'
+import { CrossChain } from './components/crosschain'
 
 export function Routes() {
   return (
@@ -22,6 +24,8 @@ export function Routes() {
                   <Route exact path="/" component={HomePage} />
                   <Route exact path="/trade" component={ExchangeView} />
                   <Route exact path="/info" component={() => <ChartsView />} />
+                  <Route exact path="/dashboard" component={() => <Dashboard />} />
+                  <Route exact path="/crosschain" component={() => <CrossChain />} />
                 </CurrencyPairProvider>
               </MarketProvider>
             </AccountsProvider>

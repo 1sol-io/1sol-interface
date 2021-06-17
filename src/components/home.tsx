@@ -46,8 +46,8 @@ export const HomePage = () => {
           <div className="powerby">Built on: <img src={solana} /><a href="https://solana.com">Solana</a></div>
           <div className="buttons">
             <div className="flex btn-flex">
-              <a href="https://drive.google.com/drive/folders/1EsI_GExrzgD-eQ25nozvgFKYjZhkVVLC?usp=sharing">
-                <Button className="custom-btn purple-btn" type="text" size="large">Download Whitepaper</Button>
+              <a href="https://file.1sol.io/static/1SolProtocolLightPaper.pdf">
+                <Button className="custom-btn purple-btn" type="text" size="large">Download LightPaper</Button>
               </a>
               <Link to={{pathname: '/trade'}}>
                 <Button className="custom-btn purple-btn-outline" type="text" size="large">Trade(devnet)</Button>
