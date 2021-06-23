@@ -1,5 +1,9 @@
 import { Button, Card, Popover, Spin, Typography } from "antd";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  PublicKey,
+} from "@solana/web3.js";
+
 import axios from 'axios'
 
 import {
@@ -19,11 +23,13 @@ import {
   ArrowRightOutlined
 } from "@ant-design/icons";
 import {
+  createTokenAccount,
   onesolProtocolSwap,
   usePoolForBasket,
   usePool1ForBasket,
   PoolOperation,
   LIQUIDITY_PROVIDER_FEE,
+  hasAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -37,6 +43,8 @@ import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
+
+import { cache, useAccountByMint } from "../../utils/accounts";
 
 const { Text } = Typography;
 
@@ -63,6 +71,17 @@ export const TradeEntry = () => {
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
+
+  const [hasTokenAccount, setHasTokenAccount] = useState(false)
+
+  const tokenMint = cache.getMint(B.mintAddress);
+  const tokenAccount = useAccountByMint(B.mintAddress);
+
+  useEffect(() => {
+    if (connected && tokenAccount && tokenMint) {
+      setHasTokenAccount(true)
+    }
+  }, [connected, B.mintAddress, tokenAccount, tokenMint])
 
   const fetchDistrubition = useCallback(async () => {
       if (!A.mint || !B.mint) {
@@ -163,6 +182,40 @@ export const TradeEntry = () => {
     }
   };
 
+  const handleCreateTokenAccount = async () => {
+    if (A.account && B.mintAddress) {
+      try {
+        setPendingTx(true);
+
+        const components = [
+          {
+            account: A.account,
+            mintAddress: A.mintAddress,
+            amount: A.convertAmount(),
+          },
+          {
+            mintAddress: B.mintAddress,
+            amount: B.convertAmount(),
+          },
+        ];
+
+        await createTokenAccount(connection, wallet, components);
+
+        setHasTokenAccount(true)
+      } catch (e) {
+        console.log(e)
+        notify({
+          description:
+            "Please try again",
+          message: "Create account cancelled.",
+          type: "error",
+        });
+      } finally {
+        setPendingTx(false);
+      }
+    }
+  }
+
   return (
     <>
       <div className="input-card">
@@ -207,7 +260,7 @@ export const TradeEntry = () => {
         size="large"
         shape="round"
         block
-        onClick={connected ? handleSwap : connect}
+        onClick={connected ? hasTokenAccount ? handleSwap : handleCreateTokenAccount : connect}
         style={{ marginTop: '20px' }}
         disabled={
           connected &&
@@ -230,7 +283,8 @@ export const TradeEntry = () => {
         tokenMap,
         A,
         B,
-        true
+        true,
+        hasTokenAccount
         )}
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
