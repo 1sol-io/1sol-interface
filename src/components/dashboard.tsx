@@ -1,63 +1,111 @@
-import React, {useEffect, useCallback, useState} from "react";
-import {Table} from 'antd'
-import axios from 'axios'
+import { Card, Table } from "antd";
+import React, { useState, useEffect } from "react";
+import { PublicKey } from '@solana/web3.js'
+import { parseMappingData, parsePriceData, parseProductData } from '@pythnetwork/client'
+
+import {
+  useConnection,
+} from "../utils/connection";
 
 import { AppBar } from "./appBar";
 
 import './dashboard.less'
 
+const publicKey = new PublicKey('BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2')
+
+const columns: Array<{title: string, dataIndex: string, key: string, align?: "left" | "center" | "right" | undefined, render?: any}> = [
+  { title: "Market", dataIndex: "symbol", key: 'symbol', align: 'left' },
+  {
+    title: "Price",
+    dataIndex: "price",
+		key: "price",
+		align: 'left',
+    render: (value: number) => `$${value}`,
+  },
+	{ title: "Uncertainty", dataIndex: "confidence", key: 'confidence', render:(value: number) => `\xB1$${value}`, align: 'right' },
+];
+
+const SYMBOLS = ['BCH/USD', 'BNB/USD', 'BTC/USD', 'DOGE/USD', 'ETH/USD', 'GBP/USD', 'LTC/USD', 'LUNA/USD', 'SOL/USD', 'SRM/USD', 'USDC/USD', 'USDT/USD']
+
 export const Dashboard = () => {
-	const d: Array<{pair: string, price: number}> = []
-	const [dataSource, setDataSource] = useState(d)
+	const connection  = useConnection()
+
+	const dataSource: Array<{symbol: string, price: number, confidence: number, key: string}> = []
+	const [products, setProducts] = useState(dataSource)
 	const [loading, setLoading] = useState(false)
 
-	const c: Array<{title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined}> = []
-	const [columns , setColumns] = useState(c)
-
-	const fetchData = useCallback(async () => {
-		setLoading(true)
-		const {data: {data}} = await axios({
-      url: 'https://api.1sol.io/chart', 
-    })
-
-		let tokenPairs: string[] = []
-		let exchanges: string[] = []
-
-		let columns: Array<{title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined}> = [{title: 'Token Pair', dataIndex: 'pair', key: 'pair', align: 'left'}]
-		let dataSource: Array<{pair: string, price: number}> = []
-
-		data.forEach(({name, token_pair: pair, price}: {name: string, token_pair: string, price: number}) => {
-			tokenPairs = [...new Set([...tokenPairs, pair])]
-			exchanges = [...new Set([...exchanges, name])]
-
-			dataSource.push({pair, price})
-		})
-
-		columns = [...columns, ...exchanges.map((title: string) => {
-			const column: {title: string, dataIndex: string, key: string, align: "left" | "center" | "right" | undefined} = { title, dataIndex: 'price', key: title, align: 'left'}
-
-			return column
-		})]
-
-		setColumns(columns)
-		setDataSource(dataSource)
-		setLoading(false)
-	}, [])
-
 	useEffect(() => {
-		fetchData()
+		let timeout: ReturnType<typeof setTimeout>
 
-		const timeout = setTimeout(() => fetchData(), 5000)
+		const fetchProducts = async (showLoading: boolean = false) => {
+			if (showLoading) {
+				setLoading(true)
+			}
 
-		return clearTimeout(timeout)
-	}, [fetchData])
+			try {
+				const accountInfo: any = await connection.getAccountInfo(publicKey)
 
-	return (
+				const { productAccountKeys } = parseMappingData(accountInfo.data)
+
+				const promises = productAccountKeys.map(async (productAccountKey) => {
+					try {
+						const accountInfo = await connection.getAccountInfo(productAccountKey)
+
+						if (accountInfo) {
+								const { product, priceAccountKey } = parseProductData(accountInfo.data)
+								const accountInfo1 = await connection.getAccountInfo(priceAccountKey)
+
+								if (accountInfo1) {
+									const { price, confidence } = parsePriceData(accountInfo1.data)
+
+									return ({symbol: product.symbol, price, confidence, key: product.symbol})
+									// products.push({symbol: product.symbol, price, confidence})
+								}
+						}
+
+						return {symbol: '', price: 0, confidence: 0, key: ''}
+					} catch (e) {
+						return {symbol: '', price: 0, confidence: 0, key: ''}
+					}
+				})
+
+				const products = await Promise.all(promises)
+				
+				setProducts(products.sort((a, b) => {
+					if (a.symbol < b.symbol) {
+						return -1;
+					}
+
+					if (a.symbol > b.symbol) {
+						return 1;
+					}
+				
+					return 0;
+				}).filter((d) => d.symbol && SYMBOLS.indexOf(d.symbol) > -1))
+
+				setLoading(false)
+
+				timeout = setTimeout(() => fetchProducts(), 5000)
+			} catch (e) {
+				timeout = setTimeout(() => fetchProducts(), 5000)
+			}
+		}
+
+		fetchProducts(true)
+
+		return () => {
+			clearTimeout(timeout)
+		}
+	}, [connection])
+
+  return (
 		<div className="page-dashboard">
 			<AppBar />
 			<div className="bd">
-				<Table loading={loading} dataSource={dataSource} columns={columns} bordered pagination={false} />
+				<Card title="Cryptocurrency Price Realtime Dashboard" style={{margin: '20px 30px'}}>
+    	  	<Table loading={loading} dataSource={products} columns={columns} bordered pagination={false} />
+				</Card>
 			</div>
 		</div>
-	)
-}
+  );
+};

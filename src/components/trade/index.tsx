@@ -304,7 +304,7 @@ export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
       <RightOutlined style={{margin: '0 5px'}} />
       <div className="bd">
         <div className="pool">
-          <div className="name">Test Swap1</div>
+          <div className="name">Test Raydium Swap</div>
           <div className="amount">
             <span>{A.name} {amounts[0].input}</span>
             <ArrowRightOutlined />
@@ -313,7 +313,7 @@ export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
         </div>
         <PlusOutlined style={{margin: '10px 0'}} />
         <div className="pool">
-          <div className="name">Test Swap2</div>
+          <div className="name">Test DexLab Swap</div>
           <div className="amount">
             <span>{A.name} {amounts[1].input}</span>
             <ArrowRightOutlined />
