@@ -44,7 +44,7 @@ import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
 
-import { cache, useAccountByMint } from "../../utils/accounts";
+import { cache, useUserAccounts } from "../../utils/accounts";
 
 const { Text } = Typography;
 
@@ -74,14 +74,30 @@ export const TradeEntry = () => {
 
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
-  const tokenMint = cache.getMint(B.mintAddress);
-  const tokenAccount = useAccountByMint(B.mintAddress);
+  const { userAccounts } = useUserAccounts();
 
   useEffect(() => {
+    const getTokenAccount = (mint: string) => {
+      const index = userAccounts.findIndex(
+          (acc: any) => acc.info.mint.toBase58() === mint
+        );
+
+        if (index !== -1) {
+          return userAccounts[index];
+        }
+
+        return;
+    }
+    
+    setHasTokenAccount(false)
+
+    const tokenMint = cache.getMint(B.mintAddress);
+    const tokenAccount = getTokenAccount(B.mintAddress);
+
     if (connected && tokenAccount && tokenMint) {
       setHasTokenAccount(true)
     }
-  }, [connected, B.mintAddress, tokenAccount, tokenMint])
+  }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
       if (!A.mint || !B.mint) {
