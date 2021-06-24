@@ -386,6 +386,30 @@ export const useOwnedPools = (legacy = false) => {
 // Allow for this much price movement in the pool before adding liquidity to the pool aborts
 const SLIPPAGE = 0.005;
 
+export const hasAccount = (
+  owner: PublicKey,
+  mint: PublicKey, 
+  excluded?: Set<string>
+) => {
+  console.log(owner.toBase58())
+  console.log(mint.toBase58())
+  const accountToFind = mint.toBase58();
+  const account = getCachedAccount(
+    (acc) =>
+      acc.info.mint.toBase58() === accountToFind &&
+      acc.info.owner.toBase58() === owner.toBase58() &&
+      (excluded === undefined || !excluded.has(acc.pubkey.toBase58()))
+  );
+  const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58();
+
+  if (account && !isWrappedSol) {
+    return true
+  } else {
+    return false
+  }
+
+}
+
 function findOrCreateAccountByMint(
   payer: PublicKey,
   owner: PublicKey,
@@ -676,6 +700,43 @@ function createSplAccount(
   return account;
 }
 
+export async function createTokenAccount (
+  connection: Connection, 
+  wallet: any, 
+  components: LiquidityComponent[]
+) {
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
+
+  const toAccountInstructions: TransactionInstruction[] = [];
+  const cleanupToAccountInstructions: TransactionInstruction[] = [];
+  const toAccountigners: Account[] = [];
+
+  findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    toAccountInstructions,
+    cleanupToAccountInstructions,
+    accountRentExempt,
+    new PublicKey(components[1].mintAddress),
+    toAccountigners
+  );
+
+    await sendTransaction(
+      connection,
+      wallet,
+      toAccountInstructions,
+      toAccountigners
+    )
+
+  notify({
+    message: `Token account created`,
+    type: "success",
+    description: ``,
+  });
+}
+
 export async function onesolProtocolSwap (
   connection: Connection, 
   wallet: any, 
@@ -690,7 +751,6 @@ export async function onesolProtocolSwap (
   const fetchAccounts = async () => {
     const accounts = await connection.getProgramAccounts(onesolProgramId)
     const [deserialized] = accounts.map((info: any) => deserializeAccount(info)).filter((account: any) =>  new PublicKey(account.info.mint).toString() === B.mintAddress)
-    console.log(deserialized)
 
     let onesolProtocal 
 
@@ -700,6 +760,7 @@ export async function onesolProtocolSwap (
 
     return onesolProtocal
   }
+
 
   const onesolProtocol = await fetchAccounts()
 
@@ -739,14 +800,14 @@ export async function onesolProtocolSwap (
     toAccountigners
   );
 
-  if (toAccountInstructions.length) {
-    await sendTransaction(
-      connection,
-      wallet,
-      toAccountInstructions,
-      toAccountigners
-    )
-  }
+  // if (toAccountInstructions.length) {
+  //   await sendTransaction(
+  //     connection,
+  //     wallet,
+  //     toAccountInstructions,
+  //     toAccountigners
+  //   )
+  // }
 
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];
