@@ -61,10 +61,10 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
-  const [amounts, setAmounts] = useState([])
-
-  const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
-  const pool1 = usePool1ForBasket([A?.mintAddress, B?.mintAddress]);
+  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>({input: 0, output: 0})
+  const [serumMarketAmount, setSerumMarketAmount] = useState<{input: number, output: number}>({input: 0, output: 0})
+  const [pool, setPool] = useState('2Zzh3VH5T3smrkp4BtKFtszN3Mt7aAr6bUy6LQVc8ZKi')
+  const [market, setMarket] = useState('5azeSwbaWZhwzTs93t43NUDj4YxZFpULU7Je7BNWNhTe')
 
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
@@ -78,6 +78,8 @@ export const TradeEntry = () => {
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
+      // TODO
+      // if token is SOL, return 
       const index = userAccounts.findIndex(
           (acc: any) => acc.info.mint.toBase58() === mint
         );
@@ -108,17 +110,7 @@ export const TradeEntry = () => {
         cancel.current()
       }
 
-      setAmounts([])
-
-        const swapKeys = []
-
-        if (pool) {
-          swapKeys.push(pool.pubkeys.account.toString())
-        }
-
-        if (pool1) {
-          swapKeys.push(pool1.pubkeys.account.toString())
-        }
+        const swapKeys: [] = []
 
         const decimals = [A.mint.decimals, B.mint.decimals]
 
@@ -134,10 +126,23 @@ export const TradeEntry = () => {
           }, 
           cancelToken: new CancelToken((c) => cancel.current = c)
       }).then(({data: {amounts}}) => {
-        setAmounts(amounts.map(({input, output}: {input: any, output: any}) => ({input: input  / 10 ** decimals[0
-        ], output: output  / 10 ** decimals[1]})))
+        const [tokenSwap, serumMarket] = amounts
+
+        if (tokenSwap) {
+          setTokenSwapAmount({
+            input: tokenSwap.input  / 10 ** decimals[0],
+            output: tokenSwap.output  / 10 ** decimals[0],
+          })
+        }
+
+        if (serumMarket) {
+          setSerumMarketAmount({
+            input: serumMarket.input  / 10 ** decimals[0],
+            output: serumMarket.output  / 10 ** decimals[0],
+          })
+        }
       })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, pool1])
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
 
   useEffect(() => {
     if (Number(A.amount)) {
@@ -182,8 +187,9 @@ export const TradeEntry = () => {
           },
         ];
 
-        // await swap(connection, wallet, components, slippage, pool);
-        await onesolProtocolSwap(connection, wallet, B, pool, pool1, slippage, components);
+        await onesolProtocolSwap(connection, wallet, B, new PublicKey(pool), new PublicKey(market), slippage, components, {tokenSwap: tokenSwapAmount,
+        serumMarket: serumMarketAmount
+      });
       } catch (e) {
         console.log(e)
         notify({
@@ -235,7 +241,7 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="input-card">
-        <AdressesPopover pool={pool} />
+        {/* <AdressesPopover pool={pool} /> */}
         <CurrencyInput
           title="From"
           onInputChange={(val: any) => {
@@ -304,8 +310,8 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
-      <TradeInfo pool={pool} pool1={pool1} />
-      {amounts.length  ? <TradeRoute amounts={amounts} /> : null}
+      {/* <TradeInfo pool={pool} pool1={pool1} /> */}
+      {/* {amounts.length  ? <TradeRoute amounts={amounts} /> : null} */}
     </>
   );
 };

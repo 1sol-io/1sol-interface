@@ -32,7 +32,14 @@ import {
   TokenSwapLayoutV1,
   PoolConfig,
 } from "./../models";
-import {deserializeAccount, getTokenSwapInfo, getOneSolProtocol} from '../utils/onesol-protocol'
+import {deserializeAccount, SerumDexMarketInfo, getOneSolProtocol, loadTokenSwapInfo, Numberu64} from '../utils/onesol-protocol'
+import {
+  DexInstructions,
+  Market,
+  MARKET_STATE_LAYOUT_V2,
+  OpenOrders
+} from '@project-serum/serum';
+import { getClientId } from "./utils";
 
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
@@ -737,46 +744,74 @@ export async function createTokenAccount (
   });
 }
 
+// TODO
+// prograim id is different in different net
+const TOKENSWAP_PROGRAM_ID = new PublicKey('SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8')
+const SERUM_PROGRAM_ID = new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY')
+const ONESOL_PROGRAM_ID =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
+
+interface TokenSwapAmountProps {
+  input: number,
+  output: number
+}
+
+interface SerumAmountProps {
+  input: number,
+  output: number
+}
+
 export async function onesolProtocolSwap (
   connection: Connection, 
   wallet: any, 
   B: any, 
-  pool0: any, 
-  pool1: any, 
+  pool: PublicKey | null, 
+  marketPublicKey: PublicKey | null, 
   slippage: number, 
-  components: LiquidityComponent[]
+  components: LiquidityComponent[],
+  amounts: {
+    tokenSwap: TokenSwapAmountProps,
+    serumMarket: SerumAmountProps
+  }
 ) {
-  const onesolProgramId =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
 
-  const fetchAccounts = async () => {
-    const accounts = await connection.getProgramAccounts(onesolProgramId)
+  const fetchOnesolProtocol = async () => {
+    const accounts = await connection.getProgramAccounts(ONESOL_PROGRAM_ID)
     const [deserialized] = accounts.map((info: any) => deserializeAccount(info)).filter((account: any) =>  new PublicKey(account.info.mint).toString() === B.mintAddress)
 
-    let onesolProtocal 
+    let onesolProtocol 
 
     if (deserialized) {
-      onesolProtocal = getOneSolProtocol(deserialized.info, connection, deserialized.pubkey, onesolProgramId, wallet.publicKey)
+      onesolProtocol = getOneSolProtocol(deserialized.info, connection, deserialized.pubkey, ONESOL_PROGRAM_ID, wallet.publicKey)
     }
 
-    return onesolProtocal
+    return onesolProtocol
   }
 
 
-  const onesolProtocol = await fetchAccounts()
+  const onesolProtocol = await fetchOnesolProtocol()
 
   if (!onesolProtocol) {
     return
   }
 
-  let tokenSwapInfo0 = null
-  let tokenSwapInfo1 = null
+  let tokenSwapInfo = null
+  let serumMarketInfo = null
 
-  if (pool0) {
-    tokenSwapInfo0 = await getTokenSwapInfo(pool0.raw.data, pool0.pubkeys.account, programIds().swaps[0])
+  if (pool) {
+    tokenSwapInfo = await loadTokenSwapInfo(connection, pool, TOKENSWAP_PROGRAM_ID, new Numberu64(amounts.tokenSwap.input), new Numberu64(amounts.tokenSwap.output), null)
   }
 
-  if (pool1) {
-    tokenSwapInfo1 = await getTokenSwapInfo(pool1.raw.data, pool1.pubkeys.account, programIds().swaps[1])
+  if (marketPublicKey) {
+    const market = await Market.load(connection, marketPublicKey, {}, SERUM_PROGRAM_ID)
+
+    serumMarketInfo = new SerumDexMarketInfo(
+      SERUM_PROGRAM_ID,
+      market,
+      new Numberu64(1),
+      new Numberu64(51000),
+      new Numberu64(51000),
+      new Numberu64(getClientId()) 
+    );
   }
 
   const amountIn = components[0].amount; // these two should include slippage
@@ -799,15 +834,6 @@ export async function onesolProtocolSwap (
     new PublicKey(components[1].mintAddress),
     toAccountigners
   );
-
-  // if (toAccountInstructions.length) {
-  //   await sendTransaction(
-  //     connection,
-  //     wallet,
-  //     toAccountInstructions,
-  //     toAccountigners
-  //   )
-  // }
 
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];
@@ -833,14 +859,14 @@ export async function onesolProtocolSwap (
 
   signers.push(transferAuthority);
 
-  const swapInstruction = onesolProtocol.newSwapInstruction(
-    transferAuthority,
+  const swapInstruction = await onesolProtocol.createSwapInstruction(
     fromAccount,
+    new PublicKey(components[0].mintAddress),
     toAccount,
-    amountIn,
     minAmountOut,
-    tokenSwapInfo0,
-    tokenSwapInfo1,
+    tokenSwapInfo,
+    serumMarketInfo,
+    signers
   )
 
   instructions.push(swapInstruction)
