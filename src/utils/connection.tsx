@@ -221,9 +221,9 @@ export function useSlippageConfig() {
 
 const getErrorForTransaction = async (connection: Connection, txid: string) => {
   // wait for all confirmation before geting transaction
-  await connection.confirmTransaction(txid, "max");
+  await connection.confirmTransaction(txid, "confirmed");
 
-  const tx = await connection.getParsedConfirmedTransaction(txid);
+  const tx = await connection.getParsedConfirmedTransaction(txid, 'confirmed');
 
   const errors: string[] = [];
   if (tx?.meta && tx.meta.logMessages) {
@@ -258,19 +258,23 @@ export const sendTransaction = async (
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
-  transaction.setSigners(
-    // fee payied by the wallet owner
-    wallet.publicKey,
-    ...signers.map((s) => s.publicKey)
-  );
+  // transaction.setSigners(
+  //   // fee payied by the wallet owner
+  //   wallet.publicKey,
+  //   ...signers.map((s) => s.publicKey)
+  // );
+  transaction.feePayer = wallet.publicKey
+
   if (signers.length > 0) {
     transaction.partialSign(...signers);
   }
+
   transaction = await wallet.signTransaction(transaction);
+
   const rawTransaction = transaction.serialize();
   let options = {
     skipPreflight: true,
-    commitment: "singleGossip",
+    commitment: "confirmed",
   };
 
   const txid = await connection.sendRawTransaction(rawTransaction, options);
@@ -285,12 +289,13 @@ export const sendTransaction = async (
 
     if (status?.err) {
       const errors = await getErrorForTransaction(connection, txid);
+      
       notify({
         message: "Transaction failed...",
         description: (
           <>
-            {errors.map((err) => (
-              <div>{err}</div>
+            {errors.map((err, i) => (
+              <div key={i}>{err}</div>
             ))}
             <ExplorerLink address={txid} type="transaction" />
           </>

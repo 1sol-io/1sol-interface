@@ -40,6 +40,7 @@ import {
   OpenOrders
 } from '@project-serum/serum';
 import { getClientId } from "./utils";
+import { TOKENSWAP_PROGRAM_ID, ONESOL_PROGRAM_ID, SERUM_PROGRAM_ID} from './constant'
 
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
@@ -744,12 +745,6 @@ export async function createTokenAccount (
   });
 }
 
-// TODO
-// prograim id is different in different net
-const TOKENSWAP_PROGRAM_ID = new PublicKey('SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8')
-const SERUM_PROGRAM_ID = new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY')
-const ONESOL_PROGRAM_ID =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
-
 interface TokenSwapAmountProps {
   input: number,
   output: number
@@ -834,6 +829,14 @@ export async function onesolProtocolSwap (
     new PublicKey(components[1].mintAddress),
     toAccountigners
   );
+  console.log(toAccount.toString())
+  if (toAccountInstructions.length) {
+  await sendTransaction(
+    connection,
+    wallet,
+    toAccountInstructions,
+    toAccountigners
+  )}
 
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];
@@ -848,33 +851,36 @@ export async function onesolProtocolSwap (
     signers
   );
 
-  const transferAuthority = approveAmount(
-    instructions,
-    cleanupInstructions,
-    fromAccount,
-    wallet.publicKey,
-    amountIn,
-    undefined
-  );
+  // const transferAuthority = approveAmount(
+  //   instructions,
+  //   cleanupInstructions,
+  //   fromAccount,
+  //   wallet.publicKey,
+  //   amountIn,
+  //   undefined
+  // );
 
-  signers.push(transferAuthority);
+  // signers.push(transferAuthority);
 
-  const swapInstruction = await onesolProtocol.createSwapInstruction(
+  await onesolProtocol.createSwapInstruction(
     fromAccount,
     new PublicKey(components[0].mintAddress),
     toAccount,
     minAmountOut,
     tokenSwapInfo,
     serumMarketInfo,
+    instructions,
     signers
   )
 
-  instructions.push(swapInstruction)
+  console.log(instructions)
+  signers.forEach(({publicKey}) => console.log(publicKey.toString()))
 
   let tx = await sendTransaction(
     connection,
     wallet,
-    instructions.concat(cleanupInstructions),
+    // instructions,
+    instructions.concat(cleanupToAccountInstructions).concat(cleanupInstructions),
     signers
   );
 

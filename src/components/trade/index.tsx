@@ -25,11 +25,8 @@ import {
 import {
   createTokenAccount,
   onesolProtocolSwap,
-  usePoolForBasket,
-  usePool1ForBasket,
   PoolOperation,
   LIQUIDITY_PROVIDER_FEE,
-  hasAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -45,6 +42,7 @@ import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
+import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
 const { Text } = Typography;
 
@@ -61,10 +59,10 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
-  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>({input: 0, output: 0})
-  const [serumMarketAmount, setSerumMarketAmount] = useState<{input: number, output: number}>({input: 0, output: 0})
-  const [pool, setPool] = useState('2Zzh3VH5T3smrkp4BtKFtszN3Mt7aAr6bUy6LQVc8ZKi')
-  const [market, setMarket] = useState('5azeSwbaWZhwzTs93t43NUDj4YxZFpULU7Je7BNWNhTe')
+  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>({input: 10 * 10**9, output: 10 * 10**6})
+  const [serumMarketAmount, setSerumMarketAmount] = useState<{input: number, output: number}>({input: 10 * 10** 9, output: 10 * 10**6})
+  const [pool, setPool] = useState('4kxKvagMA96pvU4YGQ3h5Y2hQVaQNpx9yphrobQPKyBp')
+  const [market, setMarket] = useState('DGWCn54n4CU4G539DrgNoLv1c9yCGDM5jQ7F2jLKoVum')
 
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
@@ -80,6 +78,10 @@ export const TradeEntry = () => {
     const getTokenAccount = (mint: string) => {
       // TODO
       // if token is SOL, return 
+      // if (mint === WRAPPED_SOL_MINT.toString()) {
+      //   return
+      // }
+
       const index = userAccounts.findIndex(
           (acc: any) => acc.info.mint.toBase58() === mint
         );
@@ -130,15 +132,15 @@ export const TradeEntry = () => {
 
         if (tokenSwap) {
           setTokenSwapAmount({
-            input: tokenSwap.input  / 10 ** decimals[0],
-            output: tokenSwap.output  / 10 ** decimals[0],
+            input: tokenSwap.input,
+            output: tokenSwap.output,
           })
         }
 
         if (serumMarket) {
           setSerumMarketAmount({
-            input: serumMarket.input  / 10 ** decimals[0],
-            output: serumMarket.output  / 10 ** decimals[0],
+            input: serumMarket.input,
+            output: serumMarket.output,
           })
         }
       })  
@@ -146,7 +148,7 @@ export const TradeEntry = () => {
 
   useEffect(() => {
     if (Number(A.amount)) {
-      fetchDistrubition()
+      // fetchDistrubition()
     }
   }, [A.amount, fetchDistrubition])
 
