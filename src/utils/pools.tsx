@@ -802,9 +802,9 @@ export async function onesolProtocolSwap (
     serumMarketInfo = new SerumDexMarketInfo(
       SERUM_PROGRAM_ID,
       market,
+      new Numberu64(1 * 10**6),
       new Numberu64(1),
-      new Numberu64(51000),
-      new Numberu64(51000),
+      new Numberu64(1),
       new Numberu64(getClientId()) 
     );
   }

@@ -135,7 +135,7 @@ export class TokenSwapInfo {
       { pubkey: this.poolFeeAccount, isSigner: false, isWritable: true },
       { pubkey: this.programId, isSigner: false, isWritable: false },
     ];
-    if (this.hostFeeAccount !== null) {
+    if (this.hostFeeAccount) {
       keys.push({ pubkey: this.hostFeeAccount, isSigner: false, isWritable: true });
     }
     return keys;
@@ -193,7 +193,7 @@ export class SerumDexMarketInfo {
   }
 
   public side(sourceMint: PublicKey): number {
-    if (this.market.baseMintAddress == sourceMint) {
+    if (this.market.baseMintAddress.equals(sourceMint)) {
       return 0;
     }
     return 1;
@@ -494,22 +494,24 @@ export class OneSolProtocol {
         this.connection, this.wallet
       );
       console.log("orders length: " + orders.length);
-      if (orders.length === 0) {
-        let openOrderAccount = new Account();
-        instructions.push(await OpenOrders.makeCreateAccountTransaction(
-          this.connection,
-          market.address,
-          this.wallet,
-          openOrderAccount.publicKey,
-          market.programId
-        ));
-        // console.log("makeCreateAccountTransaction.market: " + market.address);
-        // console.log("makeCreateAccountTransaction.payer: " + this.payer.publicKey);
-        // console.log("makeCreateAccountTransaction.openOrderAccount: " + openOrderAccount.publicKey);
-        // console.log("makeCreateAccountTransaction.programId: " + market.programId);
-        serumDexTradeInfo.openOrderAccountKey = openOrderAccount.publicKey;
-        signers.push(openOrderAccount);
-      }
+      // if (orders.length === 0) {
+      let openOrderAccount = new Account();
+      instructions.push(await OpenOrders.makeCreateAccountTransaction(
+        this.connection,
+        market.address,
+        this.wallet,
+        openOrderAccount.publicKey,
+        market.programId
+      ));
+      // console.log("makeCreateAccountTransactiongg.market: " + market.address);
+      // console.log("makeCreateAccountTransaction.payer: " + this.payer.publicKey);
+      // console.log("makeCreateAccountTransaction.openOrderAccount: " + openOrderAccount.publicKey);
+      // console.log("makeCreateAccountTransaction.programId: " + market.programId);
+      serumDexTradeInfo.openOrderAccountKey = openOrderAccount.publicKey;
+      signers.push(openOrderAccount);
+      // } else {
+      //   serumDexTradeInfo.openOrderAccountKey = orders[0].address;
+      // }
       // let openOrderAccount = serumDexTradeInfo.data.openOrdersAccount;
     }
     instructions.push(await OneSolProtocol.swapInstruction(
