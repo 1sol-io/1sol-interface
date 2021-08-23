@@ -112,11 +112,18 @@
           }
         }
 
-        a:first-of-type .custom-btn {
-          margin-right: 15px;
+        a.lightpaper .custom-btn {
+          margin: 0 15px;
 
           @media only screen and (max-width: 600px) {
             margin: 0 0 15px 0;
+          }
+        }
+
+        a .custom-btn {
+          @media only screen and (max-width: 600px) {
+            margin: 0 0 15px 0;
+            width: 254px;
           }
         }
       }

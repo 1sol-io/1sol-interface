@@ -46,6 +46,13 @@ body {
   z-index: 2;
   // border-bottom: 1px solid #e8e8e8;
 
+  .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item,
+  .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-submenu {
+    @media only screen and (max-width: 600px) {
+      padding: 0;
+    }
+  }
+
   .ant-menu-horizontal {
     border-bottom-color: transparent;
     background-color: transparent;

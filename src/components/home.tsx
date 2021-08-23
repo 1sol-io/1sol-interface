@@ -16,6 +16,13 @@ export const HomePage = () => {
   useEffect(() => {
     document.title = '1Sol Dex Aggregator'
   })
+
+  const toTg = () => {
+    gtag_report_conversion()
+
+    window.open('https://t.me/OnesolMasterBot', '_blank')
+  }
+
   return (
     <div className="page-home">
       <AppBar />
@@ -55,7 +62,12 @@ export const HomePage = () => {
           </div>
           <div className="buttons">
             <div className="flex btn-flex">
-              <a href="https://file.1sol.io/static/1Sol%20Protocol%20Pitch%20Deck%20v0.6.pdf">
+              <a href="#" onClick={toTg}>
+                <Button className="custom-btn purple-btn-outline" type="text" size="large">
+                  🎁 Genesis Airdrop
+                </Button>
+              </a>
+              <a className="lightpaper" href="https://file.1sol.io/static/1Sol%20Protocol%20Pitch%20Deck%20v0.6.pdf">
                 <Button className="custom-btn purple-btn" type="text" size="large">
                   Download LightPaper
                 </Button>
