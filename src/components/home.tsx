@@ -63,12 +63,12 @@ export const HomePage = () => {
           <div className="buttons">
             <div className="flex btn-flex">
               <a href="#" onClick={toTg}>
-                <Button className="custom-btn purple-btn-outline" type="text" size="large">
+                <Button className="custom-btn purple-btn" type="text" size="large">
                   🎁 Genesis Airdrop
                 </Button>
               </a>
               <a className="lightpaper" href="https://file.1sol.io/static/1Sol%20Protocol%20Pitch%20Deck%20v0.6.pdf">
-                <Button className="custom-btn purple-btn" type="text" size="large">
+                <Button className="custom-btn purple-btn-outline" type="text" size="large">
                   Download LightPaper
                 </Button>
               </a>
