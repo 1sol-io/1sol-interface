@@ -17,10 +17,11 @@ export const HomePage = () => {
     document.title = '1Sol Dex Aggregator'
   })
 
-  const toTg = () => {
-    gtag_report_conversion()
+  const toTg = (e: any) => {
+    // e.preventDefault()
+    gtag_report_conversion('https://t.me/OnesolMasterBot')
 
-    window.open('https://t.me/OnesolMasterBot', '_blank')
+    // window.open('https://t.me/OnesolMasterBot', 'OnesolMasterBot', '_blank')
   }
 
   return (
@@ -62,7 +63,7 @@ export const HomePage = () => {
           </div>
           <div className="buttons">
             <div className="flex btn-flex">
-              <a href="#" onClick={toTg}>
+              <a href="https://t.me/OnesolMasterBot" onClick={toTg}>
                 <Button className="custom-btn purple-btn" type="text" size="large">
                   🎁 Genesis Airdrop
                 </Button>
