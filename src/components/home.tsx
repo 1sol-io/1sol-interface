@@ -68,7 +68,7 @@ export const HomePage = () => {
                   🎁 Genesis Airdrop
                 </Button>
               </a>
-              <a className="lightpaper" href="https://file.1sol.io/static/1Sol%20Protocol%20Pitch%20Deck%20v0.6.pdf">
+              <a className="lightpaper" href="https://file.1sol.io/static/1Sol%20Protocol%20Pitch%20Deck%20v0.7.pdf">
                 <Button className="custom-btn purple-btn-outline" type="text" size="large">
                   Download LightPaper
                 </Button>
