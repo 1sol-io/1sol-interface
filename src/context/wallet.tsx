@@ -14,13 +14,17 @@ import {
   PhantomWalletAdapter,
   MathWalletAdapter,
   SolletExtensionAdapter,
+  SafePalWalletAdapter
 } from "../wallet-adapters";
 import { useConnectionConfig } from "../utils/connection";
 import { useLocalStorageState } from "../utils/utils";
 import { notify } from "../utils/notifications";
 
+import SafePalLogo from '../assets/safepal_white.svg'
+
 const ASSET_URL =
   "https://cdn.jsdelivr.net/gh/solana-labs/oyster@main/assets/wallets";
+
 export const WALLET_PROVIDERS = [
   {
     key: "sollet.io",
@@ -68,6 +72,13 @@ export const WALLET_PROVIDERS = [
     icon: `https://www.phantom.app/img/logo.png`,
     adapter: PhantomWalletAdapter,
   },
+  {
+    key: "SafePalWallet",
+    name: "SafePal",
+    url: "https://www.safepal.io/",
+    icon: SafePalLogo,
+    adapter: SafePalWalletAdapter,
+  }
 ];
 
 const WalletContext = React.createContext<any>(null);
