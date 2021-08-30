@@ -97,7 +97,6 @@ export function WalletProvider({ children = null as any }) {
   const wallet = useMemo(
     function () {
       if (provider) {
-        console.log('provider', provider)
         return new (provider.adapter || Wallet)(
           providerUrl,
           endpoint
@@ -106,9 +105,6 @@ export function WalletProvider({ children = null as any }) {
     },
     [provider, providerUrl, endpoint]
   );
-  console.group('wallet')
-  console.log(wallet)
-  console.groupEnd()
 
   const [connected, setConnected] = useState(false);
 

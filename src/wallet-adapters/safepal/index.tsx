@@ -34,8 +34,6 @@ export class SafePalWalletAdapter extends EventEmitter implements WalletAdapter 
   }
 
   private get _provider() {
-    console.log('get provider')
-    console.log((window as any).solona)
     if ((window as any)?.solana?.isSafePalWallet) {
       return (window as any).solana;
     }
@@ -58,10 +56,9 @@ export class SafePalWalletAdapter extends EventEmitter implements WalletAdapter 
     if (this._onProcess) {
       return;
     }
-    console.log('adapter', this._provider)
 
     if (!this._provider) {
-      // window.open('https://www.safepal.io/', '_blank');
+      window.open('https://www.safepal.io/', '_blank');
       notify({
         message: 'Safepal Wallet Error',
         description: 'Please install Safepal Wallet',
