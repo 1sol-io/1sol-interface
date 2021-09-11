@@ -406,10 +406,7 @@ export function AccountsProvider({ children = null as any }) {
     );
   }, [publicKey]);
 
-  wallet.on('disconnect', () => {
-    setTokenAccounts([])
-    setUserAccounts([])
-  })
+  
 
   useEffect(() => {
     if (!connected) {
