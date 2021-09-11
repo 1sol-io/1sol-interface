@@ -81,6 +81,7 @@ export const usePools = () => {
 
   // initial query
   useEffect(() => {
+    console.log(programIds().swaps)
     setPools([]);
 
     const queryPools = async (swapId: PublicKey, isLegacy = false) => {
@@ -197,7 +198,7 @@ export const usePools = () => {
 
     Promise.all([
       ...programIds().swaps.map(swap => queryPools(swap)),
-      ...programIds().swap_legacy.map((leg) => queryPools(leg, true)),
+      // ...programIds().swap_legacy.map((leg) => queryPools(leg, true)),
     ]).then((all) => {
       setPools(all.flat());
     });
@@ -751,8 +752,9 @@ interface TokenSwapAmountProps {
 }
 
 interface SerumAmountProps {
-  input: number,
-  output: number
+  limitPrice: number,
+  maxCoinQty: number
+  maxPcQty: number
 }
 
 export async function onesolProtocolSwap (
@@ -764,8 +766,8 @@ export async function onesolProtocolSwap (
   slippage: number, 
   components: LiquidityComponent[],
   amounts: {
-    tokenSwap: TokenSwapAmountProps,
-    serumMarket: SerumAmountProps
+    tokenSwap: TokenSwapAmountProps | undefined,
+    serumMarket: SerumAmountProps | undefined
   }
 ) {
 
@@ -792,19 +794,20 @@ export async function onesolProtocolSwap (
   let tokenSwapInfo = null
   let serumMarketInfo = null
 
-  if (pool) {
+  if (pool && amounts.tokenSwap) {
     tokenSwapInfo = await loadTokenSwapInfo(connection, pool, TOKENSWAP_PROGRAM_ID, new Numberu64(amounts.tokenSwap.input), new Numberu64(amounts.tokenSwap.output), null)
   }
 
-  if (marketPublicKey) {
+  if (marketPublicKey && amounts.serumMarket) {
     const market = await Market.load(connection, marketPublicKey, {}, SERUM_PROGRAM_ID)
+    const {limitPrice, maxCoinQty, maxPcQty} = amounts.serumMarket
 
     serumMarketInfo = new SerumDexMarketInfo(
       SERUM_PROGRAM_ID,
       market,
-      new Numberu64(5 * 10**6),
-      new Numberu64(1.1),
-      new Numberu64(1.1),
+      new Numberu64(limitPrice),
+      new Numberu64(maxCoinQty),
+      new Numberu64(maxPcQty),
       new Numberu64(getClientId()) 
     );
   }

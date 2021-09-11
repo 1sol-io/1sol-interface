@@ -485,10 +485,10 @@ export class OneSolProtocol {
     instructions: Array<TransactionInstruction>,
     signers: Array<Signer>,
   ): Promise<void> {
-    if (splTokenSwapInfo === null && serumDexTradeInfo === null) {
+    if (!splTokenSwapInfo && !serumDexTradeInfo) {
       throw new Error('One of splTokenSwapInfo and serumDexInfo is must not be null');
     }
-    if (serumDexTradeInfo !== null) {
+    if (serumDexTradeInfo) {
       let market = serumDexTradeInfo.market;
       let orders = await serumDexTradeInfo.market.findOpenOrdersAccountsForOwner(
         this.connection, this.wallet

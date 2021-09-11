@@ -196,6 +196,18 @@ export const colorWarning = (value = 0, valueCheckpoints = [1, 3, 5, 100]) => {
   return colorCodes[defaultIndex];
 };
 
+export const queryJSONFile = async (file: string) => {
+  try {
+    const response = await fetch(file);
+    const json = (await response.json());
+
+    return json;
+  } catch {
+    return []
+  }
+
+}
+
 export const queryJsonFiles = async (files: string[]) => {
   const responses = (await Promise.all(
     files.map(async (repo) => {

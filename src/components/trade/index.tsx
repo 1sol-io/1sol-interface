@@ -10,6 +10,7 @@ import {
   useConnection,
   useConnectionConfig,
   useSlippageConfig,
+  TokenSwapPool
 } from "../../utils/connection";
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
@@ -43,6 +44,7 @@ import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
 import { WRAPPED_SOL_MINT } from "../../utils/ids";
+import { stringify } from "querystring";
 
 const { Text } = Typography;
 
@@ -59,13 +61,14 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
-  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>({input: 10 * 10**9, output: 10 * 10**6})
-  const [serumMarketAmount, setSerumMarketAmount] = useState<{input: number, output: number}>({input: 10 * 10** 9, output: 10 * 10**6})
-  const [pool, setPool] = useState('4kxKvagMA96pvU4YGQ3h5Y2hQVaQNpx9yphrobQPKyBp')
-  const [market, setMarket] = useState('DGWCn54n4CU4G539DrgNoLv1c9yCGDM5jQ7F2jLKoVum')
+  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>()
+  const [serumMarketAmount, setSerumMarketAmount] = useState<{limitPrice: number, maxCoinQty: number, maxPcQty: number}>()
+  const [pool, setPool] = useState<TokenSwapPool | undefined>()
+  const [market, setMarket] = useState<TokenSwapPool | undefined>()
+  const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap } = useConnectionConfig();
+  const { tokenMap, serumMarkets, tokenSwapPools  } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
@@ -73,6 +76,30 @@ export const TradeEntry = () => {
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
   const { userAccounts } = useUserAccounts();
+
+  useEffect(() => {
+    const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
+      const mints: string[] = [pool.mintA, pool.mintB]
+
+      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    })
+
+    if (pool) {
+      setPool(pool)
+    }
+  }, [A.mintAddress, B.mintAddress])
+
+  useEffect(() => {
+    const market: TokenSwapPool | undefined = serumMarkets.find((pool) => {
+      const mints: string[] = [pool.mintA, pool.mintB]
+
+      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    })
+
+    if (market) {
+      setMarket(market)
+    }
+  }, [A.mintAddress, B.mintAddress])
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
@@ -112,43 +139,58 @@ export const TradeEntry = () => {
         cancel.current()
       }
 
-        const swapKeys: [] = []
-
         const decimals = [A.mint.decimals, B.mint.decimals]
 
         axios({
-          url: 'https://api.1sol.io/distribution', 
+          // url: 'https://api.1sol.io/distribution', 
+          url: 'http://192.168.4.11:8080/distribution2',
           method: 'post', 
           data: {
-            amount: Number(A.amount) * 10 ** A.mint.decimals,
-            rpc: "https://api.devnet.solana.com",
-            tokenSwap: swapKeys,
-            sourceToken: A.mintAddress,
-            destinationToken: B.mintAddress 
+            amount_in: Number(A.amount) * 10 ** A.mint.decimals,
+            token_swap_pool: pool?.address,
+            serum_dex_market: market?.address,
+            chain_id: pool?.chainId,
+            source_token_mint_key: A.mintAddress,
+            destination_token_mint_key: B.mintAddress 
           }, 
           cancelToken: new CancelToken((c) => cancel.current = c)
-      }).then(({data: {amounts}}) => {
-        const [tokenSwap, serumMarket] = amounts
+      }).then(({data: {token_swap: tokenSwap, serum_dex: serumMarket}}) => {
+        const amounts = []
 
         if (tokenSwap) {
           setTokenSwapAmount({
-            input: tokenSwap.input,
-            output: tokenSwap.output,
+            input: tokenSwap.amount_in,
+            output: tokenSwap.amount_out,
+          })
+
+          amounts.push({
+            name: 'Test Token Swap',
+            input: tokenSwap.amount_in / 10 ** decimals[0],
+            output: tokenSwap.amount_out / 10 ** decimals[1],
           })
         }
 
         if (serumMarket) {
           setSerumMarketAmount({
-            input: serumMarket.input,
-            output: serumMarket.output,
+            limitPrice: serumMarket.limit_price, 
+            maxCoinQty: serumMarket.max_coin_qty,
+            maxPcQty: serumMarket.max_pc_qty
+          })
+
+          amounts.push({
+            name: 'Test Serum Swap',
+            input: serumMarket.amount_in / 10 ** decimals[0],
+            output: serumMarket.amount_out / 10 ** decimals[1]
           })
         }
+
+        setAmounts(amounts)
       })  
   }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
 
   useEffect(() => {
     if (Number(A.amount)) {
-      // fetchDistrubition()
+      fetchDistrubition()
     }
   }, [A.amount, fetchDistrubition])
 
@@ -173,7 +215,7 @@ export const TradeEntry = () => {
   };
 
   const handleSwap = async () => {
-    if (A.account && B.mintAddress) {
+    if (A.account && B.mintAddress && pool && market) {
       try {
         setPendingTx(true);
 
@@ -189,7 +231,7 @@ export const TradeEntry = () => {
           },
         ];
 
-        await onesolProtocolSwap(connection, wallet, B, new PublicKey(pool), new PublicKey(market), slippage, components, {tokenSwap: tokenSwapAmount,
+        await onesolProtocolSwap(connection, wallet, B, new PublicKey(pool.address), new PublicKey(market.address), slippage, components, {tokenSwap: tokenSwapAmount,
         serumMarket: serumMarketAmount
       });
       } catch (e) {
@@ -313,12 +355,12 @@ export const TradeEntry = () => {
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
       {/* <TradeInfo pool={pool} pool1={pool1} /> */}
-      {/* {amounts.length  ? <TradeRoute amounts={amounts} /> : null} */}
+      {amounts.length  ? <TradeRoute amounts={amounts} /> : null}
     </>
   );
 };
 
-export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
+export const TradeRoute = (props: { amounts: {name: string, input: number, output: number}[] }) => {
   const { A, B } = useCurrencyPairState();
   const {amounts} = props
 
@@ -327,23 +369,23 @@ export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
       <div className="hd"><TokenIcon mintAddress={A.mintAddress} style={{width: '30px', height: '30px'}} /></div>
       <RightOutlined style={{margin: '0 5px'}} />
       <div className="bd">
-        <div className="pool">
-          <div className="name">Test Raydium Swap</div>
-          <div className="amount">
-            <span>{A.name} {amounts[0].input}</span>
-            <ArrowRightOutlined />
-            <span>{amounts[0].output} {B.name}</span>
-          </div>
-        </div>
-        <PlusOutlined style={{margin: '10px 0'}} />
-        <div className="pool">
-          <div className="name">Test DexLab Swap</div>
-          <div className="amount">
-            <span>{A.name} {amounts[1].input}</span>
-            <ArrowRightOutlined />
-            <span>{amounts[1].output} {B.name}</span>
-          </div>
-        </div>
+        {amounts.map(({name, input,output}, i) => (
+          <>
+            <div className="pool">
+              <div className="name">{name}</div>
+              <div className="amount">
+                <span>{A.name} {input}</span>
+                <ArrowRightOutlined />
+                <span>{output} {B.name}</span>
+              </div>
+            </div>
+            {
+              i !== amounts.length - 1 ?
+              <PlusOutlined style={{margin: '10px 0'}} />
+              : null
+            }
+          </>
+        ))}
       </div>
       <RightOutlined style={{margin: '0 5px'}} />
       <div className="ft"><TokenIcon mintAddress={B.mintAddress} style={{width: '30px', height: '30px', margin: '0.11rem 0 0 0.5rem'}} /></div>

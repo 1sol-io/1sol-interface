@@ -17,7 +17,7 @@ import {
   TokenListContainer
 } from "@solana/spl-token-registry";
 import { cache, getMultipleAccounts } from "./accounts";
-import { queryJsonFiles } from './utils'
+import { queryJsonFiles, queryJSONFile } from './utils'
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
 export const ENDPOINTS = [
@@ -46,6 +46,16 @@ export const ENDPOINTS = [
 const DEFAULT = ENDPOINTS[0].endpoint;
 const DEFAULT_SLIPPAGE = 0.25;
 
+export interface TokenSwapPool {
+  address: string,
+  chainId: number,
+  deprecated: boolean,
+  mintA: string,
+  mintB: string,
+  name: string,
+  programId: string,
+}
+
 interface ConnectionConfig {
   connection: Connection;
   sendConnection: Connection;
@@ -56,6 +66,8 @@ interface ConnectionConfig {
   setEndpoint: (val: string) => void;
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
+  tokenSwapPools: TokenSwapPool[],
+  serumMarkets: TokenSwapPool[]
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -68,6 +80,8 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   env: ENDPOINTS[0].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
+  tokenSwapPools: [],
+  serumMarkets: []
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -95,6 +109,31 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
+
+  const [tokenSwapPools, setTokenSwapPools] = useState([])
+  const [serumMarkets, setSerumMarkets] = useState([])
+
+  useEffect(() => {
+    (async () => {
+      const json = await queryJSONFile(
+        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
+      );
+      console.log(json)
+
+      setTokenSwapPools(json)
+    })();
+  }, [chain, connection])
+
+  useEffect(() => {
+    (async () => {
+      const json = await queryJSONFile(
+        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/markets/1sol.markets.json",
+      );
+
+      setSerumMarkets(json)
+    })();
+  }, [chain, connection])
+
   useEffect(() => {
     (async () => {
       // const res = await new TokenListProvider().resolve();
@@ -188,6 +227,8 @@ export function ConnectionProvider({ children = undefined as any }) {
         tokens,
         tokenMap,
         env,
+        tokenSwapPools,
+        serumMarkets,
       }}
     >
       {children}
@@ -211,6 +252,8 @@ export function useConnectionConfig() {
     env: context.env,
     tokens: context.tokens,
     tokenMap: context.tokenMap,
+    tokenSwapPools: context.tokenSwapPools,
+    serumMarkets: context.serumMarkets
   };
 }
 
