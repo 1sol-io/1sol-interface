@@ -406,21 +406,22 @@ export function AccountsProvider({ children = null as any }) {
     );
   }, [publicKey]);
 
-  wallet.on('disconnect', () => {
-    setTokenAccounts([])
-    setUserAccounts([])
-  })
+  
 
   useEffect(() => {
-    setUserAccounts(
-      [wrapNativeAccount(publicKey, nativeAccount), ...tokenAccounts].filter(
-        (a) => a !== undefined
-      ) as TokenAccount[]
-    );
-  }, [nativeAccount, publicKey, tokenAccounts]);
+    if (!connected) {
+      setUserAccounts([])
+    } else {
+      setUserAccounts(
+        [wrapNativeAccount(publicKey, nativeAccount), ...tokenAccounts].filter(
+          (a) => a !== undefined
+        ) as TokenAccount[]
+      );
+    }
+  }, [nativeAccount, publicKey, tokenAccounts, connected]);
 
   useEffect(() => {
-    if (!connection || !publicKey) {
+    if (!connection || !publicKey || !connected) {
       setTokenAccounts([]);
     } else {
       // cache host accounts to avoid query during swap
@@ -499,7 +500,7 @@ export function AccountsProvider({ children = null as any }) {
         dispose();
       };
     }
-  }, [connection, connected, publicKey, selectUserAccounts]);
+  }, [connection, publicKey, selectUserAccounts]);
 
   return (
     <AccountsContext.Provider
