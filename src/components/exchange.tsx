@@ -33,7 +33,7 @@ export const ExchangeView = (props: {}) => {
 
       setLoading(true)
 
-      const connection = new Connection("https://api.testnet.solana.com", "confirmed");
+      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
       const signature = await connection.requestAirdrop(new PublicKey(wallet.publicKey), LAMPORTS_PER_SOL * 10);
 
       await connection.confirmTransaction(signature);
