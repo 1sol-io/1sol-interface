@@ -37,7 +37,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           <Menu.Item key="/">
             <Link
               to={{
-                pathname: '/trade',
+                pathname: '/',
               }}
             >
               Trade
