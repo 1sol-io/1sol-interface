@@ -1,4 +1,4 @@
-import { HashRouter, Route } from "react-router-dom";
+import { HashRouter, BrowserRouter, Route } from "react-router-dom";
 import React from "react";
 import { ChartsView } from "./components/charts";
 
@@ -15,7 +15,7 @@ import { CrossChain } from './components/crosschain'
 export function Routes() {
   return (
     <>
-      <HashRouter basename={"/"}>
+      <BrowserRouter basename={"/"}>
         <ConnectionProvider>
           <WalletProvider>
             <AccountsProvider>
@@ -31,7 +31,7 @@ export function Routes() {
             </AccountsProvider>
           </WalletProvider>
         </ConnectionProvider>
-      </HashRouter>
+      </BrowserRouter>
     </>
   );
 }

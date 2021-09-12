@@ -406,8 +406,6 @@ export function AccountsProvider({ children = null as any }) {
     );
   }, [publicKey]);
 
-  
-
   useEffect(() => {
     if (!connected) {
       setUserAccounts([])
