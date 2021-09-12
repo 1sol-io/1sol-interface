@@ -61,10 +61,9 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
-  const [amounts, setAmounts] = useState([])
+  const [pool, setPool] = useState('')
 
-  const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
-  const pool1 = usePool1ForBasket([A?.mintAddress, B?.mintAddress]);
+  const [amounts, setAmounts] = useState([])
 
   const { slippage } = useSlippageConfig();
   const { tokenMap } = useConnectionConfig();
@@ -110,48 +109,40 @@ export const TradeEntry = () => {
 
       setAmounts([])
 
-        const swapKeys = []
+      const decimals = [A.mint.decimals, B.mint.decimals]
 
-        if (pool) {
-          swapKeys.push(pool.pubkeys.account.toString())
-        }
-
-        if (pool1) {
-          swapKeys.push(pool1.pubkeys.account.toString())
-        }
-
-        const decimals = [A.mint.decimals, B.mint.decimals]
-
-        axios({
-          url: 'https://api.1sol.io/distribution', 
-          method: 'post', 
-          data: {
-            amount: Number(A.amount) * 10 ** A.mint.decimals,
-            rpc: "https://api.devnet.solana.com",
-            tokenSwap: swapKeys,
-            sourceToken: A.mintAddress,
-            destinationToken: B.mintAddress 
-          }, 
-          cancelToken: new CancelToken((c) => cancel.current = c)
+      axios({
+        url: 'https://api.1sol.io/distribution', 
+        method: 'post', 
+        data: {
+          amount: Number(A.amount) * 10 ** A.mint.decimals,
+          rpc: "https://api.devnet.solana.com",
+          tokenSwap: [],
+          sourceToken: A.mintAddress,
+          destinationToken: B.mintAddress 
+        }, 
+        cancelToken: new CancelToken((c) => cancel.current = c)
       }).then(({data: {amounts}}) => {
         setAmounts(amounts.map(({input, output}: {input: any, output: any}) => ({input: input  / 10 ** decimals[0
         ], output: output  / 10 ** decimals[1]})))
       })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, pool1])
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
 
-  useEffect(() => {
-    if (Number(A.amount)) {
-      fetchDistrubition()
-    }
-  }, [A.amount, fetchDistrubition])
+  // useEffect(() => {
+  //   if (Number(A.amount)) {
+  //     fetchDistrubition()
+  //   }
+  // }, [A.amount, fetchDistrubition])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
     const tempAmount = A.amount;
+
     A.setMint(B.mintAddress);
     A.setAmount(B.amount);
     B.setMint(tempMint);
     B.setAmount(tempAmount);
+
     // @ts-ignore
     setPoolOperation((op: PoolOperation) => {
       switch (+op) {
@@ -183,7 +174,7 @@ export const TradeEntry = () => {
         ];
 
         // await swap(connection, wallet, components, slippage, pool);
-        await onesolProtocolSwap(connection, wallet, B, pool, pool1, slippage, components);
+        // await onesolProtocolSwap(connection, wallet, B, pool, pool1, slippage, components);
       } catch (e) {
         console.log(e)
         notify({
@@ -235,11 +226,12 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="input-card">
-        <AdressesPopover pool={pool} />
+        {/* <AdressesPopover pool={pool} /> */}
         <CurrencyInput
           title="From"
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.SwapGivenInput);
+
             if (A.amount !== val) {
               setLastTypedAccount(A.mintAddress);
             }
@@ -257,6 +249,7 @@ export const TradeEntry = () => {
           title="To (Estimate)"
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.SwapGivenProceeds);
+
             if (B.amount !== val) {
               setLastTypedAccount(B.mintAddress);
             }
@@ -304,7 +297,6 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
       </Button>
-      <TradeInfo pool={pool} pool1={pool1} />
       {amounts.length  ? <TradeRoute amounts={amounts} /> : null}
     </>
   );
@@ -342,164 +334,3 @@ export const TradeRoute = (props: { amounts: {input: any, output: any}[] }) => {
     </div>
   )
 }
-
-export const TradeInfo = (props: { pool?: PoolInfo, pool1?: PoolInfo }) => {
-  const { A, B } = useCurrencyPairState();
-  const { pool, pool1 } = props;
-  const { slippage } = useSlippageConfig();
-  const pools = useMemo(() => (pool ? [pool] : []), [pool]);
-  const enriched = useEnrichedPools(pools);
-
-  const [amountOut, setAmountOut] = useState(0);
-  const [priceImpact, setPriceImpact] = useState(0);
-  const [lpFee, setLpFee] = useState(0);
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [priceAccount, setPriceAccount] = useState("");
-  
-  useEffect(() => {
-    if (!pool || enriched.length === 0) {
-      return;
-    }
-    if (B.amount) {
-      const minAmountOut = parseFloat(B?.amount) * (1 - slippage);
-      setAmountOut(minAmountOut);
-    }
-    const liqA = enriched[0].liquidityA;
-    const liqB = enriched[0].liquidityB;
-    const supplyRatio = liqA / liqB;
-    // We need to make sure the order matched the pool's accounts order
-    const enrichedA = A.mintAddress === enriched[0].mints[0] ? A : B;
-    const enrichedB = enrichedA.mintAddress === A.mintAddress ? B : A;
-    const calculatedRatio =
-      parseFloat(enrichedA.amount) / parseFloat(enrichedB.amount);
-    // % difference between pool ratio and  calculated ratio
-    setPriceImpact(Math.abs(100 - (calculatedRatio * 100) / supplyRatio));
-
-    // 6 decimals without trailing zeros
-    const lpFeeStr = (parseFloat(A.amount) * LIQUIDITY_PROVIDER_FEE).toFixed(6);
-    setLpFee(parseFloat(lpFeeStr));
-
-    if (priceAccount === B.mintAddress) {
-      setExchangeRate(parseFloat(B.amount) / parseFloat(A.amount));
-    } else {
-      setExchangeRate(parseFloat(A.amount) / parseFloat(B.amount));
-    }
-  }, [A, B, slippage, pool, enriched, priceAccount]);
-
-  const handleSwapPriceInfo = () => {
-    if (priceAccount !== B.mintAddress) {
-      setPriceAccount(B.mintAddress);
-    } else {
-      setPriceAccount(A.mintAddress);
-    }
-  };
-  return !!parseFloat(B.amount) ? (
-    <div className="pool-card" style={{ width: "initial" }}>
-      <div className="pool-card-row">
-        <Text className="pool-card-cell">Price</Text>
-        <div className="pool-card-cell " title={exchangeRate.toString()}>
-          <Button
-            shape="circle"
-            size="middle"
-            type="text"
-            icon={<SwapOutlined />}
-            onClick={handleSwapPriceInfo}
-          >
-            {exchangeRate.toFixed(6)}&nbsp;
-            {priceAccount === B.mintAddress ? B.name : A.name} per&nbsp;
-            {priceAccount === B.mintAddress ? A.name : B.name}&nbsp;
-          </Button>
-        </div>
-      </div>
-      <div className="pool-card-row">
-        <Text className="pool-card-cell">
-          <Popover
-            trigger="hover"
-            content={
-              <div style={{ width: 300 }}>
-                You transaction will revert if there is a large, unfavorable
-                price movement before it is confirmed.
-              </div>
-            }
-          >
-            Minimum Received <QuestionCircleOutlined />
-          </Popover>
-        </Text>
-        <div className="pool-card-cell " title={amountOut.toString()}>
-          {amountOut.toFixed(6)} {B.name}
-        </div>
-      </div>
-      <div className="pool-card-row">
-        <Text className="pool-card-cell">
-          <Popover
-            trigger="hover"
-            content={
-              <div style={{ width: 300 }}>
-                The difference between the market price and estimated price due
-                to trade size.
-              </div>
-            }
-          >
-            Price Impact <QuestionCircleOutlined />
-          </Popover>
-        </Text>
-        <div
-          className="pool-card-cell "
-          title={priceImpact.toString()}
-          style={{ color: colorWarning(priceImpact) }}
-        >
-          {priceImpact < 0.01 ? "< 0.01%" : priceImpact.toFixed(3) + "%"}
-        </div>
-      </div>
-      <div className="pool-card-row">
-        <Text className="pool-card-cell">
-          <Popover
-            trigger="hover"
-            content={
-              <div style={{ width: 300 }}>
-                A portion of each trade ({LIQUIDITY_PROVIDER_FEE * 100}%) goes
-                to liquidity providers as a protocol incentive.
-              </div>
-            }
-          >
-            Liquidity Provider Fee <QuestionCircleOutlined />
-          </Popover>
-        </Text>
-        <div className="pool-card-cell " title={lpFee.toString()}>
-          {lpFee} {A.name}
-        </div>
-      </div>
-    </div>
-  ) : null;
-};
-
-export const TradeView = () => {
-  return (
-    <>
-      <AppBar
-        right={
-          <Popover
-            placement="topRight"
-            title="Settings"
-            content={<Settings />}
-            trigger="click"
-          >
-            <Button
-              shape="circle"
-              size="large"
-              type="text"
-              icon={<SettingOutlined />}
-            />
-          </Popover>
-        }
-      />
-      <Card
-        className="exchange-card"
-        headStyle={{ padding: 0 }}
-        bodyStyle={{ position: "relative" }}
-      >
-        <TradeEntry />
-      </Card>
-    </>
-  );
-};

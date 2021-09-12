@@ -97,6 +97,7 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   const history = useHistory();
   const location = useLocation();
+
   const [lastTypedAccount, setLastTypedAccount] = useState("");
   const [poolOperation, setPoolOperation] = useState<PoolOperation>(
     PoolOperation.Add
@@ -127,8 +128,6 @@ export function CurrencyPairProvider({ children = null as any }) {
   const setMintAddressB = quote.setMint;
   const amountB = quote.amount;
   const setAmountB = quote.setAmount;
-
-  const pool = usePoolForBasket([base.mintAddress, quote.mintAddress]);
 
   useEffect(() => {
     const base =
@@ -189,56 +188,6 @@ export function CurrencyPairProvider({ children = null as any }) {
     // mintAddressA and mintAddressB are not included here to prevent infinite loop
     // eslint-disable-next-line
   }, [location, location.search, setMintAddressA, setMintAddressB, tokens]);
-
-  const calculateDependent = useCallback(async () => {
-    if (pool && mintAddressA && mintAddressB) {
-      let setDependent;
-      let amount;
-      let independent;
-
-      if (lastTypedAccount === mintAddressA) {
-        independent = mintAddressA;
-        setDependent = setAmountB;
-        amount = parseFloat(amountA);
-      } else {
-        independent = mintAddressB;
-        setDependent = setAmountA;
-        amount = parseFloat(amountB);
-      }
-
-      // 通过 api 获取到 A B 可换取到的数量
-      const result = await calculateDependentAmount(
-        connection,
-        independent,
-        amount,
-        pool,
-        poolOperation
-      );
-
-      if (typeof result === "string") {
-        setDependent(result);
-      } else if (result !== undefined && Number.isFinite(result)) {
-        setDependent(result.toFixed(6));
-      } else {
-        setDependent("");
-      }
-    }
-  }, [
-    pool,
-    mintAddressA,
-    mintAddressB,
-    setAmountA,
-    setAmountB,
-    amountA,
-    amountB,
-    connection,
-    lastTypedAccount,
-    poolOperation,
-  ]);
-
-  useEffect(() => {
-    calculateDependent();
-  }, [amountB, amountA, lastTypedAccount, calculateDependent]);
 
   return (
     <CurrencyPairContext.Provider
