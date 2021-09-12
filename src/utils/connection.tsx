@@ -48,7 +48,7 @@ const DEFAULT_SLIPPAGE = 0.25;
 
 interface ConnectionConfig {
   connection: Connection;
-  sendConnection: Connection;
+  // sendConnection: Connection;
   endpoint: string;
   slippage: number;
   setSlippage: (val: number) => void;
@@ -64,7 +64,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   slippage: DEFAULT_SLIPPAGE,
   setSlippage: (val: number) => {},
   connection: new Connection(DEFAULT, "recent"),
-  sendConnection: new Connection(DEFAULT, "recent"),
+  // sendConnection: new Connection(DEFAULT, "recent"),
   env: ENDPOINTS[0].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
@@ -84,9 +84,9 @@ export function ConnectionProvider({ children = undefined as any }) {
   const connection = useMemo(() => new Connection(endpoint, "recent"), [
     endpoint,
   ]);
-  const sendConnection = useMemo(() => new Connection(endpoint, "recent"), [
-    endpoint,
-  ]);
+  // const sendConnection = useMemo(() => new Connection(endpoint, "recent"), [
+  //   endpoint,
+  // ]);
 
   const chain =
     ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[2];
@@ -95,6 +95,7 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
+
   useEffect(() => {
     (async () => {
       // const res = await new TokenListProvider().resolve();
@@ -123,8 +124,10 @@ export function ConnectionProvider({ children = undefined as any }) {
       
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
+
         if(!account) {
           knownMints.delete(accounts.keys[index]);
+
           return;
         }
 
@@ -159,22 +162,22 @@ export function ConnectionProvider({ children = undefined as any }) {
     };
   }, [connection]);
 
-  useEffect(() => {
-    const id = sendConnection.onAccountChange(
-      new Account().publicKey,
-      () => {}
-    );
-    return () => {
-      sendConnection.removeAccountChangeListener(id);
-    };
-  }, [sendConnection]);
+  // useEffect(() => {
+  //   const id = sendConnection.onAccountChange(
+  //     new Account().publicKey,
+  //     () => {}
+  //   );
+  //   return () => {
+  //     sendConnection.removeAccountChangeListener(id);
+  //   };
+  // }, [sendConnection]);
 
-  useEffect(() => {
-    const id = sendConnection.onSlotChange(() => null);
-    return () => {
-      sendConnection.removeSlotChangeListener(id);
-    };
-  }, [sendConnection]);
+  // useEffect(() => {
+  //   const id = sendConnection.onSlotChange(() => null);
+  //   return () => {
+  //     sendConnection.removeSlotChangeListener(id);
+  //   };
+  // }, [sendConnection]);
 
   return (
     <ConnectionContext.Provider
@@ -184,7 +187,7 @@ export function ConnectionProvider({ children = undefined as any }) {
         slippage: parseFloat(slippage),
         setSlippage: (val) => setSlippage(val.toString()),
         connection,
-        sendConnection,
+        // sendConnection,
         tokens,
         tokenMap,
         env,
@@ -199,9 +202,9 @@ export function useConnection() {
   return useContext(ConnectionContext).connection as Connection;
 }
 
-export function useSendConnection() {
-  return useContext(ConnectionContext)?.sendConnection;
-}
+// export function useSendConnection() {
+//   return useContext(ConnectionContext)?.sendConnection;
+// }
 
 export function useConnectionConfig() {
   const context = useContext(ConnectionContext);
