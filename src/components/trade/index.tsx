@@ -25,8 +25,6 @@ import {
 import {
   createTokenAccount,
   onesolProtocolSwap,
-  usePoolForBasket,
-  usePool1ForBasket,
   PoolOperation,
   LIQUIDITY_PROVIDER_FEE,
   hasAccount,
@@ -38,7 +36,6 @@ import "./trade.less";
 import { colorWarning, getTokenName } from "../../utils/utils";
 import { AdressesPopover } from "../pool/address";
 import { TokenAccount, PoolInfo } from "../../models";
-import { useEnrichedPools } from "../../context/market";
 import { AppBar } from "../appBar";
 import { Settings } from "../settings";
 

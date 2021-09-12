@@ -4,7 +4,6 @@ import { NumericInput } from "../numericInput";
 import { convert, getPoolName, getTokenName, isKnownMint } from "../../utils/utils";
 import {
   useUserAccounts,
-  useCachedPool,
   useAccountByMint,
   cache,
 } from "../../utils/accounts";
@@ -78,7 +77,6 @@ export const CurrencyInput = (props: {
   onMintChange?: (account: string) => void;
 }) => {
   const { userAccounts } = useUserAccounts();
-  const { pools } = useCachedPool();
   const mint = cache.getMint(props.mint);
 
   const { tokens, tokenMap } = useConnectionConfig();
@@ -101,8 +99,6 @@ export const CurrencyInput = (props: {
     );
   });
 
-  // TODO: expand nested pool names ...?
-
   // group accounts by mint and use one with biggest balance
   const grouppedUserAccounts = userAccounts
     .sort((a, b) => {
@@ -110,18 +106,18 @@ export const CurrencyInput = (props: {
     })
     .reduce((map, acc) => {
       const mint = acc.info.mint.toBase58();
+
       if (isKnownMint(tokenMap, mint)) {
         return map;
       }
 
-      const pool = pools.find((p) => p && p.pubkeys.mint.toBase58() === mint);
-
-      map.set(mint, (map.get(mint) || []).concat([{ account: acc, pool }]));
+      map.set(mint, (map.get(mint) || []).concat([{ account: acc }]));
 
       return map;
-    }, new Map<string, { account: TokenAccount; pool: PoolInfo | undefined }[]>());
+    }, new Map<string, { account: TokenAccount }[]>());
 
   const additionalAccounts = [...grouppedUserAccounts.keys()];
+
   if (
     tokens.findIndex((t) => t.address === props.mint) < 0 &&
     props.mint &&
@@ -131,26 +127,11 @@ export const CurrencyInput = (props: {
   }
 
   const renderAdditionalTokens = additionalAccounts.map((mint) => {
-    let pool: PoolInfo | undefined;
-    const list = grouppedUserAccounts.get(mint);
-    if (list && list.length > 0) {
-      // TODO: group multple accounts of same time and select one with max amount
-      const account = list[0];
-      pool = account.pool;
-    }
-
     let name: string;
     let icon: JSX.Element;
-    if (pool) {
-      name = getPoolName(tokenMap, pool);
-      const sorted = pool.pubkeys.holdingMints
-        .map((a: PublicKey) => a.toBase58())
-        .sort();
-      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
-    } else {
-      name = getTokenName(tokenMap, mint, true, 3);
-      icon = <TokenIcon mintAddress={mint} />;
-    }
+
+    name = getTokenName(tokenMap, mint, true, 3);
+    icon = <TokenIcon mintAddress={mint} />;
 
     return (
       <Option key={mint} value={mint} name={name}>
@@ -159,7 +140,7 @@ export const CurrencyInput = (props: {
           mintAddress={mint}
           name={name}
           icon={icon}
-          showBalance={!pool}
+          showBalance={false}
         />
       </Option>
     );

@@ -10,7 +10,6 @@ import { useWallet } from "../context/wallet";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { programIds, SWAP_HOST_FEE_ADDRESS, WRAPPED_SOL_MINT } from "./ids";
 import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
-import { usePools } from "./pools";
 import { TokenAccount, PoolInfo } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
@@ -302,6 +301,7 @@ function wrapNativeAccount(
     pubkey: pubkey,
     account,
     info: {
+      address: pubkey,
       mint: WRAPPED_SOL_MINT,
       owner: pubkey,
       amount: new u64(account.lamports),
@@ -396,7 +396,6 @@ export function AccountsProvider({ children = null as any }) {
   const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
   const { nativeAccount } = UseNativeAccount();
-  const { pools } = usePools();
 
   const publicKey = wallet?.publicKey;
 
@@ -505,7 +504,6 @@ export function AccountsProvider({ children = null as any }) {
       value={{
         tokenAccounts,
         userAccounts,
-        pools,
         nativeAccount,
       }}
     >
@@ -658,19 +656,6 @@ export function useAccount(pubKey?: PublicKey) {
   }, [connection, key]);
 
   return account;
-}
-
-export function useCachedPool(legacy = false) {
-  const context = useContext(AccountsContext);
-
-  const allPools = context.pools as PoolInfo[];
-  const pools = useMemo(() => {
-    return allPools.filter((p) => p.legacy === legacy);
-  }, [allPools, legacy]);
-
-  return {
-    pools,
-  };
 }
 
 export const useSelectedAccount = (account: string) => {

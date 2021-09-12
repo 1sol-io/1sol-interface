@@ -11,13 +11,13 @@
     "@ethersproject/solidity": "^5.3.0",
     "@ledgerhq/hw-transport": "^5.45.0",
     "@ledgerhq/hw-transport-webusb": "^5.45.0",
-    "@project-serum/serum": "^0.13.33",
-    "@project-serum/sol-wallet-adapter": "^0.1.8",
+    "@project-serum/serum": "^0.13.55",
+    "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@pythnetwork/client": "^2.0.0",
-    "@solana/spl-token": "0.0.11",
+    "@solana/spl-token": "0.1.4",
     "@solana/spl-token-registry": "^0.2.0",
-    "@solana/spl-token-swap": "0.0.2",
-    "@solana/web3.js": "1.17.0",
+    "@solana/spl-token-swap": "0.1.0",
+    "@solana/web3.js": "1.21.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -38,7 +38,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "typescript": "3.9.7",
-    "web3": "^1.3.6"
+    "web3": "^1.4.2"
   },
   "scripts": {
     "start": "CI= craco start",

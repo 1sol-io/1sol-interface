@@ -6,8 +6,6 @@ import React, {
   useState,
 } from "react";
 import {
-  calculateDependentAmount,
-  usePoolForBasket,
   PoolOperation,
 } from "./pools";
 import { cache, useAccountByMint } from "./accounts";

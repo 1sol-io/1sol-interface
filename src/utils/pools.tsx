@@ -14,7 +14,6 @@ import {
   cache,
   getCachedAccount,
   useUserAccounts,
-  useCachedPool,
   getMultipleAccounts,
 } from "./accounts";
 import {
@@ -240,149 +239,6 @@ export const usePools = () => {
   return { pools };
 };
 
-export const usePoolForBasket = (mints: (string | undefined)[]) => {
-  const connection = useConnection();
-  const { pools } = useCachedPool();
-  const [pool, setPool] = useState<PoolInfo>();
-  const sortedMints = useMemo(() => [...mints].sort(), [...mints]); // eslint-disable-line
-  
-  useEffect(() => {
-    (async () => {
-      // reset pool during query
-      setPool(undefined);
-
-      let matchingPool = pools.filter(p => p.pubkeys.program.toBase58() === programIds().swaps[0].toBase58())
-        .filter((p) => !p.legacy)
-        .filter((p) =>
-          p.pubkeys.holdingMints
-            .map((a) => a.toBase58())
-            .sort()
-            .every((address, i) => address === sortedMints[i])
-        );
-
-      const poolQuantities: { [pool: string]: number } = {};
-
-      for (let i = 0; i < matchingPool.length; i++) {
-        const p = matchingPool[i];
-
-        const [account0, account1] = await Promise.all([
-          cache.queryAccount(connection, p.pubkeys.holdingAccounts[0]),
-          cache.queryAccount(connection, p.pubkeys.holdingAccounts[1]),
-        ]);
-
-        const amount =
-          (account0.info.amount.toNumber() || 0) +
-          (account1.info.amount.toNumber() || 0);
-
-        if (amount > 0) {
-          poolQuantities[i.toString()] = amount;
-        }
-      }
-
-      if (Object.keys(poolQuantities).length > 0) {
-        const sorted = Object.entries(
-          poolQuantities
-        ).sort(([pool0Idx, amount0], [pool1Idx, amount1]) =>
-          amount0 > amount1 ? -1 : 1
-        );
-        const bestPool = matchingPool[parseInt(sorted[0][0])];
-        setPool(bestPool);
-        return;
-      }
-    })();
-  }, [connection, sortedMints, pools]);
-
-  return pool;
-};
-
-export const usePool1ForBasket = (mints: (string | undefined)[]) => {
-  const connection = useConnection();
-  const { pools } = useCachedPool();
-  const [pool, setPool] = useState<PoolInfo>();
-  const sortedMints = useMemo(() => [...mints].sort(), [...mints]); // eslint-disable-line
-  
-  useEffect(() => {
-    (async () => {
-      // reset pool during query
-      setPool(undefined);
-
-      let matchingPool = pools.filter(p => p.pubkeys.program.toBase58() === programIds().swaps[1].toBase58())
-        .filter((p) => !p.legacy)
-        .filter((p) =>
-          p.pubkeys.holdingMints
-            .map((a) => a.toBase58())
-            .sort()
-            .every((address, i) => address === sortedMints[i])
-        );
-
-      const poolQuantities: { [pool: string]: number } = {};
-
-      for (let i = 0; i < matchingPool.length; i++) {
-        const p = matchingPool[i];
-
-        const [account0, account1] = await Promise.all([
-          cache.queryAccount(connection, p.pubkeys.holdingAccounts[0]),
-          cache.queryAccount(connection, p.pubkeys.holdingAccounts[1]),
-        ]);
-
-        const amount =
-          (account0.info.amount.toNumber() || 0) +
-          (account1.info.amount.toNumber() || 0);
-
-        if (amount > 0) {
-          poolQuantities[i.toString()] = amount;
-        }
-      }
-
-      if (Object.keys(poolQuantities).length > 0) {
-        const sorted = Object.entries(
-          poolQuantities
-        ).sort(([pool0Idx, amount0], [pool1Idx, amount1]) =>
-          amount0 > amount1 ? -1 : 1
-        );
-        const bestPool = matchingPool[parseInt(sorted[0][0])];
-        setPool(bestPool);
-        return;
-      }
-    })();
-  }, [connection, sortedMints, pools]);
-
-  return pool;
-}
-
-export const useOwnedPools = (legacy = false) => {
-  const { pools } = useCachedPool(legacy);
-  const { userAccounts } = useUserAccounts();
-
-  const ownedPools = useMemo(() => {
-    const map = userAccounts.reduce((acc, item) => {
-      const key = item.info.mint.toBase58();
-      acc.set(key, [...(acc.get(key) || []), item]);
-      return acc;
-    }, new Map<string, TokenAccount[]>());
-
-    return pools
-      .filter((p) => map.has(p.pubkeys.mint.toBase58()) && p.legacy === legacy)
-      .map((item) => {
-        let feeAccount = item.pubkeys.feeAccount?.toBase58();
-        return map.get(item.pubkeys.mint.toBase58())?.map((a) => {
-          return {
-            account: a as TokenAccount,
-            isFeeAccount: feeAccount === a.pubkey.toBase58(),
-            pool: item,
-          };
-        }) as {
-          account: TokenAccount;
-          isFeeAccount: boolean;
-          pool: PoolInfo;
-        }[];
-      })
-      .flat();
-  }, [pools, userAccounts, legacy]);
-
-  return ownedPools;
-};
-
 // Allow for this much price movement in the pool before adding liquidity to the pool aborts
 const SLIPPAGE = 0.005;
 
@@ -391,8 +247,6 @@ export const hasAccount = (
   mint: PublicKey, 
   excluded?: Set<string>
 ) => {
-  console.log(owner.toBase58())
-  console.log(mint.toBase58())
   const accountToFind = mint.toBase58();
   const account = getCachedAccount(
     (acc) =>
