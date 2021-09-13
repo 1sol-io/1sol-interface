@@ -17,7 +17,7 @@ import {
   TokenListContainer
 } from "@solana/spl-token-registry";
 import { cache, getMultipleAccounts } from "./accounts";
-import { queryJsonFiles } from './utils'
+import { queryJsonFiles, queryJSONFile } from './utils'
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
 export const ENDPOINTS = [
@@ -46,6 +46,16 @@ export const ENDPOINTS = [
 const DEFAULT = ENDPOINTS[0].endpoint;
 const DEFAULT_SLIPPAGE = 0.25;
 
+export interface TokenSwapPool {
+  address: string,
+  chainId: number,
+  deprecated: boolean,
+  mintA: string,
+  mintB: string,
+  name: string,
+  programId: string,
+}
+
 interface ConnectionConfig {
   connection: Connection;
   // sendConnection: Connection;
@@ -56,6 +66,8 @@ interface ConnectionConfig {
   setEndpoint: (val: string) => void;
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
+  tokenSwapPools: TokenSwapPool[],
+  serumMarkets: TokenSwapPool[]
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -68,6 +80,8 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   env: ENDPOINTS[0].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
+  tokenSwapPools: [],
+  serumMarkets: []
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -95,6 +109,30 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
+
+  const [tokenSwapPools, setTokenSwapPools] = useState([])
+  const [serumMarkets, setSerumMarkets] = useState([])
+
+  useEffect(() => {
+    (async () => {
+      const json = await queryJSONFile(
+        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
+      );
+      console.log(json)
+
+      setTokenSwapPools(json)
+    })();
+  }, [chain, connection])
+
+  useEffect(() => {
+    (async () => {
+      const json = await queryJSONFile(
+        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/markets/1sol.markets.json",
+      );
+
+      setSerumMarkets(json)
+    })();
+  }, [chain, connection])
 
   useEffect(() => {
     (async () => {
@@ -191,6 +229,8 @@ export function ConnectionProvider({ children = undefined as any }) {
         tokens,
         tokenMap,
         env,
+        tokenSwapPools,
+        serumMarkets,
       }}
     >
       {children}
@@ -214,6 +254,8 @@ export function useConnectionConfig() {
     env: context.env,
     tokens: context.tokens,
     tokenMap: context.tokenMap,
+    tokenSwapPools: context.tokenSwapPools,
+    serumMarkets: context.serumMarkets
   };
 }
 
@@ -226,7 +268,7 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
   // wait for all confirmation before geting transaction
   await connection.confirmTransaction(txid, "max");
 
-  const tx = await connection.getParsedConfirmedTransaction(txid);
+  const tx = await connection.getParsedConfirmedTransaction(txid, 'confirmed');
 
   const errors: string[] = [];
   if (tx?.meta && tx.meta.logMessages) {
@@ -261,11 +303,15 @@ export const sendTransaction = async (
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
-  transaction.setSigners(
-    // fee payied by the wallet owner
-    wallet.publicKey,
-    ...signers.map((s) => s.publicKey)
-  );
+
+  // transaction.setSigners(
+  //   // fee payied by the wallet owner
+  //   wallet.publicKey,
+  //   ...signers.map((s) => s.publicKey)
+  // );
+
+  transaction.feePayer = wallet.publicKey
+
   if (signers.length > 0) {
     transaction.partialSign(...signers);
   }
@@ -273,7 +319,7 @@ export const sendTransaction = async (
   const rawTransaction = transaction.serialize();
   let options = {
     skipPreflight: true,
-    commitment: "singleGossip",
+    commitment: "confirmed",
   };
 
   const txid = await connection.sendRawTransaction(rawTransaction, options);
@@ -292,8 +338,8 @@ export const sendTransaction = async (
         message: "Transaction failed...",
         description: (
           <>
-            {errors.map((err) => (
-              <div>{err}</div>
+            {errors.map((err, i) => (
+              <div key={i}>{err}</div>
             ))}
             <ExplorerLink address={txid} type="transaction" />
           </>

@@ -197,7 +197,7 @@ export const colorWarning = (value = 0, valueCheckpoints = [1, 3, 5, 100]) => {
 };
 
 export const queryJsonFiles = async (files: string[]) => {
-  const responses  = (await Promise.all(
+  const responses = (await Promise.all(
     files.map(async (repo) => {
       try {
         const response = await fetch(repo);
@@ -205,12 +205,43 @@ export const queryJsonFiles = async (files: string[]) => {
 
         return json;
       } catch {
-        return []        
+        return []
       }
     })
-  )) 
+  ))
 
   return responses
     .map((tokenlist) => tokenlist.tokens)
     .reduce((acc, arr) => (acc as TokenInfo[]).concat(arr), []);
 };
+
+export const queryJSONFile = async (file: string) => {
+  try {
+    const response = await fetch(file);
+    const json = (await response.json());
+
+    return json;
+  } catch {
+    return []
+  }
+}
+
+export function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  return Math.floor(Math.random() * (max - min)) + min; //不含最大值，含最小值
+}
+
+export const getClientId = () => {
+  const key = '1sol-serum-client-id'
+  let clientId = localStorage.getItem(key)
+
+  if (!clientId) {
+    clientId = `${getRandomInt(1000, 1000000)}`
+
+    localStorage.setItem(key, clientId)
+  }
+
+  return Number(clientId)
+}
