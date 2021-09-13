@@ -190,6 +190,7 @@ export const CurrencyInput = (props: {
             boxShadow: "none",
             borderColor: "transparent",
             outline: "transpaernt",
+            color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
           }}
           placeholder="0.00"
         />
