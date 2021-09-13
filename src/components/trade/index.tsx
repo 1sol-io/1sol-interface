@@ -258,6 +258,7 @@ export const TradeEntry = () => {
           onMintChange={(item) => {
             B.setMint(item);
           }}
+          disabled
         />
       </div>
       <Button

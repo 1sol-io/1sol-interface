@@ -75,6 +75,7 @@ export const CurrencyInput = (props: {
   hideSelect?: boolean;
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
+  disabled?: boolean
 }) => {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
@@ -177,6 +178,7 @@ export const CurrencyInput = (props: {
       </div>
       <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
         <NumericInput
+          disabled={props.disabled}
           value={props.amount}
           onChange={(val: any) => {
             if (props.onInputChange) {
