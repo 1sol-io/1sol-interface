@@ -369,7 +369,7 @@ export const TradeEntry = () => {
         true,
         hasTokenAccount
         )}
-        {pendingTx && <Spin indicator={antIcon} className="add-spinner" />}
+        {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
       {amounts.length ? <TradeRoute amounts={amounts} /> : null}
     </>
