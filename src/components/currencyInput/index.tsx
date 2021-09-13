@@ -99,52 +99,52 @@ export const CurrencyInput = (props: {
     );
   });
 
-  // group accounts by mint and use one with biggest balance
-  const grouppedUserAccounts = userAccounts
-    .sort((a, b) => {
-      return b.info.amount.gt(a.info.amount) ? 1 : -1;
-    })
-    .reduce((map, acc) => {
-      const mint = acc.info.mint.toBase58();
+  // // group accounts by mint and use one with biggest balance
+  // const grouppedUserAccounts = userAccounts
+  //   .sort((a, b) => {
+  //     return b.info.amount.gt(a.info.amount) ? 1 : -1;
+  //   })
+  //   .reduce((map, acc) => {
+  //     const mint = acc.info.mint.toBase58();
 
-      if (isKnownMint(tokenMap, mint)) {
-        return map;
-      }
+  //     if (isKnownMint(tokenMap, mint)) {
+  //       return map;
+  //     }
 
-      map.set(mint, (map.get(mint) || []).concat([{ account: acc }]));
+  //     map.set(mint, (map.get(mint) || []).concat([{ account: acc }]));
 
-      return map;
-    }, new Map<string, { account: TokenAccount }[]>());
+  //     return map;
+  //   }, new Map<string, { account: TokenAccount }[]>());
 
-  const additionalAccounts = [...grouppedUserAccounts.keys()];
+  // const additionalAccounts = [...grouppedUserAccounts.keys()];
 
-  if (
-    tokens.findIndex((t) => t.address === props.mint) < 0 &&
-    props.mint &&
-    !grouppedUserAccounts.has(props?.mint)
-  ) {
-    additionalAccounts.push(props.mint);
-  }
+  // if (
+  //   tokens.findIndex((t) => t.address === props.mint) < 0 &&
+  //   props.mint &&
+  //   !grouppedUserAccounts.has(props?.mint)
+  // ) {
+  //   additionalAccounts.push(props.mint);
+  // }
 
-  const renderAdditionalTokens = additionalAccounts.map((mint) => {
-    let name: string;
-    let icon: JSX.Element;
+  // const renderAdditionalTokens = additionalAccounts.map((mint) => {
+  //   let name: string;
+  //   let icon: JSX.Element;
 
-    name = getTokenName(tokenMap, mint, true, 3);
-    icon = <TokenIcon mintAddress={mint} />;
+  //   name = getTokenName(tokenMap, mint, true, 3);
+  //   icon = <TokenIcon mintAddress={mint} />;
 
-    return (
-      <Option key={mint} value={mint} name={name}>
-        <TokenDisplay
-          key={mint}
-          mintAddress={mint}
-          name={name}
-          icon={icon}
-          showBalance={false}
-        />
-      </Option>
-    );
-  });
+  //   return (
+  //     <Option key={mint} value={mint} name={name}>
+  //       <TokenDisplay
+  //         key={mint}
+  //         mintAddress={mint}
+  //         name={name}
+  //         icon={icon}
+  //         showBalance={false}
+  //       />
+  //     </Option>
+  //   );
+  // });
 
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
@@ -208,7 +208,9 @@ export const CurrencyInput = (props: {
                 option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >
-              {[...renderPopularTokens, ...renderAdditionalTokens]}
+              {[...renderPopularTokens, 
+                // ...renderAdditionalTokens
+              ]}
             </Select>
           ) : (
             props.mint && (
@@ -220,72 +222,6 @@ export const CurrencyInput = (props: {
               />
             )
           )}
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-export const PoolCurrencyInput = (props: {
-  mint: string;
-  amount?: string;
-  title?: string;
-  pool?: PoolInfo;
-  onInputChange?: (val: number) => void;
-  onMintChange?: (account: string) => void;
-  balance?: number;
-}) => {
-  const { balance, pool, mint } = props;
-  const { tokenMap } = useConnectionConfig();
-
-  let name: string;
-  let icon: JSX.Element;
-  if (pool) {
-    name = getPoolName(tokenMap, pool);
-    const sorted = pool.pubkeys.holdingMints
-      .map((a: PublicKey) => a.toBase58())
-      .sort();
-    icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
-  } else {
-    name = getTokenName(tokenMap, mint, true, 3);
-    icon = <TokenIcon mintAddress={mint} />;
-  }
-  return (
-    <Card
-      className="ccy-input"
-      style={{ borderRadius: 20 }}
-      bodyStyle={{ padding: 0 }}
-    >
-      <div className="ccy-input-header">
-        <div className="ccy-input-header-left">{props.title}</div>
-        {balance && (
-          <div
-            className="ccy-input-header-right"
-            onClick={(e) => props.onInputChange && props.onInputChange(balance)}
-          >
-            Balance: {balance.toFixed(6)}
-          </div>
-        )}
-      </div>
-      <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
-        <NumericInput
-          value={props.amount}
-          onChange={(val: any) => {
-            if (props.onInputChange) {
-              props.onInputChange(val);
-            }
-          }}
-          style={{
-            fontSize: 20,
-            boxShadow: "none",
-            borderColor: "transparent",
-            outline: "transpaernt",
-          }}
-          placeholder="0.00"
-        />
-
-        <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          <TokenDisplay key={mint} mintAddress={mint} name={name} icon={icon} />
         </div>
       </div>
     </Card>
