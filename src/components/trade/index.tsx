@@ -201,6 +201,10 @@ export const TradeEntry = () => {
     B.setAmount('0.00')
     setAmounts([])
 
+    if (cancel.current) {
+      cancel.current()
+    }
+
     fetchDistrubition()
   }, [A.amount, fetchDistrubition])
 
