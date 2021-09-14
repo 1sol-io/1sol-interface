@@ -43,6 +43,8 @@ import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
+import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
+import { SerumDexMarketInfo } from "../../utils/onesol-protocol";
 
 const { Text } = Typography;
 
@@ -61,8 +63,8 @@ export const TradeEntry = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const [tokenSwapAmount, setTokenSwapAmount] = useState<{input: number, output: number}>()
-  const [serumMarketAmount, setSerumMarketAmount] = useState<{limitPrice: number, maxCoinQty: number, maxPcQty: number}>()
+  const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
+  const [serumMarketAmount, setSerumMarketAmount] = useState<SerumAmountProps>()
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
@@ -177,6 +179,8 @@ export const TradeEntry = () => {
 
         if (serumMarket) {
           setSerumMarketAmount({
+            input: serumMarket.amount_in,
+            output: serumMarket.amount_out,
             limitPrice: serumMarket.limit_price, 
             maxCoinQty: serumMarket.max_coin_qty,
             maxPcQty: serumMarket.max_pc_qty
@@ -231,35 +235,35 @@ export const TradeEntry = () => {
   };
 
   const handleSwap = async () => {
-    if (A.account && B.mintAddress && (pool || market)) {
-      try {
-        setPendingTx(true);
+    if (!A.amount || !B.mintAddress || (!pool && !market)) {
+      return
+    }
 
-        const components = [
-          {
-            account: A.account,
-            mintAddress: A.mintAddress,
-            amount: A.convertAmount(),
-          },
-          {
-            mintAddress: B.mintAddress,
-            amount: B.convertAmount(),
-          },
-        ];
+    try {
+      setPendingTx(true);
 
-        // await onesolProtocolSwap(connection, wallet, B, pool ? new PublicKey(pool.address): '', market ? new PublicKey(market.address): '', slippage, components, {tokenSwap: tokenSwapAmount | null,
-        //   serumMarket: serumMarketAmount | null
-        // });
-      } catch (e) {
-        console.error(e)
-        notify({
-          description: "Please try again and approve transactions from your wallet",
-          message: "Swap trade cancelled.",
-          type: "error",
-        });
-      } finally {
-        setPendingTx(false);
-      }
+      const components = [
+        {
+          account: A.account,
+          mintAddress: A.mintAddress,
+          amount: A.convertAmount(),
+        },
+        {
+          mintAddress: B.mintAddress,
+          amount: B.convertAmount(),
+        },
+      ];
+
+      await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwapAmount, serumMarketAmount);
+    } catch (e) {
+      console.error(e)
+      notify({
+        description: "Please try again and approve transactions from your wallet",
+        message: "Swap trade cancelled.",
+        type: "error",
+      });
+    } finally {
+      setPendingTx(false);
     }
   };
 
@@ -343,7 +347,7 @@ export const TradeEntry = () => {
         size="large"
         shape="round"
         block
-        onClick={connected ? hasTokenAccount ? handleSwap : handleCreateTokenAccount : connect}
+        onClick={connected ? handleSwap : connect}
         style={{ marginTop: '20px' }}
         disabled={
           connected &&

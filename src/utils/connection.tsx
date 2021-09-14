@@ -5,6 +5,7 @@ import {
   Connection,
   PublicKey,
   Transaction,
+  Signer,
   TransactionInstruction,
 } from "@solana/web3.js";
 import React, { useContext, useEffect, useMemo, useState } from "react";
@@ -295,7 +296,7 @@ export const sendTransaction = async (
   connection: Connection,
   wallet: any,
   instructions: TransactionInstruction[],
-  signers: Account[],
+  signers: Signer[],
   awaitConfirmation = true
 ) => {
   let transaction = new Transaction();
