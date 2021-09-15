@@ -117,8 +117,8 @@ export const TradeEntry = () => {
     const decimals = [A.mint.decimals, B.mint.decimals]
 
     axios({
-      // url: 'https://api.1sol.io/distribution2',
-      url: 'http://192.168.4.11:8080/distribution2',
+      url: 'https://api.1sol.io/distribution2',
+      // url: 'http://192.168.4.11:8080/distribution2',
       method: 'post', 
       data: {
         amount_in: Number(A.amount) * 10 ** A.mint.decimals,
