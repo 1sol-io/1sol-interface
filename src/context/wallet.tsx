@@ -112,7 +112,6 @@ export function WalletProvider({ children = null as any }) {
     if (wallet) {
       wallet.on("connect", () => {
         if (wallet.publicKey) {
-          console.log("connected");
           localStorage.removeItem("feeDiscountKey");
           setConnected(true);
           const walletPublicKey = wallet.publicKey.toBase58();

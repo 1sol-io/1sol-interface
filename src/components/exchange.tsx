@@ -1,9 +1,16 @@
-import React from "react";
+import React, {useState} from "react";
 import { Button, Card, Popover } from "antd";
+import { SettingOutlined } from "@ant-design/icons";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
-import { SettingOutlined } from "@ant-design/icons";
 import { AppBar } from "./appBar";
+
+import { notify } from "../utils/notifications";
+import { useWallet } from "../context/wallet";
+
+import './exchange.less'
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -14,6 +21,38 @@ export const ExchangeView = (props: {}) => {
         return <TradeEntry />;
       },
     };
+
+  const {wallet, connect, connected} = useWallet()
+  const [loading, setLoading] = useState(false)
+
+  const handleRequestAirdrop = async () => {
+    try {
+      if (loading) {
+        return
+      }
+
+      setLoading(true)
+
+      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+      const signature = await connection.requestAirdrop(new PublicKey(wallet.publicKey), LAMPORTS_PER_SOL * 10);
+
+      await connection.confirmTransaction(signature);
+
+      setLoading(false)
+
+      notify({
+        message: "Airdrop requested success.",
+        type: "success",
+      });
+    } catch (e) {
+      setLoading(false)
+
+      notify({
+        message: "Airdrop requested error.",
+        type: "error",
+      });
+    }
+  }
 
   return (
     <>
@@ -34,6 +73,24 @@ export const ExchangeView = (props: {}) => {
           </Popover>
         }
       />
+      <Card
+        className="airdrop-card exchange-card"
+        headStyle={{ padding: 0 }}
+      >
+        <div className="airdrop">
+          <div className="hd">Request Sol <strong>Devnet Test Token</strong></div>
+          <div className="bd">
+            <Button 
+              type="primary" 
+              shape="round"
+              onClick={connected ? handleRequestAirdrop : connect}
+            >
+              {loading ? 'Requesting' : 'Request'}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       <Card
         className="exchange-card"
         headStyle={{ padding: 0 }}

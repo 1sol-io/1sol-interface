@@ -1,42 +1,43 @@
-import React from "react";
-import { Button, Menu } from "antd";
-import { useWallet } from "../context/wallet";
-import { AccountInfo } from "./accountInfo";
-import { WalletConnect } from "./walletConnect";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import React from 'react'
+import { Button, Menu } from 'antd'
+import { useWallet } from '../context/wallet'
+import { AccountInfo } from './accountInfo'
+import { WalletConnect } from './walletConnect'
+import { Link, useHistory, useLocation } from 'react-router-dom'
 
 export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
-  const { connected } = useWallet();
-  const location = useLocation();
-  const history = useHistory();
+  const { connected } = useWallet()
+  const location = useLocation()
+  const history = useHistory()
 
   const TopBar = (
     <div className="App-Bar">
       <div className="App-Bar-left">
         <div className="App-logo" />
         <Menu mode="horizontal" selectedKeys={[location.pathname]}>
-          <Menu.Item key="/">
-            <Link
+          <Menu.Item key="/home">
+            <a href="https://1sol.io">Home</a>
+            {/* <Link
               to={{
-                pathname: "/",
+                pathname: '/',
               }}
             >
               Home
-            </Link>
+            </Link> */}
           </Menu.Item>
           <Menu.Item key="/dashboard">
             <Link
               to={{
-                pathname: "/dashboard",
+                pathname: '/dashboard',
               }}
             >
               Dashboard
             </Link>
           </Menu.Item>
-          <Menu.Item key="/trade">
+          <Menu.Item key="/">
             <Link
               to={{
-                pathname: "/trade",
+                pathname: '/',
               }}
             >
               Trade
@@ -99,7 +100,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         {props.right}
       </div>
     </div>
-  );
+  )
 
-  return TopBar;
-};
+  return TopBar
+}
