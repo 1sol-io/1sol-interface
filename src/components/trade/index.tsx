@@ -371,8 +371,7 @@ export const TradeEntry = () => {
         tokenMap,
         A,
         B,
-        true,
-        hasTokenAccount
+        true
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>

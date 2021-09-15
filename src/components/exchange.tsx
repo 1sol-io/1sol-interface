@@ -46,6 +46,7 @@ export const ExchangeView = (props: {}) => {
         type: "success",
       });
     } catch (e) {
+      console.error(e)
       setLoading(false)
 
       notify({
@@ -80,14 +81,14 @@ export const ExchangeView = (props: {}) => {
         headStyle={{ padding: 0 }}
       >
         <div className="airdrop">
-          <div className="hd">Sol Token<strong>(Devnet)</strong></div>
+          <div className="hd">Sol Token<strong>(devnet)</strong></div>
           <div className="bd">
             <Button 
               type="primary" 
               shape="round"
               onClick={connected ? handleRequestAirdrop : connect}
             >
-              {loading ? 'Airdroping' : 'Airdrop'}
+              {loading ? 'Requesting' : 'Airdrop'}
             </Button>
           </div>
         </div>
