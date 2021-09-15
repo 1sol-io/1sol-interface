@@ -78,14 +78,14 @@ export const ExchangeView = (props: {}) => {
         headStyle={{ padding: 0 }}
       >
         <div className="airdrop">
-          <div className="hd">Request Sol <strong>Devnet Test Token</strong></div>
+          <div className="hd">Sol Token<strong>(Devnet)</strong></div>
           <div className="bd">
             <Button 
               type="primary" 
               shape="round"
               onClick={connected ? handleRequestAirdrop : connect}
             >
-              {loading ? 'Requesting' : 'Request'}
+              {loading ? 'Airdroping' : 'Airdrop'}
             </Button>
           </div>
         </div>

@@ -115,6 +115,15 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [serumMarkets, setSerumMarkets] = useState([])
 
   useEffect(() => {
+    if (chain.endpoint !== ENDPOINTS[2].endpoint) {
+      notify({
+        message: 'Wrong Network',
+        description: `${ENDPOINTS[2].name} is avaliable for now.` 
+      })
+    }
+  }, [chain])
+
+  useEffect(() => {
     (async () => {
       const json = await queryJSONFile(
         "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
