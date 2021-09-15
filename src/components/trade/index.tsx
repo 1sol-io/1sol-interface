@@ -147,12 +147,11 @@ export const TradeEntry = () => {
         return
       }
 
-      setLoading(true)
-
       if (cancel.current) {
         cancel.current()
       }
 
+      setLoading(true)
       setAmounts([])
 
       const decimals = [A.mint.decimals, B.mint.decimals]
@@ -207,7 +206,7 @@ export const TradeEntry = () => {
         setLoading(false)
       }).catch(e => {
         console.error(e)
-        setLoading(false)
+        // setLoading(false)
       })  
   }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
 
@@ -223,7 +222,7 @@ export const TradeEntry = () => {
     }
 
     fetchDistrubition()
-  }, [A.amount, fetchDistrubition])
+  }, [A.amount])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
