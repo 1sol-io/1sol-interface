@@ -80,30 +80,6 @@ export const TradeEntry = () => {
   const { userAccounts } = useUserAccounts();
 
   useEffect(() => {
-    const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
-      const mints: string[] = [pool.mintA, pool.mintB]
-
-      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
-    })
-
-    if (pool) {
-      setPool(pool)
-    }
-  }, [A.mintAddress, B.mintAddress])
-
-  useEffect(() => {
-    const market: TokenSwapPool | undefined = serumMarkets.find((pool) => {
-      const mints: string[] = [pool.mintA, pool.mintB]
-
-      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
-    })
-
-    if (market) {
-      setMarket(market)
-    }
-  }, [A.mintAddress, B.mintAddress])
-
-  useEffect(() => {
     const getTokenAccount = (mint: string) => {
       const index = userAccounts.findIndex(
         (acc: any) => acc.info.mint.toBase58() === mint
@@ -127,76 +103,83 @@ export const TradeEntry = () => {
   }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
-      if (!A.mint || !B.mint || !Number(A.amount)) {
-        return
+    if (!A.mint || !B.mint || !Number(A.amount)) {
+      return
+    }
+
+    if (cancel.current) {
+      cancel.current()
+    }
+
+    setLoading(true)
+    setAmounts([])
+
+    const decimals = [A.mint.decimals, B.mint.decimals]
+
+    axios({
+      // url: 'https://api.1sol.io/distribution2',
+      url: 'http://192.168.4.11:8080/distribution2',
+      method: 'post', 
+      data: {
+        amount_in: Number(A.amount) * 10 ** A.mint.decimals,
+        chain_id: pool?.chainId,
+        source_token_mint_key: A.mintAddress,
+        destination_token_mint_key: B.mintAddress, 
+        providers: [pool?.address, market?.address],
+      }, 
+      cancelToken: new CancelToken((c) => cancel.current = c)
+    }).then(({data: {amount_out: output, distributions}}) => {
+      const amounts = []
+
+      const tokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
+      const serumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
+
+      B.setAmount(`${output / 10 ** decimals[1]}`)
+
+      if (tokenSwap) {
+        setTokenSwapAmount({
+          input: tokenSwap.amount_in,
+          output: tokenSwap.amount_out,
+        })
+
+        amounts.push({
+          name: 'Token Swap(devnet)',
+          input: tokenSwap.amount_in / 10 ** decimals[0],
+          output: tokenSwap.amount_out / 10 ** decimals[1],
+        })
       }
 
-      if (cancel.current) {
-        cancel.current()
+      if (serumMarket) {
+        setSerumMarketAmount({
+          input: serumMarket.amount_in,
+          output: serumMarket.amount_out,
+          limitPrice: serumMarket.limit_price, 
+          maxCoinQty: serumMarket.max_coin_qty,
+          maxPcQty: serumMarket.max_pc_qty
+        })
+
+        amounts.push({
+          name: 'Serum Dex(devnet)',
+          input: serumMarket.amount_in / 10 ** decimals[0],
+          output: serumMarket.amount_out / 10 ** decimals[1]
+        })
       }
 
-      setLoading(true)
-      setAmounts([])
-
-      const decimals = [A.mint.decimals, B.mint.decimals]
-
-      axios({
-        url: 'https://api.1sol.io/distribution2',
-        method: 'post', 
-        data: {
-          amount_in: Number(A.amount) * 10 ** A.mint.decimals,
-          token_swap_pool: pool?.address,
-          serum_dex_market: market?.address,
-          chain_id: pool?.chainId,
-          source_token_mint_key: A.mintAddress,
-          destination_token_mint_key: B.mintAddress 
-        }, 
-        cancelToken: new CancelToken((c) => cancel.current = c)
-      }).then(({data: {amount_out: output, token_swap: tokenSwap, serum_dex: serumMarket}}) => {
-        const amounts = []
-
-        B.setAmount(`${output / 10 ** decimals[1]}`)
-
-        if (tokenSwap) {
-          setTokenSwapAmount({
-            input: tokenSwap.amount_in,
-            output: tokenSwap.amount_out,
-          })
-
-          amounts.push({
-            name: 'Test Token Swap',
-            input: tokenSwap.amount_in / 10 ** decimals[0],
-            output: tokenSwap.amount_out / 10 ** decimals[1],
-          })
-        }
-
-        if (serumMarket) {
-          setSerumMarketAmount({
-            input: serumMarket.amount_in,
-            output: serumMarket.amount_out,
-            limitPrice: serumMarket.limit_price, 
-            maxCoinQty: serumMarket.max_coin_qty,
-            maxPcQty: serumMarket.max_pc_qty
-          })
-
-          amounts.push({
-            name: 'Test Serum Swap',
-            input: serumMarket.amount_in / 10 ** decimals[0],
-            output: serumMarket.amount_out / 10 ** decimals[1]
-          })
-        }
-
-        setAmounts(amounts)
-        setLoading(false)
-      }).catch(e => {
-        console.error(e)
-        // setLoading(false)
-      })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
+      setAmounts(amounts)
+      setLoading(false)
+    }).catch(e => {
+      console.error(e)
+      // setLoading(false)
+    })  
+  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, market])
 
   useEffect(() => {
     if (cancel.current) {
       cancel.current()
+    }
+
+    if (!Number(A.amount)) {
+      setLoading(false)
     }
 
     B.setAmount('0.00')
@@ -204,7 +187,27 @@ export const TradeEntry = () => {
     setTokenSwapAmount(undefined)
     setSerumMarketAmount(undefined)
 
-    if (A.mintAddress !== B.mintAddress) {
+    const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
+      const mints: string[] = [pool.mintA, pool.mintB]
+
+      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    })
+
+    if (pool) {
+      setPool(pool)
+    }
+
+    const market: TokenSwapPool | undefined = serumMarkets.find((pool) => {
+      const mints: string[] = [pool.mintA, pool.mintB]
+
+      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    })
+
+    if (market) {
+      setMarket(market)
+    }
+
+    if (A.mintAddress !== B.mintAddress && (pool || market)) {
       fetchDistrubition()
     }
   }, [A.amount, A.mintAddress, B.mintAddress, pool, market])
