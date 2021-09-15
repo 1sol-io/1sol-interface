@@ -649,7 +649,7 @@ export async function tokenSwapSwap (
     signers
   );
 
-  approveAmount(
+  const transferAuthority = approveAmount(
     instructions,
     cleanupInstructions,
     fromAccount,
@@ -659,7 +659,16 @@ export async function tokenSwapSwap (
   );
   // signers.push(transferAuthority);
 
-  await onesolProtocol.createSwapTokenSwapInstruction(fromAccount, toAccount, amountIn, minAmountOut, tokenSwapInfo, instructions, signers)
+  await onesolProtocol.createSwapTokenSwapInstruction(
+    fromAccount,
+    toAccount,
+    transferAuthority,
+    amountIn,
+    minAmountOut,
+    tokenSwapInfo,
+    instructions,
+    signers
+  )
 
   const tx = await sendTransaction(
     connection,
@@ -715,14 +724,14 @@ export async function serumMarketSwap (
     signers
   );
 
-  approveAmount(
-    instructions,
-    cleanupInstructions,
-    fromAccount,
-    wallet.publicKey,
-    amountIn,
-    undefined
-  );
+  // approveAmount(
+  //   instructions,
+  //   cleanupInstructions,
+  //   fromAccount,
+  //   wallet.publicKey,
+  //   amountIn,
+  //   undefined
+  // );
   // signers.push(transferAuthority);
 
   if (!A.mint || !B.mint) {

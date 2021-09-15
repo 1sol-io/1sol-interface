@@ -199,7 +199,7 @@ export class SerumDexMarketInfo {
   //   };
   // }
 
-  async toKeys(openOrderAccountKey: PublicKey): Promise<Array<AccountMeta>> {
+  async toKeys(openOrderAccountKey: PublicKey, openOrderOwnerKey: PublicKey): Promise<Array<AccountMeta>> {
     const vaultSigner = await PublicKey.createProgramAddress(
       [
         this.market.address.toBuffer(),
@@ -209,7 +209,6 @@ export class SerumDexMarketInfo {
     );
     const keys = [
       { pubkey: this.market.publicKey, isSigner: false, isWritable: true },
-      { pubkey: openOrderAccountKey, isSigner: false, isWritable: false },
       {
         pubkey: this.market.decoded.requestQueue,
         isSigner: false,
@@ -233,6 +232,8 @@ export class SerumDexMarketInfo {
         isWritable: true,
       },
       { pubkey: vaultSigner, isSigner: false, isWritable: false },
+      { pubkey: openOrderAccountKey, isSigner: false, isWritable: false },
+      { pubkey: openOrderOwnerKey, isSigner: true, isWritable: false },
       { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
       { pubkey: this.programId, isSigner: false, isWritable: false },
     ];
@@ -423,8 +424,9 @@ export class OneSolProtocol {
   }
 
   async createSwapTokenSwapInstruction(
-    userSource: PublicKey,
-    userDestination: PublicKey,
+    fromTokenAccountKey: PublicKey,
+    toTokenAccountKey: PublicKey,
+    userTransferAuthority: Keypair,
     amountIn: number | Numberu64,
     minimumAmountOut: number | Numberu64,
     splTokenSwapInfo: TokenSwapInfo,
@@ -434,11 +436,11 @@ export class OneSolProtocol {
     instructions.push(
       await OneSolProtocol.makeSwapTokenSwapInstruction(
         this.protocolInfo,
-        this.wallet,
         this.authority,
         this.tokenAccountKey,
-        userSource,
-        userDestination,
+        userTransferAuthority.publicKey,
+        fromTokenAccountKey,
+        toTokenAccountKey,
         this.tokenProgramId,
         splTokenSwapInfo,
         this.protocolProgramId,
@@ -446,11 +448,12 @@ export class OneSolProtocol {
         minimumAmountOut
       )
     );
+    signers.push(userTransferAuthority);
   }
 
   async createSwapSerumDexInstruction(
-    userSource: PublicKey,
-    userDestination: PublicKey,
+    fromTokenAccountKey: PublicKey,
+    toTokenAccountKey: PublicKey,
     marketInfo: SerumDexMarketInfo,
     fromTokenMintInfo: TokenMintInfo,
     toTokenMintInfo: TokenMintInfo,
@@ -476,13 +479,13 @@ export class OneSolProtocol {
     instructions.push(
       await OneSolProtocol.makeSwapSerumDexInstruction(
         this.protocolInfo,
-        this.wallet,
         this.authority,
         this.tokenAccountKey,
-        userSource,
-        userDestination,
+        fromTokenAccountKey,
+        toTokenAccountKey,
         this.tokenProgramId,
         openOrder.publicKey,
+        this.wallet,
         marketInfo,
         this.protocolProgramId,
         fromTokenMintInfo,
@@ -495,9 +498,9 @@ export class OneSolProtocol {
 
   static async makeSwapTokenSwapInstruction(
     protocolAccount: PublicKey,
-    owner: PublicKey,
-    authority: PublicKey,
+    protocolAuthority: PublicKey,
     protocolToken: PublicKey,
+    userTransferAuthority: PublicKey,
     userSource: PublicKey,
     userDestination: PublicKey,
     tokenProgramId: PublicKey,
@@ -519,12 +522,12 @@ export class OneSolProtocol {
 
     const keys = [
       { pubkey: protocolAccount, isSigner: false, isWritable: false },
-      { pubkey: authority, isSigner: false, isWritable: false },
-      { pubkey: owner, isSigner: true, isWritable: false },
+      { pubkey: protocolAuthority, isSigner: false, isWritable: false },
       { pubkey: protocolToken, isSigner: false, isWritable: true },
       { pubkey: userSource, isSigner: false, isWritable: true },
       { pubkey: userDestination, isSigner: false, isWritable: true },
       { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+      { pubkey: userTransferAuthority, isSigner: true, isWritable: false },
     ];
     const swapKeys = splTokenSwapInfo.toKeys();
     keys.push(...swapKeys);
@@ -542,13 +545,13 @@ export class OneSolProtocol {
 
   static async makeSwapSerumDexInstruction(
     protocolAccount: PublicKey,
-    owner: PublicKey,
-    authority: PublicKey,
+    protocolAuthority: PublicKey,
     protocolToken: PublicKey,
-    userSource: PublicKey,
-    userDestination: PublicKey,
+    fromTokenAccountKey: PublicKey,
+    toTokenAccountKey: PublicKey,
     tokenProgramId: PublicKey,
     openOrderAccountKey: PublicKey,
+    openOrderOwnerKey: PublicKey,
     marketInfo: SerumDexMarketInfo,
     protocolProgramId: PublicKey,
     fromTokenMintInfo: TokenMintInfo,
@@ -573,11 +576,13 @@ export class OneSolProtocol {
       BufferLayout.u8("to_decimals"),
       BufferLayout.u8("strict"),
     ];
-    const side = marketInfo.market.baseMintAddress.equals(fromTokenMintInfo.pubkey) ? 0 : 1;
-    const exchangeRate = minimumAmountOut.div(amountIn.div(new Numberu64(10).pow(new Numberu64(fromTokenMintInfo.mintInfo.decimals))));
+    const side = marketInfo.market.baseMintAddress.equals(fromTokenMintInfo.pubkey) ? 1 : 0;
+    const exchangeRate = minimumAmountOut.div(
+      amountIn.div(
+        new BN(10).pow(new BN(fromTokenMintInfo.mintInfo.decimals))
+      )
+    );
     console.log("side: " + side + ", exchangeRate: " + exchangeRate);
-    console.log(new Numberu64(exchangeRate.toNumber()))
-
     let dataMap: any = {
       instruction: 2, // Swap instruction
       amount_in: new Numberu64(amountIn).toBuffer(),
@@ -590,14 +595,13 @@ export class OneSolProtocol {
 
     const keys = [
       { pubkey: protocolAccount, isSigner: false, isWritable: false },
-      { pubkey: authority, isSigner: false, isWritable: false },
-      { pubkey: owner, isSigner: true, isWritable: false },
+      { pubkey: protocolAuthority, isSigner: false, isWritable: false },
       { pubkey: protocolToken, isSigner: false, isWritable: true },
-      { pubkey: userSource, isSigner: false, isWritable: true },
-      { pubkey: userDestination, isSigner: false, isWritable: true },
+      { pubkey: fromTokenAccountKey, isSigner: false, isWritable: true },
+      { pubkey: toTokenAccountKey, isSigner: false, isWritable: true },
       { pubkey: tokenProgramId, isSigner: false, isWritable: false },
     ];
-    const swapKeys = await marketInfo.toKeys(openOrderAccountKey);
+    const swapKeys = await marketInfo.toKeys(openOrderAccountKey, openOrderOwnerKey);
     keys.push(...swapKeys);
 
     const dataLayout = BufferLayout.struct(bflStruct);
