@@ -12,22 +12,22 @@ const Social = () => {
     <div className="socials">
       <div className="flex">
         <div className="icon">
-          <a href="https://twitter.com/1solprotocol">
+          <a href="https://twitter.com/1solprotocol" target="_blank">
             <img src={twitter} />
           </a>
         </div>
         <div className="icon">
-          <a href="https://t.me/onesolcommunity">
+          <a href="https://t.me/onesolcommunity" target="_blank">
             <img src={telegram} />
           </a>
         </div>
         <div className="icon">
-          <a href="https://medium.com/@1solProtocol">
+          <a href="https://medium.com/@1solProtocol" target="_blank">
             <img src={medium} />
           </a>
         </div>
         <div className="icon">
-          <a href="https://github.com/1sol-io">
+          <a href="https://github.com/1sol-io" target="_blank">
             <img src={github} />
           </a>
         </div>
