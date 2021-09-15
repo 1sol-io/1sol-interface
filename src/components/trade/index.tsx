@@ -104,32 +104,16 @@ export const TradeEntry = () => {
   }, [A.mintAddress, B.mintAddress])
 
   useEffect(() => {
-    if (cancel.current) {
-      cancel.current()
-    }
-
-    setAmounts([])
-    setTokenSwapAmount(undefined)
-    setTokenSwapAmount(undefined)
-  }, [A.mintAddress, B.mintAddress])
-
-  useEffect(() => {
     const getTokenAccount = (mint: string) => {
-      // TODO
-      // if token is SOL, return 
-      // if (mint === WRAPPED_SOL_MINT.toString()) {
-      //   return
-      // }
-
       const index = userAccounts.findIndex(
-          (acc: any) => acc.info.mint.toBase58() === mint
-        );
+        (acc: any) => acc.info.mint.toBase58() === mint
+      );
 
-        if (index !== -1) {
-          return userAccounts[index];
-        }
+      if (index !== -1) {
+        return userAccounts[index];
+      }
 
-        return;
+      return;
     }
     
     setHasTokenAccount(false)
@@ -211,18 +195,17 @@ export const TradeEntry = () => {
   }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel])
 
   useEffect(() => {
-    B.setAmount('0.00')
-    setAmounts([])
-
-    setTokenSwapAmount(undefined)
-    setSerumMarketAmount(undefined)
-
     if (cancel.current) {
       cancel.current()
     }
 
+    B.setAmount('0.00')
+    setAmounts([])
+    setTokenSwapAmount(undefined)
+    setSerumMarketAmount(undefined)
+
     fetchDistrubition()
-  }, [A.amount])
+  }, [A.amount, A.mintAddress, B.mintAddress, pool, market])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
