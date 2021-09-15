@@ -204,7 +204,9 @@ export const TradeEntry = () => {
     setTokenSwapAmount(undefined)
     setSerumMarketAmount(undefined)
 
-    fetchDistrubition()
+    if (A.mintAddress !== B.mintAddress) {
+      fetchDistrubition()
+    }
   }, [A.amount, A.mintAddress, B.mintAddress, pool, market])
 
   const swapAccounts = () => {
