@@ -331,6 +331,7 @@ const UseNativeAccount = () => {
         setNativeAccount(acc);
       }
     });
+
     connection.onAccountChange(wallet.publicKey, (acc) => {
       if (acc) {
         setNativeAccount(acc);

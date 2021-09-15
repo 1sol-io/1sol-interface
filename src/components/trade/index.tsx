@@ -104,6 +104,16 @@ export const TradeEntry = () => {
   }, [A.mintAddress, B.mintAddress])
 
   useEffect(() => {
+    if (cancel.current) {
+      cancel.current()
+    }
+
+    setAmounts([])
+    setTokenSwapAmount(undefined)
+    setTokenSwapAmount(undefined)
+  }, [A.mintAddress, B.mintAddress])
+
+  useEffect(() => {
     const getTokenAccount = (mint: string) => {
       // TODO
       // if token is SOL, return 
@@ -204,6 +214,9 @@ export const TradeEntry = () => {
   useEffect(() => {
     B.setAmount('0.00')
     setAmounts([])
+
+    setTokenSwapAmount(undefined)
+    setSerumMarketAmount(undefined)
 
     if (cancel.current) {
       cancel.current()

@@ -119,7 +119,6 @@ export function ConnectionProvider({ children = undefined as any }) {
       const json = await queryJSONFile(
         "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
       );
-      console.log(json)
 
       setTokenSwapPools(json)
     })();
@@ -137,17 +136,11 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      // const res = await new TokenListProvider().resolve();
 
       const customTokenJSON = await queryJsonFiles([
         "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/tokens/solana.tokenlist.json",
       ]);
       const customTokenList = new TokenListContainer(customTokenJSON);
-
-      // const list = res
-      //   .filterByChainId(chain.chainID)
-      //   .excludeByTag("nft")
-      //   .getList();
 
       const customList = customTokenList
         .filterByChainId(chain.chainID)
@@ -189,6 +182,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   // This is a hack to prevent the list from every getting empty
   useEffect(() => {
     const id = connection.onAccountChange(new Account().publicKey, () => {});
+
     return () => {
       connection.removeAccountChangeListener(id);
     };
@@ -196,6 +190,7 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     const id = connection.onSlotChange(() => null);
+
     return () => {
       connection.removeSlotChangeListener(id);
     };
