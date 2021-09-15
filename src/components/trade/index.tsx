@@ -369,7 +369,8 @@ export const TradeEntry = () => {
             !B.mintAddress ||
             A.account === B.account ||
             !A.sufficientBalance() ||
-            !pool)
+            (!pool && !market) ||
+            (!tokenSwapAmount && !serumMarketAmount))
         }
       >
         {generateActionLabel(
@@ -403,7 +404,7 @@ export const TradeRoute = (props: { amounts: {name: string, input: number, outpu
       <RightOutlined style={{margin: '0 5px'}} />
       <div className="bd">
         {amounts.map(({name, input, output}, i) => (
-          <div key={i}>
+          <div key={i} style={{width: '100%'}}>
             <div className="pool">
               <div className="name">{name}</div>
               <div className="amount">
