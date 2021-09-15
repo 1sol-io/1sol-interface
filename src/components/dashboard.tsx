@@ -1,5 +1,6 @@
 import { Card, Table } from 'antd'
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { PublicKey } from '@solana/web3.js'
 import { parseMappingData, parsePriceData, parseProductData } from '@pythnetwork/client'
 
@@ -54,9 +55,18 @@ const SYMBOLS = [
 export const Dashboard = () => {
   const connection = useConnection()
 
+  const location = useLocation()
+
   const dataSource: Array<{ symbol: string; price: number; confidence: number; key: string }> = []
   const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(false)
+
+  useEffect(
+    () => {
+      document.title = `Dashboard | 1Sol`
+    },
+    [location]
+  )
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -111,19 +121,18 @@ export const Dashboard = () => {
         )
 
         setLoading(false)
-        timer = setTimeout(() => fetchProducts(), 15000)
       } catch (e) {
         console.error(e)
-
-        timer = setTimeout(() => fetchProducts(), 15000)
       }
     }
 
     fetchProducts(true)
+    timer = setInterval(() => fetchProducts(), 10000)
 
     return () => {
+      console.log(`timer = ${timer}`)
       if (timer) {
-        clearTimeout(timer)
+        clearInterval(timer)
       }
     }
   }, [])
