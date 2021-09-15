@@ -6,6 +6,7 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
 import { AppBar } from "./appBar";
+import Social from "./social";
 
 import { notify } from "../utils/notifications";
 import { useWallet } from "../context/wallet";
@@ -73,6 +74,7 @@ export const ExchangeView = (props: {}) => {
           </Popover>
         }
       />
+
       <Card
         className="airdrop-card exchange-card"
         headStyle={{ padding: 0 }}
@@ -99,6 +101,8 @@ export const ExchangeView = (props: {}) => {
       >
         {tradeTab.render()}
       </Card>
+
+      <Social />
     </>
   );
 };
