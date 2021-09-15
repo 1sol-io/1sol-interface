@@ -44,7 +44,6 @@ body {
   position: relative;
   padding: 1rem;
   z-index: 2;
-  // border-bottom: 1px solid #e8e8e8;
 
   .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item,
   .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-submenu {
@@ -66,6 +65,15 @@ body {
       height: 35px;
       line-height: 35px;
       border-width: 0px !important;
+
+      @media only screen and (max-width: 600px) {
+        opacity: 0;
+        order: 0;
+        height: 0px;
+        overflow-y: hidden;
+        pointer-events: none;
+        position: absolute;
+      }
     }
 
     .ant-menu-item:hover {
@@ -75,6 +83,14 @@ body {
 
     .ant-menu-item-selected {
       font-weight: bold;
+    }
+
+    .ant-menu-overflow-item-rest {
+      @media only screen and (max-width: 600px) {
+        opacity: 1 !important;
+        order: -1 !important;
+        position: relative !important;
+      }
     }
   }
 }
