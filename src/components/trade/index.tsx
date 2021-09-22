@@ -115,6 +115,15 @@ export const TradeEntry = () => {
     setAmounts([])
 
     const decimals = [A.mint.decimals, B.mint.decimals]
+    const providers = []
+
+    if (pool) {
+      providers.push(pool.address)
+    }
+
+    if (market) {
+      providers.push(market.address)
+    }
 
     axios({
       url: 'https://api.1sol.io/distribution2',
@@ -125,7 +134,7 @@ export const TradeEntry = () => {
         chain_id: pool?.chainId,
         source_token_mint_key: A.mintAddress,
         destination_token_mint_key: B.mintAddress, 
-        providers: [pool?.address, market?.address],
+        providers,
       }, 
       cancelToken: new CancelToken((c) => cancel.current = c)
     }).then(({data: {amount_out: output, distributions}}) => {
