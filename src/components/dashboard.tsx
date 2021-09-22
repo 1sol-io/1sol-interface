@@ -1,10 +1,16 @@
 import { Card, Table } from 'antd'
 import React, { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { PublicKey } from '@solana/web3.js'
-import { parseMappingData, parsePriceData, parseProductData } from '@pythnetwork/client'
+import {
+  parseMappingData,
+  parsePriceData,
+  parseProductData
+} from '@pythnetwork/client'
 
+import { SYMBOL_PAIRS } from '../utils/constant'
 import { useConnection } from '../utils/connection'
+import useChainlink from '../hooks/useChainlink'
 
 import { AppBar } from './appBar'
 import Social from './social'
@@ -20,46 +26,69 @@ const columns: Array<{
   align?: 'left' | 'center' | 'right' | undefined
   render?: any
 }> = [
-  { title: 'Market', dataIndex: 'symbol', key: 'symbol', align: 'left' },
+  { title: 'Token', dataIndex: 'symbol', key: 'symbol', align: 'left' },
   {
-    title: 'Price',
-    dataIndex: 'price',
-    key: 'price',
+    title: 'Chainlink',
+    dataIndex: 'chainlink',
+    key: 'chainlink',
     align: 'left',
-    render: (value: number) => `$${value}`,
+    render: (value: number) => `$${value}`
   },
   {
-    title: 'Uncertainty',
-    dataIndex: 'confidence',
-    key: 'confidence',
-    render: (value: number) => `\xB1$${value}`,
-    align: 'right',
+    title: 'Pyth',
+    dataIndex: 'pyth',
+    key: 'pyth',
+    align: 'left',
+    render: (value: number) => `$${value}`
   },
+  {
+    title: 'Trade',
+    dataIndex: 'trade',
+    key: 'trade',
+    render:
+      (value: number, record: any) => (
+        <Link to={`/?pair=SOL-${record.token}`}>Buy/Sell</Link>
+      ),
+    align: 'right'
+  }
 ]
 
-const SYMBOLS = [
-  'BCH/USD',
-  'BNB/USD',
-  'BTC/USD',
-  'DOGE/USD',
-  'ETH/USD',
-  'GBP/USD',
-  'LTC/USD',
-  'LUNA/USD',
-  'SOL/USD',
-  'SRM/USD',
-  'USDC/USD',
-  'USDT/USD',
-]
+// const SYMBOLS = [
+//   'BCH/USD',
+//   'BNB/USD',
+//   'BTC/USD',
+//   'DOGE/USD',
+//   'ETH/USD',
+//   'GBP/USD',
+//   'LTC/USD',
+//   'LUNA/USD',
+//   'SOL/USD',
+//   'SRM/USD',
+//   'USDC/USD',
+//   'USDT/USD'
+// ]
 
 export const Dashboard = () => {
   const connection = useConnection()
 
   const location = useLocation()
+  const { chainlinkMap } = useChainlink()
 
-  const dataSource: Array<{ symbol: string; price: number; confidence: number; key: string }> = []
+  const dataSource: Array<{
+    symbol: string
+    pyth: string
+    chainlink: string
+    token: string
+  }> = []
   const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(false)
+  const [pythMap, setPythMap] = useState<{
+    [key: string]: {
+      name: string
+      symbol: string
+      price: string
+    }
+  }>()
 
   useEffect(
     () => {
@@ -68,81 +97,120 @@ export const Dashboard = () => {
     [location]
   )
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>
+  useEffect(
+    () => {
+      const dataSource: Array<{
+        symbol: string
+        pyth: string
+        chainlink: string
+        token: string
+      }> = SYMBOL_PAIRS.map(
+        ({ name: symbol, token }: { name: string; token: string }) => ({
+          symbol,
+          pyth: pythMap && pythMap[symbol] ? pythMap[symbol].price : '-',
+          // chainlink: '-'
+          chainlink:
+            chainlinkMap && chainlinkMap[symbol]
+              ? chainlinkMap[symbol].price
+              : '-',
+          token
+        })
+      )
 
-    const fetchProducts = async (showLoading: boolean = false) => {
-      if (showLoading) {
-        setLoading(true)
-      }
+      setProducts(dataSource)
+    },
+    [pythMap, chainlinkMap]
+  )
 
-      try {
-        const accountInfo: any = await connection.getAccountInfo(publicKey)
+  useEffect(
+    () => {
+      let timer: ReturnType<typeof setTimeout>
 
-        const { productAccountKeys } = parseMappingData(accountInfo.data)
+      const fetchProducts = async (showLoading: boolean = false) => {
+        if (showLoading) {
+          setLoading(true)
+        }
 
-        const promises = productAccountKeys.map(async (productAccountKey) => {
-          try {
-            const accountInfo = await connection.getAccountInfo(productAccountKey)
+        try {
+          const accountInfo: any = await connection.getAccountInfo(publicKey)
 
+          const { productAccountKeys } = parseMappingData(accountInfo.data)
+          const accounts = await connection.getMultipleAccountsInfo(
+            productAccountKeys
+          )
+          const keys = accounts.map((accountInfo) => {
             if (accountInfo) {
-              const { product, priceAccountKey } = parseProductData(accountInfo.data)
-              const accountInfo1 = await connection.getAccountInfo(priceAccountKey)
+              const { product, priceAccountKey } = parseProductData(
+                accountInfo.data
+              )
 
-              if (accountInfo1) {
-                const { price, confidence } = parsePriceData(accountInfo1.data)
-
-                return { symbol: product.symbol, price, confidence, key: product.symbol }
-              }
+              return { product, priceAccountKey }
             }
 
-            return { symbol: '', price: 0, confidence: 0, key: '' }
-          } catch (e) {
-            return { symbol: '', price: 0, confidence: 0, key: '' }
-          }
-        })
+            return null
+          })
+          // @ts-ignore
+          const filterd: Array<{
+            product: any
+            priceAccountKey: PublicKey
+          }> = keys.filter((item) => item)
 
-        const products = await Promise.all(promises)
+          const priceAccountInfos = await connection.getMultipleAccountsInfo(
+            filterd.map((item) => item.priceAccountKey)
+          )
 
-        setProducts(
-          products
-            .sort((a, b) => {
-              if (a.symbol < b.symbol) {
-                return -1
+          const pythMap: {
+            [key: string]: { symbol: string; price: string; name: string }
+          } = {}
+
+          priceAccountInfos.forEach((accountInfo, i) => {
+            if (accountInfo) {
+              const { symbol } = filterd[i].product
+              const { price } = parsePriceData(accountInfo.data)
+
+              pythMap[symbol] = {
+                symbol,
+                price: `${price.toFixed(2)}`,
+                name: 'Pyth'
               }
+            }
+          })
 
-              if (a.symbol > b.symbol) {
-                return 1
-              }
+          setPythMap(pythMap)
 
-              return 0
-            })
-            .filter((d) => d.symbol && SYMBOLS.indexOf(d.symbol) > -1)
-        )
-
-        setLoading(false)
-      } catch (e) {
-        console.error(e)
+          setLoading(false)
+        } catch (e) {
+          console.error(e)
+        }
       }
-    }
 
-    fetchProducts(true)
-    timer = setInterval(() => fetchProducts(), 10000)
+      fetchProducts(true)
+      timer = setInterval(() => fetchProducts(), 10000)
 
-    return () => {
-      console.log(`timer = ${timer}`)
-      if (timer) {
-        clearInterval(timer)
+      return () => {
+        if (timer) {
+          clearInterval(timer)
+        }
       }
-    }
-  }, [])
+    },
+    [connection]
+  )
 
   return (
     <div className="page-dashboard">
       <AppBar />
       <div className="bd">
-        <Card title="Cryptocurrency Price Realtime Dashboard" style={{ margin: '20px 30px' }}>
-          <Table loading={loading} dataSource={products} columns={columns} bordered pagination={false} />
+        <Card
+          title="Cryptocurrency Price Realtime Dashboard"
+          style={{ width: '550px', margin: '20px auto 30px' }}
+        >
+          <Table
+            loading={loading}
+            dataSource={products}
+            columns={columns}
+            bordered
+            pagination={false}
+          />
         </Card>
       </div>
       <Social />

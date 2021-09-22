@@ -68,7 +68,8 @@ interface ConnectionConfig {
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
   tokenSwapPools: TokenSwapPool[],
-  serumMarkets: TokenSwapPool[]
+  serumMarkets: TokenSwapPool[],
+  chainId: number
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -82,7 +83,8 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
   tokenSwapPools: [],
-  serumMarkets: []
+  serumMarkets: [],
+  chainId: 103
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -107,6 +109,7 @@ export function ConnectionProvider({ children = undefined as any }) {
     ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[2];
 
   const env = chain.name;
+  const chainId = chain.chainID
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
@@ -236,6 +239,7 @@ export function ConnectionProvider({ children = undefined as any }) {
         env,
         tokenSwapPools,
         serumMarkets,
+        chainId
       }}
     >
       {children}
@@ -260,7 +264,8 @@ export function useConnectionConfig() {
     tokens: context.tokens,
     tokenMap: context.tokenMap,
     tokenSwapPools: context.tokenSwapPools,
-    serumMarkets: context.serumMarkets
+    serumMarkets: context.serumMarkets,
+    chainId: context.chainId
   };
 }
 
