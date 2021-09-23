@@ -1,4 +1,4 @@
-import { Card, Table } from 'antd'
+import { Card, Table, Button } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { PublicKey } from '@solana/web3.js'
@@ -26,7 +26,7 @@ const columns: Array<{
   align?: 'left' | 'center' | 'right' | undefined
   render?: any
 }> = [
-  { title: 'Token', dataIndex: 'symbol', key: 'symbol', align: 'left' },
+  { title: 'Asset', dataIndex: 'symbol', key: 'symbol', align: 'left' },
   {
     title: 'Chainlink',
     dataIndex: 'chainlink',
@@ -42,12 +42,16 @@ const columns: Array<{
     render: (value: number) => `$${value}`
   },
   {
-    title: 'Trade',
+    title: '',
     dataIndex: 'trade',
     key: 'trade',
     render:
       (value: number, record: any) => (
-        <Link to={`/?pair=SOL-${record.token}`}>Buy/Sell</Link>
+        <Link to={`/?pair=SOL-${record.token}`}>
+          <Button type="primary" size="small">
+            Trade
+          </Button>
+        </Link>
       ),
     align: 'right'
   }
