@@ -1,0 +1,16 @@
+{
+  "name": "onesol-wasm",
+  "collaborators": [
+    "Momo <googolmo@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "onesol_wasm_bg.wasm",
+    "onesol_wasm.js",
+    "onesol_wasm_bg.js",
+    "onesol_wasm.d.ts"
+  ],
+  "module": "onesol_wasm.js",
+  "types": "onesol_wasm.d.ts",
+  "sideEffects": false
+}

@@ -1,5 +1,5 @@
 import { Card, Table } from 'antd'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { PublicKey } from '@solana/web3.js'
 import { parseMappingData, parsePriceData, parseProductData } from '@pythnetwork/client'
@@ -8,6 +8,7 @@ import { useConnection } from '../utils/connection'
 
 import { AppBar } from './appBar'
 import Social from './social'
+import BN from 'bn.js'
 
 import './dashboard.less'
 
@@ -69,6 +70,20 @@ export const Dashboard = () => {
   )
 
   useEffect(() => {
+
+    const fetchChainlink = async() => {
+		  const onesolWasm = await import("onesol-wasm")
+     	console.log("load chainLink account info")
+		  const accountInfo = await connection.getAccountInfo(new PublicKey("6dbkV6QCToTk6DRfuJyrGuz18kZ4rPUSHLLLVrryWdUC"));
+		  if (accountInfo) {
+			  const price = onesolWasm.unpack_chainlink(accountInfo.data);
+        if (price.price) {
+			    console.log("price: " + new BN(price.price, "le").toString());
+        }
+		  } 
+    }
+    fetchChainlink()
+
     let timer: ReturnType<typeof setTimeout>
 
     const fetchProducts = async (showLoading: boolean = false) => {
@@ -126,8 +141,8 @@ export const Dashboard = () => {
       }
     }
 
-    fetchProducts(true)
-    timer = setInterval(() => fetchProducts(), 10000)
+    // fetchProducts(true)
+    // timer = setInterval(() => fetchProducts(), 10000)
 
     return () => {
       console.log(`timer = ${timer}`)

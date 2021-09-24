@@ -17,8 +17,10 @@ import { Settings } from "../settings";
 import { NumericInput } from "../numericInput";
 
 import { useWallet } from "../../context/wallet";
+import { useConnection } from "../../utils/connection";
 
 import './index.less'
+import { PublicKey } from "@solana/web3.js";
 
 const { Option } = Select;
 
@@ -126,6 +128,10 @@ export const CurrencyInput = (props: {
 }
 
 export const TradeEntry = () => {
+
+	const connection = useConnection()
+
+	// wasm.unpack_chainlink()
   const { connect, connected } = useWallet();
 
 	const ts: Array<{address: string, symbol: string}> = [
@@ -176,6 +182,9 @@ export const TradeEntry = () => {
   const cancel = useRef(function () {})
 
 	const fetchData = useCallback(async () => {
+
+
+
 		setChains([])
 		setAmountB('')
 
