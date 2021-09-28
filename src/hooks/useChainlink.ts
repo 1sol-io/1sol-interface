@@ -5,13 +5,14 @@ import BigNumber from 'bignumber.js';
 import { useConnectionConfig } from "../utils/connection";
 
 import { SYMBOL_PAIRS } from '../utils/constant'
+import logo from '../assets/chainlink.svg'
 
 const useChainlink = () => {
   const connection = useConnectionConfig();
 
   const [loading, setLoading] = useState(true)
   const [symbolMap, setSymbolMap] = useState<{
-    [key: string]: { name: string; symbol: string; price: string }
+    [key: string]: { name: string; symbol: string; price: string, logo: string }
   }>()
 
   const getPrices = useCallback(async () => {
@@ -29,16 +30,17 @@ const useChainlink = () => {
       })
 
       const symbolMap: {
-        [key: string]: { symbol: string; price: string; name: string }
+        [key: string]: { symbol: string; price: string; name: string, logo: string }
       } = {}
 
       SYMBOL_PAIRS.forEach(({ name: symbol }: { name: string }, i) => {
         const { price, decimals } = data[i].price
 
-        symbolMap[symbol] = {
+        symbolMap[symbol.toLowerCase()] = {
           symbol,
           price: new BigNumber(price).dividedBy(new BigNumber(10 ** decimals)).toFixed(2).toString(),
-          name: 'Chainlink'
+          name: 'Chainlink',
+          logo
         }
       })
 

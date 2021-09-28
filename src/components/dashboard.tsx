@@ -15,6 +15,9 @@ import useChainlink from '../hooks/useChainlink'
 import { AppBar } from './appBar'
 import Social from './social'
 
+import pythLogo from '../assets/pyth.svg'
+import chainkLinkLogo from '../assets/chainlink.svg'
+
 import './dashboard.less'
 
 const publicKey = new PublicKey('BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2')
@@ -57,26 +60,13 @@ const columns: Array<{
   }
 ]
 
-// const SYMBOLS = [
-//   'BCH/USD',
-//   'BNB/USD',
-//   'BTC/USD',
-//   'DOGE/USD',
-//   'ETH/USD',
-//   'GBP/USD',
-//   'LTC/USD',
-//   'LUNA/USD',
-//   'SOL/USD',
-//   'SRM/USD',
-//   'USDC/USD',
-//   'USDT/USD'
-// ]
-
 export const Dashboard = () => {
   const connection = useConnection()
 
   const location = useLocation()
+  const [active, setActive] = useState('btc')
   const { chainlinkMap } = useChainlink()
+  console.log(chainlinkMap)
 
   const dataSource: Array<{
     symbol: string
@@ -91,6 +81,7 @@ export const Dashboard = () => {
       name: string
       symbol: string
       price: string
+      logo: string
     }
   }>()
 
@@ -111,11 +102,13 @@ export const Dashboard = () => {
       }> = SYMBOL_PAIRS.map(
         ({ name: symbol, token }: { name: string; token: string }) => ({
           symbol,
-          pyth: pythMap && pythMap[symbol] ? pythMap[symbol].price : '-',
-          // chainlink: '-'
+          pyth:
+            pythMap && pythMap[`${symbol.toLowerCase()}/usd`]
+              ? pythMap[`${symbol.toLowerCase()}/usd`].price
+              : '-',
           chainlink:
-            chainlinkMap && chainlinkMap[symbol]
-              ? chainlinkMap[symbol].price
+            chainlinkMap && chainlinkMap[symbol.toLowerCase()]
+              ? chainlinkMap[symbol.toLowerCase()].price
               : '-',
           token
         })
@@ -164,18 +157,25 @@ export const Dashboard = () => {
           )
 
           const pythMap: {
-            [key: string]: { symbol: string; price: string; name: string }
+            [key: string]: {
+              symbol: string
+              price: string
+              name: string
+              logo: string
+            }
           } = {}
 
           priceAccountInfos.forEach((accountInfo, i) => {
             if (accountInfo) {
               const { symbol } = filterd[i].product
               const { price } = parsePriceData(accountInfo.data)
+              const key = symbol.toLowerCase()
 
-              pythMap[symbol] = {
-                symbol,
+              pythMap[key] = {
+                symbol: key,
                 price: `${price.toFixed(2)}`,
-                name: 'Pyth'
+                name: 'Pyth',
+                logo: pythLogo
               }
             }
           })
@@ -200,22 +200,86 @@ export const Dashboard = () => {
     [connection]
   )
 
+  const handleSwitchToken = (token: string) => {
+    setActive(token.toLowerCase())
+  }
+
   return (
     <div className="page-dashboard">
       <AppBar />
       <div className="bd">
-        <Card
-          title="Cryptocurrency Price Realtime Dashboard"
-          style={{ width: '550px', margin: '20px auto 30px' }}
-        >
-          <Table
-            loading={loading}
-            dataSource={products}
-            columns={columns}
-            bordered
-            pagination={false}
-          />
-        </Card>
+        <div className="sidebar">
+          {SYMBOL_PAIRS.map(
+            ({ token, icon }: { token: string; icon: string }) => (
+              <div
+                className={
+                  active === token.toLowerCase() ? 'token active' : 'token'
+                }
+                key={token}
+                onClick={() => handleSwitchToken(token)}
+              >
+                <img className="icon" src={icon} alt={token} />
+                <span>{token}</span>
+              </div>
+            )
+          )}
+        </div>
+        <div className="center">
+          <div className="hd">
+            <Card
+              className="partner-card"
+              style={{ margin: '0', padding: '0 30px' }}
+            >
+              <div className="partner">
+                <div className="hd">
+                  <img style={{ width: '122px' }} src={pythLogo} alt="" />
+                </div>
+                <div className="bd">
+                  <div style={{ color: '#797A7D' }}>Price</div>
+                  <div>
+                    ${pythMap && pythMap[`${active}/usd`] ? (
+                      pythMap[`${active}/usd`].price
+                    ) : (
+                      '-'
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+            <Card
+              className="partner-card"
+              style={{ margin: '0', padding: '0 30px' }}
+            >
+              <div className="partner">
+                <div className="hd">
+                  <img style={{ width: '122px' }} src={chainkLinkLogo} alt="" />
+                </div>
+                <div className="bd">
+                  <div style={{ color: '#797A7D' }}>Price</div>
+                  <div>
+                    ${chainlinkMap && chainlinkMap[active] ? (
+                      chainlinkMap[active].price
+                    ) : (
+                      '-'
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="bd">
+            <Card>
+              <Table
+                loading={loading}
+                dataSource={products}
+                columns={columns}
+                bordered
+                pagination={false}
+              />
+            </Card>
+          </div>
+        </div>
+        <div className="right" />
       </div>
       <Social />
     </div>
