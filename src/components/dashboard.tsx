@@ -1,8 +1,11 @@
-import { Card, Table, Button } from 'antd'
-import React, { useState, useEffect } from 'react'
+import { Card, Table, Button, Spin } from 'antd'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
+import axios from 'axios'
+import echarts from 'echarts'
 
 import { SYMBOL_PAIRS } from '../utils/constant'
+import { formatShortDate } from '../utils/utils'
 
 import useChainlink from '../hooks/useChainlink'
 import usePyth from '../hooks/usePyth'
@@ -11,48 +14,56 @@ import { AppBar } from './appBar'
 import Social from './social'
 
 import pythLogo from '../assets/pyth.svg'
-import chainkLinkLogo from '../assets/chainlink.svg'
-import onesolLogo from '../assets/logo.png'
+import chainkLinkLogo from '../assets/chainlink_footer.svg'
 
 import './dashboard.less'
 
-const columns: Array<{
-  title: string
-  dataIndex: string
-  key: string
-  align?: 'left' | 'center' | 'right' | undefined
-  render?: any
-}> = [
-  { title: 'Asset', dataIndex: 'symbol', key: 'symbol', align: 'left' },
-  {
-    title: 'Chainlink',
-    dataIndex: 'chainlink',
-    key: 'chainlink',
-    align: 'left',
-    render: (value: number) => `$${value}`
-  },
-  {
-    title: 'Pyth',
-    dataIndex: 'pyth',
-    key: 'pyth',
-    align: 'left',
-    render: (value: number) => `$${value}`
-  },
-  {
-    title: '',
-    dataIndex: 'trade',
-    key: 'trade',
-    render:
-      (value: number, record: any) => (
-        <Link to={`/?pair=SOL-${record.token}`}>
-          <Button type="primary" size="small">
-            Trade
-          </Button>
-        </Link>
-      ),
-    align: 'right'
-  }
-]
+const COINS_MAP: { [key: string]: string } = {
+  btc: 'bitcoin',
+  eth: 'ethereum',
+  sol: 'solana',
+  srm: 'serum',
+  usdc: 'usd-coin',
+  usdt: 'tether'
+}
+
+// const columns: Array<{
+//   title: string
+//   dataIndex: string
+//   key: string
+//   align?: 'left' | 'center' | 'right' | undefined
+//   render?: any
+// }> = [
+//   { title: 'Asset', dataIndex: 'symbol', key: 'symbol', align: 'left' },
+//   {
+//     title: 'Chainlink',
+//     dataIndex: 'chainlink',
+//     key: 'chainlink',
+//     align: 'left',
+//     render: (value: number) => `$${value}`
+//   },
+//   {
+//     title: 'Pyth',
+//     dataIndex: 'pyth',
+//     key: 'pyth',
+//     align: 'left',
+//     render: (value: number) => `$${value}`
+//   },
+//   {
+//     title: '',
+//     dataIndex: 'trade',
+//     key: 'trade',
+//     render:
+//       (value: number, record: any) => (
+//         <Link to={`/?pair=SOL-${record.token}`}>
+//           <Button type="primary" size="small">
+//             Trade
+//           </Button>
+//         </Link>
+//       ),
+//     align: 'right'
+//   }
+// ]
 
 export const Dashboard = () => {
   const location = useLocation()
@@ -68,6 +79,166 @@ export const Dashboard = () => {
   }> = []
   const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(true)
+  const [duration, setDuration] = useState('30')
+  const chartDiv = useRef<HTMLDivElement>(null)
+  const echartsRef = useRef<any>(null)
+
+  const updateChart = (data: []) => {
+    if (echartsRef.current) {
+      const xAxisData = data.map((data: any) =>
+        formatShortDate.format(new Date(data[0]))
+      )
+      const yAxisData = data.map((data: any) => Number(data[1]).toFixed(3))
+
+      echartsRef.current.setOption({
+        axiosPointer:
+          [
+            {
+              lineStyle:
+                {
+                  color: '#383a3e',
+                  type: 'solid'
+                },
+              crossStyle: '#6DA5FC'
+            }
+          ],
+        textStyle:
+          {
+            color: '#fff'
+          },
+        tooltip:
+          {
+            trigger: 'axis',
+            axisPointer:
+              {
+                label:
+                  {
+                    backgroundColor: '#000'
+                  }
+              },
+            // eslint-disable-next-line
+            formatter: '{b}<br />${c}'
+          },
+        grid:
+          {
+            left: '2%',
+            right: '2%',
+            bottom: '2%',
+            containLabel: true,
+            borderWidth: 1,
+            borderColor: '#383a3e',
+            background: '#323437'
+          },
+        xAxis:
+          [
+            {
+              type: 'category',
+              data: xAxisData
+            }
+          ],
+        yAxis:
+          [
+            {
+              type: 'value',
+              scale: true,
+              splitLine:
+                {
+                  lineStyle:
+                    {
+                      color: '#383a3e',
+                      width: 1,
+                      type: 'solid'
+                    },
+                  show: true
+                }
+            }
+          ],
+        series:
+          [
+            {
+              type: `line`,
+              data: yAxisData,
+              smooth: true,
+              lineStyle:
+                {
+                  width: 3,
+                  color: '#6DA5FC'
+                },
+              showSymbol: false,
+              areaStyle:
+                {
+                  opacity: 0.8,
+                  color:
+                    new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: '#67b5fd'
+                      },
+                      {
+                        offset: 0.5,
+                        color: '#8944ef'
+                      },
+                      {
+                        offset: 1,
+                        color: '#5632de'
+                      }
+                    ])
+                },
+              emphasis:
+                {
+                  scale: true,
+                  focus: 'self',
+                  itemStyle:
+                    {
+                      color: '#323437',
+                      borderColor: '#6DA5FC',
+                      borderWidth: 3
+                    },
+                  labelLine:
+                    {
+                      lineStyle:
+                        {
+                          color: '#383a3e'
+                        }
+                    }
+                }
+            }
+          ]
+      })
+
+      setLoading(false)
+    }
+  }
+
+  const fetchChart = useCallback(
+    async () => {
+      try {
+        setLoading(true)
+
+        const { data: { prices } } = await axios.get(
+          `https://api.coingecko.com/api/v3/coins/${COINS_MAP[
+            active
+          ]}/market_chart?vs_currency=usd&days=${duration}&interval=daily`
+        )
+
+        updateChart(prices)
+      } catch (e) {}
+    },
+    [active, duration]
+  )
+
+  useEffect(
+    () => {
+      if (chartDiv.current) {
+        echartsRef.current = echarts.init(chartDiv.current)
+      }
+
+      fetchChart()
+
+      return () => echartsRef.current.dispose()
+    },
+    [active, fetchChart]
+  )
 
   useEffect(
     () => {
@@ -76,36 +247,36 @@ export const Dashboard = () => {
     [location]
   )
 
-  useEffect(
-    () => {
-      if (pythMap || chainlinkMap) {
-        setLoading(false)
-      }
+  // useEffect(
+  //   () => {
+  //     if (pythMap || chainlinkMap) {
+  //       setLoading(false)
+  //     }
 
-      const dataSource: Array<{
-        symbol: string
-        pyth: string
-        chainlink: string
-        token: string
-      }> = SYMBOL_PAIRS.map(
-        ({ name: symbol, token }: { name: string; token: string }) => ({
-          symbol,
-          pyth:
-            pythMap && pythMap[`${symbol.toLowerCase()}/usd`]
-              ? pythMap[`${symbol.toLowerCase()}/usd`].price
-              : '-',
-          chainlink:
-            chainlinkMap && chainlinkMap[symbol.toLowerCase()]
-              ? chainlinkMap[symbol.toLowerCase()].price
-              : '-',
-          token
-        })
-      )
+  //     const dataSource: Array<{
+  //       symbol: string
+  //       pyth: string
+  //       chainlink: string
+  //       token: string
+  //     }> = SYMBOL_PAIRS.map(
+  //       ({ name: symbol, token }: { name: string; token: string }) => ({
+  //         symbol,
+  //         pyth:
+  //           pythMap && pythMap[`${symbol.toLowerCase()}/usd`]
+  //             ? pythMap[`${symbol.toLowerCase()}/usd`].price
+  //             : '-',
+  //         chainlink:
+  //           chainlinkMap && chainlinkMap[symbol.toLowerCase()]
+  //             ? chainlinkMap[symbol.toLowerCase()].price
+  //             : '-',
+  //         token
+  //       })
+  //     )
 
-      setProducts(dataSource)
-    },
-    [pythMap, chainlinkMap]
-  )
+  //     setProducts(dataSource)
+  //   },
+  //   [pythMap, chainlinkMap]
+  // )
 
   const handleSwitchToken = (token: string) => {
     setActive(token.toLowerCase())
@@ -135,72 +306,62 @@ export const Dashboard = () => {
           <div className="hd">
             <Card
               className="partner-card"
-              style={{ margin: '0', padding: '0 30px' }}
+              style={{ margin: '0', padding: '0 30px', width: '100%' }}
             >
-              <div className="partner">
+              <div className="partners">
                 <div className="hd">
-                  <img style={{ width: '122px' }} src={pythLogo} alt="" />
-                </div>
-                <div className="bd">
-                  <div style={{ color: '#797A7D' }}>Price</div>
-                  <div>
-                    ${pythMap && pythMap[`${active}/usd`] ? (
-                      pythMap[`${active}/usd`].price
-                    ) : (
-                      '-'
-                    )}
+                  <div className="partner">
+                    <div className="hd">
+                      ${pythMap && pythMap[`${active}/usd`] ? (
+                        pythMap[`${active}/usd`].price
+                      ) : (
+                        '-'
+                      )}
+                    </div>
+                    <div className="bd">
+                      <img style={{ width: '50px' }} src={pythLogo} alt="" />
+                    </div>
+                  </div>
+
+                  <div className="partner">
+                    <div className="hd">
+                      ${chainlinkMap && chainlinkMap[active] ? (
+                        chainlinkMap[active].price
+                      ) : (
+                        '-'
+                      )}
+                    </div>
+                    <div className="bd">
+                      <img
+                        style={{ width: '50px' }}
+                        src={chainkLinkLogo}
+                        alt=""
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-            <Card
-              className="partner-card"
-              style={{ margin: '0', padding: '0 30px' }}
-            >
-              <div className="partner">
-                <div className="hd">
-                  <img style={{ width: '122px' }} src={chainkLinkLogo} alt="" />
-                </div>
                 <div className="bd">
-                  <div style={{ color: '#797A7D' }}>Price</div>
-                  <div>
-                    ${chainlinkMap && chainlinkMap[active] ? (
-                      chainlinkMap[active].price
-                    ) : (
-                      '-'
-                    )}
-                  </div>
+                  <Link
+                    to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}
+                  >
+                    <Button type="primary" size="small">
+                      Trade
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </Card>
           </div>
           <div className="bd">
-            <Card>
-              <Table
-                loading={loading}
-                dataSource={products}
-                columns={columns}
-                bordered
-                pagination={false}
-              />
+            <Card className="chart-card">
+              {loading ? (
+                <Spin style={{ position: 'absolute', top: '200px' }} />
+              ) : null}
+              <div ref={chartDiv} className="price-chart" />
             </Card>
           </div>
         </div>
-        <div className="right">
-          <div className="trade">
-            {/* <div className="hd">
-              <img style={{ width: '40px' }} src={onesolLogo} alt="1sol" />
-            </div> */}
-            <div className="bd">
-              <Link to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}>
-                <Button type="primary" size="large">
-                  {/* <img style={{ width: '40px' }} src={onesolLogo} alt="1sol" /> */}
-                  Trade
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <div className="right" />
       </div>
       <Social />
     </div>

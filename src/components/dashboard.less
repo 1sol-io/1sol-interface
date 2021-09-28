@@ -160,9 +160,21 @@
     display: flex;
     justify-content: space-between;
 
+    @media only screen and (max-width: 600px) {
+      flex-direction: column;
+      max-width: 100vw;
+      width: 100vw;
+    }
+
     .sidebar {
-      margin-top: 20px;
       width: 150px;
+
+      @media only screen and (max-width: 600px) {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
 
       .token {
         display: flex;
@@ -173,6 +185,10 @@
         border: 1px solid #383a3e;
         border-radius: 10px;
         cursor: pointer;
+
+        @media only screen and (max-width: 600px) {
+          width: 100px;
+        }
 
         .icon {
           width: 20px;
@@ -193,32 +209,68 @@
       flex-grow: 1;
       margin: 0 40px;
 
+      @media only screen and (max-width: 600px) {
+        width: 100%;
+        margin: 0;
+      }
+
       > .hd {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 20px;
 
-        .partner-card {
-          flex-basis: 45%;
-        }
+        .partners {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
 
-        .partner {
           > .hd {
-            text-align-last: left;
-            margin-bottom: 15px;
-          }
-
-          > .bd {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-grow: .4;
+            @media only screen and (max-width: 600px) {
+              flex-direction: column;
+            }
+          }
+        }
+
+        .partner {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          @media only screen and (max-width: 600px) {
+            margin-bottom: 10px;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+
+          > .hd {
+            margin-right: 20px;
+          }
+        }
+      }
+
+      > .bd {
+        .chart-card {
+          .ant-card-body {
+            padding: 0 24px 24px;
+          }
+
+          .price-chart {
+            height: 450px;
+            width: 100%;
+
+            @media only screen and (max-width: 600px) {
+              height: 300px;
+            }
           }
         }
       }
     }
 
     .right {
-      margin-top: 20px;
       width: 150px;
 
       .trade {
