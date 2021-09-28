@@ -1,26 +1,20 @@
 import { Card, Table, Button } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
-import { PublicKey } from '@solana/web3.js'
-import {
-  parseMappingData,
-  parsePriceData,
-  parseProductData
-} from '@pythnetwork/client'
 
 import { SYMBOL_PAIRS } from '../utils/constant'
-import { useConnection } from '../utils/connection'
+
 import useChainlink from '../hooks/useChainlink'
+import usePyth from '../hooks/usePyth'
 
 import { AppBar } from './appBar'
 import Social from './social'
 
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink.svg'
+import onesolLogo from '../assets/logo.png'
 
 import './dashboard.less'
-
-const publicKey = new PublicKey('BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2')
 
 const columns: Array<{
   title: string
@@ -61,12 +55,10 @@ const columns: Array<{
 ]
 
 export const Dashboard = () => {
-  const connection = useConnection()
-
   const location = useLocation()
   const [active, setActive] = useState('btc')
   const { chainlinkMap } = useChainlink()
-  console.log(chainlinkMap)
+  const { pythMap } = usePyth()
 
   const dataSource: Array<{
     symbol: string
@@ -75,15 +67,7 @@ export const Dashboard = () => {
     token: string
   }> = []
   const [products, setProducts] = useState(dataSource)
-  const [loading, setLoading] = useState(false)
-  const [pythMap, setPythMap] = useState<{
-    [key: string]: {
-      name: string
-      symbol: string
-      price: string
-      logo: string
-    }
-  }>()
+  const [loading, setLoading] = useState(true)
 
   useEffect(
     () => {
@@ -94,6 +78,10 @@ export const Dashboard = () => {
 
   useEffect(
     () => {
+      if (pythMap || chainlinkMap) {
+        setLoading(false)
+      }
+
       const dataSource: Array<{
         symbol: string
         pyth: string
@@ -117,87 +105,6 @@ export const Dashboard = () => {
       setProducts(dataSource)
     },
     [pythMap, chainlinkMap]
-  )
-
-  useEffect(
-    () => {
-      let timer: ReturnType<typeof setTimeout>
-
-      const fetchProducts = async (showLoading: boolean = false) => {
-        if (showLoading) {
-          setLoading(true)
-        }
-
-        try {
-          const accountInfo: any = await connection.getAccountInfo(publicKey)
-
-          const { productAccountKeys } = parseMappingData(accountInfo.data)
-          const accounts = await connection.getMultipleAccountsInfo(
-            productAccountKeys
-          )
-          const keys = accounts.map((accountInfo) => {
-            if (accountInfo) {
-              const { product, priceAccountKey } = parseProductData(
-                accountInfo.data
-              )
-
-              return { product, priceAccountKey }
-            }
-
-            return null
-          })
-          // @ts-ignore
-          const filterd: Array<{
-            product: any
-            priceAccountKey: PublicKey
-          }> = keys.filter((item) => item)
-
-          const priceAccountInfos = await connection.getMultipleAccountsInfo(
-            filterd.map((item) => item.priceAccountKey)
-          )
-
-          const pythMap: {
-            [key: string]: {
-              symbol: string
-              price: string
-              name: string
-              logo: string
-            }
-          } = {}
-
-          priceAccountInfos.forEach((accountInfo, i) => {
-            if (accountInfo) {
-              const { symbol } = filterd[i].product
-              const { price } = parsePriceData(accountInfo.data)
-              const key = symbol.toLowerCase()
-
-              pythMap[key] = {
-                symbol: key,
-                price: `${price.toFixed(2)}`,
-                name: 'Pyth',
-                logo: pythLogo
-              }
-            }
-          })
-
-          setPythMap(pythMap)
-
-          setLoading(false)
-        } catch (e) {
-          console.error(e)
-        }
-      }
-
-      fetchProducts(true)
-      timer = setInterval(() => fetchProducts(), 10000)
-
-      return () => {
-        if (timer) {
-          clearInterval(timer)
-        }
-      }
-    },
-    [connection]
   )
 
   const handleSwitchToken = (token: string) => {
@@ -279,7 +186,21 @@ export const Dashboard = () => {
             </Card>
           </div>
         </div>
-        <div className="right" />
+        <div className="right">
+          <div className="trade">
+            {/* <div className="hd">
+              <img style={{ width: '40px' }} src={onesolLogo} alt="1sol" />
+            </div> */}
+            <div className="bd">
+              <Link to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}>
+                <Button type="primary" size="large">
+                  {/* <img style={{ width: '40px' }} src={onesolLogo} alt="1sol" /> */}
+                  Trade
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
       <Social />
     </div>

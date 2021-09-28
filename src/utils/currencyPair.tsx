@@ -140,26 +140,31 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   // updates browser history on token changes
   useEffect(() => {
-    // set history
-    const base =
-      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
-    const quote =
-      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
+    const urlParams = new URLSearchParams(location.search);
+    const from = urlParams.get("from");
 
-    if (base && quote && location.pathname === '/') {
-      history.push({
-        search: `?pair=${base}-${quote}`,
-      });
-    } else {
-      if (mintAddressA && mintAddressB) {
-        history.push({
-          search: ``,
-        });
-      } else {
-        return;
-      }
+    if (from === 'dashboard') {
+      return
     }
-  }, [mintAddressA, mintAddressB, tokens, history, location.pathname]);
+
+    if (location.pathname === '/') {
+      // set history
+      const base =
+        tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
+      const quote =
+        tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
+
+      if (base && quote) {
+        history.push({
+          search: `?pair=${base}-${quote}`,
+        });
+      }
+    } else {
+      history.push({
+        search: ``,
+      });
+    }
+  }, [mintAddressA, mintAddressB, tokens, history, location.search, location.pathname]);
 
   // Updates tokens on location change
   useEffect(() => {
@@ -167,10 +172,11 @@ export function CurrencyPairProvider({ children = null as any }) {
       return;
     }
 
-    let { defaultBase, defaultQuote } = getDefaultTokens(
+    const { defaultBase, defaultQuote } = getDefaultTokens(
       tokens,
       location.search
     );
+
     if (!defaultBase || !defaultQuote) {
       return;
     }
@@ -232,6 +238,7 @@ function getDefaultTokens(tokens: TokenInfo[], search: string) {
   if (search) {
     const urlParams = new URLSearchParams(search);
     const pair = urlParams.get("pair");
+
     if (pair) {
       let items = pair.split("-");
 

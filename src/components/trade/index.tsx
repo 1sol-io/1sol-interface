@@ -180,7 +180,7 @@ export const TradeEntry = () => {
       console.error(e)
       // setLoading(false)
     })  
-  }, [A.amount, A.mint, A.mintAddress, B.mint, B.mintAddress, CancelToken, cancel, pool, market])
+  }, [A.amount, A.mint, A.mintAddress, B, CancelToken, cancel, pool, market])
 
   useEffect(() => {
     if (cancel.current) {
@@ -219,7 +219,7 @@ export const TradeEntry = () => {
     if (A.mintAddress !== B.mintAddress && (pool || market)) {
       fetchDistrubition()
     }
-  }, [A.amount, A.mintAddress, B.mintAddress, pool, market])
+  }, [A.amount, A.mintAddress, B, pool, market])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
