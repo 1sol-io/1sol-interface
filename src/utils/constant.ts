@@ -25,7 +25,7 @@ export const SYMBOL_PAIRS = [
 ]
 
 export const PROVIDER_MAP: { [key: string]: string } = {
-  '1sol': '1Sol(devnet)',
-  token_swap_pool: 'Token Swap(devnet)',
-  serum_dex_market: 'Serum Dex(devnet)'
+  '1sol': '1Sol',
+  token_swap_pool: 'Token Swap',
+  serum_dex_market: 'Serum Dex'
 }

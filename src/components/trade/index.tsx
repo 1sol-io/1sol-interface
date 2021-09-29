@@ -1,4 +1,4 @@
-import { Button, Card, Spin, Skeleton, Popover } from "antd";
+import { Button, Card, Spin, Skeleton, Popover, Modal } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from 'axios'
@@ -18,7 +18,9 @@ import {
   RightOutlined,
   ArrowRightOutlined,
   SettingOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  ExpandOutlined
+  
 } from "@ant-design/icons";
 import {
   onesolProtocolSwap,
@@ -68,6 +70,7 @@ export const TradeEntry = () => {
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
+  const [showRoute, setShowRoute] = useState(false)
 
   const { slippage } = useSlippageConfig();
   const { tokenMap, serumMarkets, tokenSwapPools } = useConnectionConfig();
@@ -137,7 +140,7 @@ export const TradeEntry = () => {
         providers,
       }, 
       cancelToken: new CancelToken((c) => cancel.current = c)
-    }).then(({data: {best, distributions}}: {data: {best: {amount_out: number, provider_type: string}, distributions: any}}) => {
+    }).then(({data: {best, distributions}}: {data: {best: {amount_out: number, provider_type: string, routes: any[]}, distributions: any}}) => {
       const result: Distribution[] = [
         {
           output: best.amount_out / 10 ** decimals[1], 
@@ -152,43 +155,43 @@ export const TradeEntry = () => {
 
       setDistributions(result)
 
-      // const amounts = []
+      const amounts = []
 
-      // const tokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
-      // const serumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
+      const tokenSwap = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
+      const serumMarket = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
 
       // B.setAmount(`${output / 10 ** decimals[1]}`)
 
-      // if (tokenSwap) {
-      //   setTokenSwapAmount({
-      //     input: tokenSwap.amount_in,
-      //     output: tokenSwap.amount_out,
-      //   })
+      if (tokenSwap) {
+        setTokenSwapAmount({
+          input: tokenSwap.amount_in,
+          output: tokenSwap.amount_out,
+        })
 
-      //   amounts.push({
-      //     name: 'Token Swap(devnet)',
-      //     input: tokenSwap.amount_in / 10 ** decimals[0],
-      //     output: tokenSwap.amount_out / 10 ** decimals[1],
-      //   })
-      // }
+        amounts.push({
+          name: 'Token Swap(devnet)',
+          input: tokenSwap.amount_in / 10 ** decimals[0],
+          output: tokenSwap.amount_out / 10 ** decimals[1],
+        })
+      }
 
-      // if (serumMarket) {
-      //   setSerumMarketAmount({
-      //     input: serumMarket.amount_in,
-      //     output: serumMarket.amount_out,
-      //     limitPrice: serumMarket.limit_price, 
-      //     maxCoinQty: serumMarket.max_coin_qty,
-      //     maxPcQty: serumMarket.max_pc_qty
-      //   })
+      if (serumMarket) {
+        setSerumMarketAmount({
+          input: serumMarket.amount_in,
+          output: serumMarket.amount_out,
+          limitPrice: serumMarket.limit_price, 
+          maxCoinQty: serumMarket.max_coin_qty,
+          maxPcQty: serumMarket.max_pc_qty
+        })
 
-      //   amounts.push({
-      //     name: 'Serum Dex(devnet)',
-      //     input: serumMarket.amount_in / 10 ** decimals[0],
-      //     output: serumMarket.amount_out / 10 ** decimals[1]
-      //   })
-      // }
+        amounts.push({
+          name: 'Serum Dex(devnet)',
+          input: serumMarket.amount_in / 10 ** decimals[0],
+          output: serumMarket.amount_out / 10 ** decimals[1]
+        })
+      }
 
-      // setAmounts(amounts)
+      setAmounts(amounts)
       setLoading(false)
     }).catch(e => {
       console.error(e)
@@ -289,6 +292,7 @@ export const TradeEntry = () => {
   const handleSwitchChoice = (choice: any) => setChoice(choice)
 
   const handleRefresh = () => fetchDistrubition()
+  const handleShowRoute = () => setShowRoute(true)
 
   return (
     <>
@@ -357,7 +361,7 @@ export const TradeEntry = () => {
           }}
           disabled
         />
-        <Result loading={loading} data={distributions} active={choice?.provider} handleSwitchChoice={handleSwitchChoice} />
+        <Result loading={loading} data={distributions} active={choice?.provider} handleSwitchChoice={handleSwitchChoice} handleShowRoute={handleShowRoute} />
       </Card>
       </div>
       <Button
@@ -394,7 +398,9 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
-      {amounts.length ? <TradeRoute amounts={amounts} /> : null}
+      <Modal visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
+        {amounts.length ? <TradeRoute amounts={amounts} /> : null}
+      </Modal>
     </>
   );
 };
@@ -403,9 +409,11 @@ export const Result = (props: {
   data: Distribution[], 
   loading: boolean, 
   handleSwitchChoice: (a: object) => void,
+  handleShowRoute: () => void,
   active?: string
 }) => {
-  const {data, loading, handleSwitchChoice, active} = props
+  const {data, loading, handleSwitchChoice, active, handleShowRoute} = props
+  const { A, B } = useCurrencyPairState();
 
   return (
     <div className="mod-results">
@@ -416,8 +424,15 @@ export const Result = (props: {
           className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
           onClick={() => handleSwitchChoice({provider, output, off})}
         >
-          <div className="hd">{provider}</div>
-          <div className="bd">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
+          <div className="hd">{provider}(devnet)</div>
+          <div className="bd">
+            <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
+            {i === 0 ?
+            <div onClick={handleShowRoute} className="route">
+              {A.name} &#10148; {B.name}
+              <ExpandOutlined style={{marginLeft: '5px'}} /> 
+            </div> : null}
+          </div>
           {i === 0 ? <div className="ft">Best</div> : null}
         </div>
       ))}
