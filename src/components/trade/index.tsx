@@ -107,8 +107,8 @@ export const TradeEntry = () => {
   //   }
   // }, [connected, B.mintAddress, userAccounts])
 
-  const fetchDistrubition = useCallback(async (showLoading = true) => {
-    if (!A.mint || !B.mint || !Number(A.amount)) {
+  const fetchDistrubition = useCallback(async () => {
+    if (!A.mint || !B.mint) {
       return
     }
 
@@ -116,10 +116,11 @@ export const TradeEntry = () => {
       cancel.current()
     }
 
-    if (showLoading) {
-      setLoading(true)
-      setAmounts([])
+    if (timer.current) {
+      clearTimeout(timer.current)
     }
+
+    setLoading(true)
 
     const decimals = [A.mint.decimals, B.mint.decimals]
     const providers = []
@@ -164,8 +165,6 @@ export const TradeEntry = () => {
       const tokenSwap = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
       const serumMarket = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
 
-      // B.setAmount(`${output / 10 ** decimals[1]}`)
-
       if (tokenSwap) {
         setTokenSwapAmount({
           input: tokenSwap.amount_in,
@@ -198,22 +197,17 @@ export const TradeEntry = () => {
       setAmounts(amounts)
       setLoading(false)
 
-      timer.current = setTimeout(() => fetchDistrubition(false), 10 * 1000)
+      timer.current = setTimeout(() => { 
+        fetchDistrubition() 
+      }, 10 * 1000)
     }).catch(e => {
-      console.error(e)
       setLoading(false)
     })  
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
 
   useEffect(() => {
-    if (!Number(A.amount)) {
-      setLoading(false)
-    }
-
-    B.setAmount('0.00')
     setAmounts([])
-    setTokenSwapAmount(undefined)
-    setSerumMarketAmount(undefined)
+    setDistributions([])
 
     const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
       const mints: string[] = [pool.mintA, pool.mintB]
@@ -235,7 +229,13 @@ export const TradeEntry = () => {
       setMarket(market)
     }
 
-    if (A.mintAddress !== B.mintAddress && (pool || market)) {
+    if (
+      A.mintAddress && 
+      B.mintAddress && 
+      Number(A.amount) && 
+      (pool || market) 
+      && A.mintAddress !== B.mintAddress
+    ) {
       fetchDistrubition()
     }
 
@@ -244,7 +244,7 @@ export const TradeEntry = () => {
         clearTimeout(timer.current)
       }
     }
-  }, [A, B, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
+  }, [A.amount, A.mintAddress, B.mintAddress, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
 
   // const swapAccounts = () => {
   //   const tempMint = A.mintAddress;
@@ -290,7 +290,6 @@ export const TradeEntry = () => {
 
       await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwapAmount, serumMarketAmount);
     } catch (e) {
-      console.error(e)
       notify({
         description: "Please try again and approve transactions from your wallet",
         message: "Swap trade cancelled.",
@@ -303,7 +302,12 @@ export const TradeEntry = () => {
 
   const handleSwitchChoice = (choice: any) => setChoice(choice)
 
-  const handleRefresh = () => fetchDistrubition()
+  const handleRefresh = () => { 
+    setDistributions([])
+    setAmounts([])
+
+    fetchDistrubition() 
+  }
   const handleShowRoute = () => setShowRoute(true)
 
   return (
@@ -377,7 +381,13 @@ export const TradeEntry = () => {
           }}
           disabled
         />
-        <Result loading={loading} data={distributions} active={choice?.provider} handleSwitchChoice={handleSwitchChoice} handleShowRoute={handleShowRoute} />
+        <Result
+         loading={loading && !distributions.length} 
+         data={distributions} 
+         active={choice?.provider} 
+         handleSwitchChoice={handleSwitchChoice} 
+         handleShowRoute={handleShowRoute} 
+        />
       </Card>
       </div>
       <Button
@@ -434,24 +444,24 @@ export const Result = (props: {
   return (
     <div className="mod-results">
       <Skeleton paragraph={{rows: 1, width: '100%'}} title={false}  active loading={loading}>
-      {data.map(({provider, output, offset}, i) => (
-        <div
-          key={provider}
-          className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
-          onClick={() => handleSwitchChoice({provider, output, off})}
-        >
-          <div className="hd">{provider}</div>
-          <div className="bd">
-            <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
-            {i === 0 ?
-            <div onClick={handleShowRoute} className="route">
-              {A.name} &#10148; {B.name}
-              <ExpandOutlined style={{marginLeft: '5px'}} /> 
-            </div> : null}
+        {data.map(({provider, output, offset}, i) => (
+          <div
+            key={provider}
+            className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
+            onClick={() => handleSwitchChoice({provider, output, off})}
+          >
+            <div className="hd">{provider}</div>
+            <div className="bd">
+              <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
+              {i === 0 ?
+              <div onClick={handleShowRoute} className="route">
+                {A.name} &#10148; {B.name}
+                <ExpandOutlined style={{marginLeft: '5px'}} /> 
+              </div> : null}
+            </div>
+            {i === 0 ? <div className="ft">Best</div> : null}
           </div>
-          {i === 0 ? <div className="ft">Best</div> : null}
-        </div>
-      ))}
+        ))}
       </Skeleton>
     </div>
   )
