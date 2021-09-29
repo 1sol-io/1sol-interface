@@ -1,4 +1,4 @@
-import { Button, Card, Spin } from "antd";
+import { Button, Card, Spin, Skeleton } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from 'axios'
@@ -34,12 +34,14 @@ import { TokenIcon } from "../tokenIcon";
 import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
 
 import { PROVIDER_MAP } from "../../utils/constant";
+import { off } from "process";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 interface Distribution {
   output: number, 
-  provider: string
+  provider: string,
+  offset?: number
 }
 
 export const TradeEntry = () => {
@@ -57,7 +59,7 @@ export const TradeEntry = () => {
 
   const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
   const [serumMarketAmount, setSerumMarketAmount] = useState<SerumAmountProps>()
-  const [best, setBest] = useState<TokenSwapPool | undefined>()
+  const [choice, setChoice] = useState<Distribution | undefined>()
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
@@ -137,9 +139,10 @@ export const TradeEntry = () => {
           output: best.amount_out / 10 ** decimals[1], 
           provider: PROVIDER_MAP[best.provider_type]
         },
-        ...distributions.map(({amount_out, provider_type}: {amount_out: number, provider_type: string}) => ({
+        ...distributions.sort((a: any, b: any) => b.amount_out - a.amount_out ).map(({amount_out, provider_type}: {amount_out: number, provider_type: string}) => ({
           output: amount_out / 10 ** decimals[1], 
-          provider: PROVIDER_MAP[provider_type]
+          provider: PROVIDER_MAP[provider_type],
+          offset: (amount_out - best.amount_out) / best.amount_out * 100
         }))
       ]
 
@@ -279,6 +282,8 @@ export const TradeEntry = () => {
     }
   };
 
+  const handleSwitchChoice = (choice: any) => setChoice(choice)
+
   return (
     <>
       <div className="input-card">
@@ -322,7 +327,7 @@ export const TradeEntry = () => {
           }}
           disabled
         />
-      {distributions.length ? <Result data={distributions} />: null}
+        <Result loading={loading} data={distributions} active={choice?.provider} handleSwitchChoice={handleSwitchChoice} />
       </Card>
       </div>
       <Button
@@ -364,18 +369,29 @@ export const TradeEntry = () => {
   );
 };
 
-export const Result = (props: {data: Distribution[]}) => {
-  const {data} = props
+export const Result = (props: {
+  data: Distribution[], 
+  loading: boolean, 
+  handleSwitchChoice: (a: object) => void,
+  active?: string
+}) => {
+  const {data, loading, handleSwitchChoice, active} = props
 
   return (
     <div className="mod-results">
-      {data.map(({provider, output}, i) => (
-        <div className={i === 0 ? "mod-result active": 'mod-result'}>
+      <Skeleton paragraph={{rows: 1, width: '100%'}} title={false}  active loading={loading}>
+      {data.map(({provider, output, offset}, i) => (
+        <div
+          key={provider}
+          className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
+          onClick={() => handleSwitchChoice({provider, output, off})}
+        >
           <div className="hd">{provider}</div>
-          <div className="bd">{output}</div>
+          <div className="bd">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
           {i === 0 ? <div className="ft">Best</div> : null}
         </div>
       ))}
+      </Skeleton>
     </div>
   )
 }
