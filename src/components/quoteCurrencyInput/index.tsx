@@ -157,10 +157,10 @@ export const QuoteCurrencyInput = (props: {
   };
 
   return (
-    <Card
+    <div
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0, width: '100%' }}
-      bodyStyle={{ padding: 0 }}
+      // style={{ borderRadius: 20, margin: 0, width: '100%' }}
+      // bodyStyle={{ padding: 0 }}
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
@@ -206,6 +206,6 @@ export const QuoteCurrencyInput = (props: {
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

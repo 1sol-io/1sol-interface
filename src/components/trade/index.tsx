@@ -1,4 +1,4 @@
-import { Button,  Spin } from "antd";
+import { Button, Card, Spin } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from 'axios'
@@ -33,7 +33,14 @@ import { TokenIcon } from "../tokenIcon";
 // import { cache, useUserAccounts } from "../../utils/accounts";
 import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
 
+import { PROVIDER_MAP } from "../../utils/constant";
+
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
+interface Distribution {
+  output: number, 
+  provider: string
+}
 
 export const TradeEntry = () => {
   const { wallet, connect, connected } = useWallet();
@@ -50,9 +57,11 @@ export const TradeEntry = () => {
 
   const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
   const [serumMarketAmount, setSerumMarketAmount] = useState<SerumAmountProps>()
+  const [best, setBest] = useState<TokenSwapPool | undefined>()
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
+  const [distributions, setDistributions] = useState<Distribution[]>([])
 
   const { slippage } = useSlippageConfig();
   const { tokenMap, serumMarkets, tokenSwapPools } = useConnectionConfig();
@@ -122,48 +131,61 @@ export const TradeEntry = () => {
         providers,
       }, 
       cancelToken: new CancelToken((c) => cancel.current = c)
-    }).then(({data: {amount_out: output, distributions}}) => {
-      const amounts = []
+    }).then(({data: {best, distributions}}: {data: {best: {amount_out: number, provider_type: string}, distributions: any}}) => {
+      const result: Distribution[] = [
+        {
+          output: best.amount_out / 10 ** decimals[1], 
+          provider: PROVIDER_MAP[best.provider_type]
+        },
+        ...distributions.map(({amount_out, provider_type}: {amount_out: number, provider_type: string}) => ({
+          output: amount_out / 10 ** decimals[1], 
+          provider: PROVIDER_MAP[provider_type]
+        }))
+      ]
 
-      const tokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
-      const serumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
+      setDistributions(result)
+
+      // const amounts = []
+
+      // const tokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
+      // const serumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
 
       // B.setAmount(`${output / 10 ** decimals[1]}`)
 
-      if (tokenSwap) {
-        setTokenSwapAmount({
-          input: tokenSwap.amount_in,
-          output: tokenSwap.amount_out,
-        })
+      // if (tokenSwap) {
+      //   setTokenSwapAmount({
+      //     input: tokenSwap.amount_in,
+      //     output: tokenSwap.amount_out,
+      //   })
 
-        amounts.push({
-          name: 'Token Swap(devnet)',
-          input: tokenSwap.amount_in / 10 ** decimals[0],
-          output: tokenSwap.amount_out / 10 ** decimals[1],
-        })
-      }
+      //   amounts.push({
+      //     name: 'Token Swap(devnet)',
+      //     input: tokenSwap.amount_in / 10 ** decimals[0],
+      //     output: tokenSwap.amount_out / 10 ** decimals[1],
+      //   })
+      // }
 
-      if (serumMarket) {
-        setSerumMarketAmount({
-          input: serumMarket.amount_in,
-          output: serumMarket.amount_out,
-          limitPrice: serumMarket.limit_price, 
-          maxCoinQty: serumMarket.max_coin_qty,
-          maxPcQty: serumMarket.max_pc_qty
-        })
+      // if (serumMarket) {
+      //   setSerumMarketAmount({
+      //     input: serumMarket.amount_in,
+      //     output: serumMarket.amount_out,
+      //     limitPrice: serumMarket.limit_price, 
+      //     maxCoinQty: serumMarket.max_coin_qty,
+      //     maxPcQty: serumMarket.max_pc_qty
+      //   })
 
-        amounts.push({
-          name: 'Serum Dex(devnet)',
-          input: serumMarket.amount_in / 10 ** decimals[0],
-          output: serumMarket.amount_out / 10 ** decimals[1]
-        })
-      }
+      //   amounts.push({
+      //     name: 'Serum Dex(devnet)',
+      //     input: serumMarket.amount_in / 10 ** decimals[0],
+      //     output: serumMarket.amount_out / 10 ** decimals[1]
+      //   })
+      // }
 
-      setAmounts(amounts)
+      // setAmounts(amounts)
       setLoading(false)
     }).catch(e => {
       console.error(e)
-      // setLoading(false)
+      setLoading(false)
     })  
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
 
@@ -278,6 +300,10 @@ export const TradeEntry = () => {
           }}
         />
         <Button type="primary" className="swap-button" style={{cursor: 'default', display: 'flex', justifyContent: 'space-around', margin: '5px auto'}}>&#8595;</Button>
+        <Card
+          style={{ borderRadius: 20, margin: 0, width: '100%' }}
+          bodyStyle={{ padding: 0 }}
+        >
         <QuoteCurrencyInput
           title="To(estimated)"
           onInputChange={(val: any) => {
@@ -296,6 +322,8 @@ export const TradeEntry = () => {
           }}
           disabled
         />
+      {distributions.length ? <Result data={distributions} />: null}
+      </Card>
       </div>
       <Button
         className="trade-button"
@@ -335,6 +363,22 @@ export const TradeEntry = () => {
     </>
   );
 };
+
+export const Result = (props: {data: Distribution[]}) => {
+  const {data} = props
+
+  return (
+    <div className="mod-results">
+      {data.map(({provider, output}, i) => (
+        <div className={i === 0 ? "mod-result active": 'mod-result'}>
+          <div className="hd">{provider}</div>
+          <div className="bd">{output}</div>
+          {i === 0 ? <div className="ft">Best</div> : null}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export const TradeRoute = (props: { amounts: {name: string, input: number, output: number}[] }) => {
   const { A, B } = useCurrencyPairState();

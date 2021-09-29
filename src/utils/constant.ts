@@ -23,3 +23,9 @@ export const SYMBOL_PAIRS = [
   { name: 'USDC', key: 'F3Wgm7HqxnxvNznF7MmHMW7566zBQyuwzF5JWRhjhUtc', token: 'USDC', icon: usdc },
   { name: 'USDT', key: 'FG5FPJnT4ubjoNMm9Bh2uAfgbq2bwxP7aY6AKVmYou1p', token: 'USDT', icon: usdt },
 ]
+
+export const PROVIDER_MAP: { [key: string]: string } = {
+  '1sol': '1Sol(devnet)',
+  token_swap_pool: 'Token Swap(devnet)',
+  serum_dex_market: 'Serum Dex(devnet)'
+}
