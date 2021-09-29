@@ -367,10 +367,16 @@ export const Dashboard = () => {
             <div className="hd">
               <img style={{ height: '80px' }} src={onesole_te} alt="" />
             </div>
-            <div className="bd">1Sol Telegram</div>
+            <div className="bd">1SOL Community</div>
             <div className="ft">
               <Button type="primary" size="small">
-                Join
+                <a
+                  href="https://t.me/onesolcommunity"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Join
+                </a>
               </Button>
             </div>
           </div>
