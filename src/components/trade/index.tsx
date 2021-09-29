@@ -78,6 +78,8 @@ export const TradeEntry = () => {
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
 
+  const timer: { current: NodeJS.Timeout | null } = useRef(null)
+
   // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
   // const { userAccounts } = useUserAccounts();
@@ -105,7 +107,7 @@ export const TradeEntry = () => {
   //   }
   // }, [connected, B.mintAddress, userAccounts])
 
-  const fetchDistrubition = useCallback(async () => {
+  const fetchDistrubition = useCallback(async (showLoading = true) => {
     if (!A.mint || !B.mint || !Number(A.amount)) {
       return
     }
@@ -114,7 +116,10 @@ export const TradeEntry = () => {
       cancel.current()
     }
 
-    setLoading(true)
+    if (showLoading) {
+      setLoading(true)
+    }
+
     setAmounts([])
 
     const decimals = [A.mint.decimals, B.mint.decimals]
@@ -193,6 +198,8 @@ export const TradeEntry = () => {
 
       setAmounts(amounts)
       setLoading(false)
+
+      timer.current = setTimeout(() => fetchDistrubition(false), 10 * 1000)
     }).catch(e => {
       console.error(e)
       setLoading(false)
@@ -231,6 +238,12 @@ export const TradeEntry = () => {
 
     if (A.mintAddress !== B.mintAddress && (pool || market)) {
       fetchDistrubition()
+    }
+
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current)
+      }
     }
   }, [A, B, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
 
@@ -304,7 +317,7 @@ export const TradeEntry = () => {
           onClick={handleRefresh}
           disabled={loading}
         >
-          <ReloadOutlined />
+          <ReloadOutlined spin={loading} />
         </Button>
         <Popover
           placement="rightTop"
@@ -338,7 +351,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className="swap-button" style={{cursor: 'default', display: 'flex', justifyContent: 'space-around', margin: '5px auto'}}>&#8595;</Button>
+        <Button type="primary" className="swap-button" style={{cursor: 'default', display: 'flex', justifyContent: 'space-around', margin: '-10px auto'}}>&#8595;</Button>
         <Card
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
           bodyStyle={{ padding: 0 }}
