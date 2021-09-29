@@ -15,6 +15,7 @@ import Social from './social'
 
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink_footer.svg'
+import onesole_te from '../assets/pro-te.png'
 
 import './dashboard.less'
 
@@ -361,7 +362,19 @@ export const Dashboard = () => {
             </Card>
           </div>
         </div>
-        <div className="right" />
+        <div className="right">
+          <div className="pro">
+            <div className="hd">
+              <img style={{ height: '80px' }} src={onesole_te} alt="" />
+            </div>
+            <div className="bd">1Sol Telegram</div>
+            <div className="ft">
+              <Button type="primary" size="small">
+                Join
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
       <Social />
     </div>

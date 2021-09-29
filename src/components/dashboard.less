@@ -273,10 +273,27 @@
     .right {
       width: 150px;
 
+      @media only screen and (max-width: 600px) {
+        width: 100%;
+      }
+
       .trade {
         display: flex;
         justify-content: space-around;
         align-items: center;
+      }
+
+      .pro {
+        // background-color: #212327;
+        border: 1px solid #383a3e;
+        // background-color: #383a3e;
+        border-radius: 20px;
+        padding: 5px 10px 20px;
+
+        > .bd {
+          font-size: 12px;
+          margin-bottom: 20px;
+        }
       }
     }
   }
