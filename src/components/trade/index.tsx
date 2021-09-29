@@ -118,9 +118,8 @@ export const TradeEntry = () => {
 
     if (showLoading) {
       setLoading(true)
+      setAmounts([])
     }
-
-    setAmounts([])
 
     const decimals = [A.mint.decimals, B.mint.decimals]
     const providers = []
@@ -310,28 +309,32 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="trade-header">
-        <Button
-          shape="circle"
-          size="large"
-          type="text"
-          onClick={handleRefresh}
-          disabled={loading}
-        >
-          <ReloadOutlined spin={loading} />
-        </Button>
-        <Popover
-          placement="rightTop"
-          title="Settings"
-          content={<Settings />}
-          trigger="click"
-        >
+        <div className="hd">Trade(devnet)</div>
+        <div className="bd">
           <Button
+            className={loading ? 'loading' : ''}
             shape="circle"
             size="large"
             type="text"
-            icon={<SettingOutlined />}
-          />
-        </Popover>
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <ReloadOutlined spin={loading} />
+          </Button>
+          <Popover
+            placement="rightTop"
+            title="Settings"
+            content={<Settings />}
+            trigger="click"
+          >
+            <Button
+              shape="circle"
+              size="large"
+              type="text"
+              icon={<SettingOutlined />}
+            />
+          </Popover>
+        </div>
       </div>
       <div className="input-card">
         <CurrencyInput
@@ -437,7 +440,7 @@ export const Result = (props: {
           className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
           onClick={() => handleSwitchChoice({provider, output, off})}
         >
-          <div className="hd">{provider}(devnet)</div>
+          <div className="hd">{provider}</div>
           <div className="bd">
             <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
             {i === 0 ?

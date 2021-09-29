@@ -1,8 +1,14 @@
 .trade-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 10px 0;
+
+  > .bd {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
 }
 
 .trade-button {
@@ -44,7 +50,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
 
   > .hd {
     position: relative;
@@ -72,14 +77,14 @@
     .pool {
       border: 1px solid #383a3e;
       border-radius: 16px;
-      padding: 15px 16px;
+      padding: 5px 10px;
       text-align: left;
       width: 100%;
 
       .name {
         color: rgb(126, 150, 184);
-        font-size: 16px;
-        margin-bottom: 4px;
+        font-size: 14px;
+        margin-bottom: 2px;
 
         @media only screen and (max-width: 600px) {
           text-align: center;
@@ -88,7 +93,7 @@
 
       .amount {
         color: #fff;
-        font-size: 16px;
+        font-size: 13px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -178,7 +183,7 @@
 }
 
 .loading {
-  animation: rotation 10s infinite linear;
+  animation: rotation 1s infinite linear;
 }
 
 @keyframes rotation {
