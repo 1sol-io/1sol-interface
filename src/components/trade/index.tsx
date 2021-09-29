@@ -1,8 +1,5 @@
-import { Button, Card, Popover, Spin, Typography } from "antd";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  PublicKey,
-} from "@solana/web3.js";
+import { Button,  Spin } from "antd";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from 'axios'
 
@@ -14,39 +11,27 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
+import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import {
   LoadingOutlined,
-  SwapOutlined,
-  QuestionCircleOutlined,
-  SettingOutlined,
   PlusOutlined ,
   RightOutlined,
   ArrowRightOutlined
 } from "@ant-design/icons";
 import {
-  createTokenAccount,
   onesolProtocolSwap,
   PoolOperation,
-  LIQUIDITY_PROVIDER_FEE,
-  hasAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import "./trade.less";
-import { colorWarning, getTokenName } from "../../utils/utils";
-import { AdressesPopover } from "../pool/address";
-import { TokenAccount, PoolInfo } from "../../models";
-import { AppBar } from "../appBar";
-import { Settings } from "../settings";
+import { getTokenName } from "../../utils/utils";
 
 import { TokenIcon } from "../tokenIcon";
 
-import { cache, useUserAccounts } from "../../utils/accounts";
+// import { cache, useUserAccounts } from "../../utils/accounts";
 import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
-import { SerumDexMarketInfo } from "../../utils/onesol-protocol";
-
-const { Text } = Typography;
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -75,32 +60,32 @@ export const TradeEntry = () => {
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
 
-  const [hasTokenAccount, setHasTokenAccount] = useState(false)
+  // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
-  const { userAccounts } = useUserAccounts();
+  // const { userAccounts } = useUserAccounts();
 
-  useEffect(() => {
-    const getTokenAccount = (mint: string) => {
-      const index = userAccounts.findIndex(
-        (acc: any) => acc.info.mint.toBase58() === mint
-      );
+  // useEffect(() => {
+  //   const getTokenAccount = (mint: string) => {
+  //     const index = userAccounts.findIndex(
+  //       (acc: any) => acc.info.mint.toBase58() === mint
+  //     );
 
-      if (index !== -1) {
-        return userAccounts[index];
-      }
+  //     if (index !== -1) {
+  //       return userAccounts[index];
+  //     }
 
-      return;
-    }
+  //     return;
+  //   }
     
-    setHasTokenAccount(false)
+  //   setHasTokenAccount(false)
 
-    const tokenMint = cache.getMint(B.mintAddress);
-    const tokenAccount = getTokenAccount(B.mintAddress);
+  //   const tokenMint = cache.getMint(B.mintAddress);
+  //   const tokenAccount = getTokenAccount(B.mintAddress);
 
-    if (connected && tokenAccount && tokenMint) {
-      setHasTokenAccount(true)
-    }
-  }, [connected, B.mintAddress, userAccounts])
+  //   if (connected && tokenAccount && tokenMint) {
+  //     setHasTokenAccount(true)
+  //   }
+  // }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint || !Number(A.amount)) {
@@ -143,7 +128,7 @@ export const TradeEntry = () => {
       const tokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
       const serumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
 
-      B.setAmount(`${output / 10 ** decimals[1]}`)
+      // B.setAmount(`${output / 10 ** decimals[1]}`)
 
       if (tokenSwap) {
         setTokenSwapAmount({
@@ -180,13 +165,9 @@ export const TradeEntry = () => {
       console.error(e)
       // setLoading(false)
     })  
-  }, [A.amount, A.mint, A.mintAddress, B, CancelToken, cancel, pool, market])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
 
   useEffect(() => {
-    if (cancel.current) {
-      cancel.current()
-    }
-
     if (!Number(A.amount)) {
       setLoading(false)
     }
@@ -219,29 +200,29 @@ export const TradeEntry = () => {
     if (A.mintAddress !== B.mintAddress && (pool || market)) {
       fetchDistrubition()
     }
-  }, [A.amount, A.mintAddress, B, pool, market])
+  }, [A, B, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
 
-  const swapAccounts = () => {
-    const tempMint = A.mintAddress;
-    const tempAmount = A.amount;
+  // const swapAccounts = () => {
+  //   const tempMint = A.mintAddress;
+  //   const tempAmount = A.amount;
 
-    A.setMint(B.mintAddress);
-    A.setAmount(B.amount);
-    B.setMint(tempMint);
-    B.setAmount(tempAmount);
+  //   A.setMint(B.mintAddress);
+  //   A.setAmount(B.amount);
+  //   B.setMint(tempMint);
+  //   B.setAmount(tempAmount);
 
-    // @ts-ignore
-    setPoolOperation((op: PoolOperation) => {
-      switch (+op) {
-        case PoolOperation.SwapGivenInput:
-          return PoolOperation.SwapGivenProceeds;
-        case PoolOperation.SwapGivenProceeds:
-          return PoolOperation.SwapGivenInput;
-        case PoolOperation.Add:
-          return PoolOperation.SwapGivenInput;
-      }
-    });
-  };
+  //   // @ts-ignore
+  //   setPoolOperation((op: PoolOperation) => {
+  //     switch (+op) {
+  //       case PoolOperation.SwapGivenInput:
+  //         return PoolOperation.SwapGivenProceeds;
+  //       case PoolOperation.SwapGivenProceeds:
+  //         return PoolOperation.SwapGivenInput;
+  //       case PoolOperation.Add:
+  //         return PoolOperation.SwapGivenInput;
+  //     }
+  //   });
+  // };
 
   const handleSwap = async () => {
     if (!A.amount || !B.mintAddress || (!pool && !market)) {
@@ -276,43 +257,9 @@ export const TradeEntry = () => {
     }
   };
 
-  const handleCreateTokenAccount = async () => {
-    if (A.account && B.mintAddress) {
-      try {
-        setPendingTx(true);
-
-        const components = [
-          {
-            account: A.account,
-            mintAddress: A.mintAddress,
-            amount: A.convertAmount(),
-          },
-          {
-            mintAddress: B.mintAddress,
-            amount: B.convertAmount(),
-          },
-        ];
-
-        await createTokenAccount(connection, wallet, components);
-
-        setHasTokenAccount(true)
-      } catch (e) {
-        console.error(e)
-        notify({
-          description: "Please try again",
-          message: "Create account cancelled.",
-          type: "error",
-        });
-      } finally {
-        setPendingTx(false);
-      }
-    }
-  }
-
   return (
     <>
       <div className="input-card">
-        {/* <AdressesPopover pool={pool} /> */}
         <CurrencyInput
           title="From"
           onInputChange={(val: any) => {
@@ -330,9 +277,9 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className={loading ? 'swap-button loading': "swap-button"} onClick={swapAccounts} style={{display: 'flex', justifyContent: 'space-around', margin: '20px auto'}}>⇅</Button>
-        <CurrencyInput
-          title="To (Estimate)"
+        <Button type="primary" className="swap-button" style={{cursor: 'default', display: 'flex', justifyContent: 'space-around', margin: '5px auto'}}>&#8595;</Button>
+        <QuoteCurrencyInput
+          title="To(estimated)"
           onInputChange={(val: any) => {
             setPoolOperation(PoolOperation.SwapGivenProceeds);
 

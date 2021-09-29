@@ -66,7 +66,7 @@ export const TokenDisplay = (props: {
   );
 };
 
-export const CurrencyInput = (props: {
+export const QuoteCurrencyInput = (props: {
   mint?: string;
   amount?: string;
   title?: string;
@@ -159,7 +159,7 @@ export const CurrencyInput = (props: {
   return (
     <Card
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0 }}
+      style={{ borderRadius: 20, margin: 0, width: '100%' }}
       bodyStyle={{ padding: 0 }}
     >
       <div className="ccy-input-header">
@@ -175,27 +175,10 @@ export const CurrencyInput = (props: {
         </div>
       </div>
       <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
-        <NumericInput
-          disabled={props.disabled}
-          value={props.amount}
-          onChange={(val: any) => {
-            if (props.onInputChange) {
-              props.onInputChange(val);
-            }
-          }}
-          style={{
-            fontSize: 20,
-            boxShadow: "none",
-            borderColor: "transparent",
-            outline: "transpaernt",
-            color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
-          }}
-          placeholder="0.00"
-        />
-        <div className="ccy-input-header-right" style={{ display: "felx" }}>
+        <div className="ccy-input-header-left" style={{ display: "felx" }}>
           {!props.hideSelect ? (
             <Select
-              // size="large"
+              // size="small"
               showSearch
               style={{ minWidth: 100 }}
               placeholder="CCY"
@@ -209,9 +192,7 @@ export const CurrencyInput = (props: {
                 option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >
-              {[...renderPopularTokens, 
-                // ...renderAdditionalTokens
-              ]}
+              {renderPopularTokens}
             </Select>
           ) : (
             props.mint && (
