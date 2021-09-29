@@ -1,4 +1,4 @@
-import { Button, Card, Spin, Skeleton } from "antd";
+import { Button, Card, Spin, Skeleton, Popover } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import axios from 'axios'
@@ -16,7 +16,9 @@ import {
   LoadingOutlined,
   PlusOutlined ,
   RightOutlined,
-  ArrowRightOutlined
+  ArrowRightOutlined,
+  SettingOutlined,
+  ReloadOutlined
 } from "@ant-design/icons";
 import {
   onesolProtocolSwap,
@@ -25,8 +27,10 @@ import {
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
-import "./trade.less";
 import { getTokenName } from "../../utils/utils";
+import { Settings } from "../settings";
+
+import "./trade.less";
 
 import { TokenIcon } from "../tokenIcon";
 
@@ -284,8 +288,34 @@ export const TradeEntry = () => {
 
   const handleSwitchChoice = (choice: any) => setChoice(choice)
 
+  const handleRefresh = () => fetchDistrubition()
+
   return (
     <>
+      <div className="trade-header">
+        <Button
+          shape="circle"
+          size="large"
+          type="text"
+          onClick={handleRefresh}
+          disabled={loading}
+        >
+          <ReloadOutlined />
+        </Button>
+        <Popover
+          placement="rightTop"
+          title="Settings"
+          content={<Settings />}
+          trigger="click"
+        >
+          <Button
+            shape="circle"
+            size="large"
+            type="text"
+            icon={<SettingOutlined />}
+          />
+        </Popover>
+      </div>
       <div className="input-card">
         <CurrencyInput
           title="From"

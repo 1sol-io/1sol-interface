@@ -97,9 +97,10 @@ export const ExchangeView = (props: {}) => {
       <Card
         className="exchange-card"
         headStyle={{ padding: 0 }}
-        bodyStyle={{ position: "relative" }}
+        bodyStyle={{ position: "relative", padding: '0 24px 24px' }}
         // title="Trade(devnet)"
       >
+        
         {tradeTab.render()}
       </Card>
 

@@ -1,3 +1,10 @@
+.trade-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 0;
+}
+
 .trade-button {
   width: 100%;
   position: relative;
@@ -143,6 +150,7 @@
   &.active {
     color: #fff;
     border-color: #5632de;
+    background-color: #383a3e;
   }
 
   > .ft {
@@ -161,7 +169,7 @@
 }
 
 .loading {
-  animation: rotation 1s infinite linear;
+  animation: rotation 10s infinite linear;
 }
 
 @keyframes rotation {
