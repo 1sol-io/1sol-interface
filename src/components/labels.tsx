@@ -3,8 +3,10 @@ import { getTokenName, KnownTokenMap, getPoolName } from '../utils/utils'
 import { PoolInfo } from '../models'
 
 export const CREATE_POOL_LABEL = 'Create Liquidity Pool'
-export const INSUFFICIENT_FUNDS_LABEL = (tokenName: string) => `Insufficient ${tokenName} funds`
-export const POOL_NOT_AVAILABLE = (tokenA: string, tokenB: string) => `Pool ${tokenA}/${tokenB} doesn't exsist`
+export const INSUFFICIENT_FUNDS_LABEL = (tokenName: string) =>
+  `Insufficient ${tokenName} funds`
+export const POOL_NOT_AVAILABLE = (tokenA: string, tokenB: string) =>
+  `Pool ${tokenA}/${tokenB} doesn't exsist`
 export const ADD_LIQUIDITY_LABEL = 'Provide Liquidity'
 export const SWAP_LABEL = 'Swap'
 export const CONNECT_LABEL = 'Connect Wallet'
@@ -28,13 +30,11 @@ export const generateActionLabel = (
         ? ENTER_AMOUNT_LABEL
         : !B.mintAddress
           ? SELECT_TOKEN_LABEL
-          : !B.amount
-            ? ENTER_AMOUNT_LABEL
-            : !A.sufficientBalance()
-              ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, A.mintAddress))
-              : ignoreToBalance || B.sufficientBalance()
-                ? action
-                : INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, B.mintAddress))
+          : !A.sufficientBalance()
+            ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, A.mintAddress))
+            : ignoreToBalance || B.sufficientBalance()
+              ? action
+              : INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, B.mintAddress))
 }
 
 export const generateRemoveLabel = (
@@ -49,10 +49,16 @@ export const generateRemoveLabel = (
     ? CONNECT_LABEL
     : !amount
       ? ENTER_AMOUNT_LABEL
-      : !hasSufficientBalance ? INSUFFICIENT_FUNDS_LABEL(getPoolName(tokenMap, pool)) : REMOVE_LIQUIDITY_LABEL
+      : !hasSufficientBalance
+        ? INSUFFICIENT_FUNDS_LABEL(getPoolName(tokenMap, pool))
+        : REMOVE_LIQUIDITY_LABEL
 }
 
-export const generateExactOneLabel = (connected: boolean, tokenMap: KnownTokenMap, token?: CurrencyContextState) => {
+export const generateExactOneLabel = (
+  connected: boolean,
+  tokenMap: KnownTokenMap,
+  token?: CurrencyContextState
+) => {
   return !connected
     ? CONNECT_LABEL
     : !token

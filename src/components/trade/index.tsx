@@ -64,7 +64,7 @@ export const TradeEntry = () => {
   const [loading, setLoading] = useState(false)
 
   const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
-  const [serumMarketAmount, setSerumMarketAmount] = useState<SerumAmountProps>()
+  const [serumMarketAmount, setSerumMarketAmount] = useState<TokenSwapAmountProps>()
   const [choice, setChoice] = useState<Distribution | undefined>()
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
@@ -109,6 +109,8 @@ export const TradeEntry = () => {
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
+      setLoading(false)
+
       return
     }
 
@@ -182,9 +184,6 @@ export const TradeEntry = () => {
         setSerumMarketAmount({
           input: serumMarket.amount_in,
           output: serumMarket.amount_out,
-          limitPrice: serumMarket.limit_price, 
-          maxCoinQty: serumMarket.max_coin_qty,
-          maxPcQty: serumMarket.max_pc_qty
         })
 
         amounts.push({
@@ -206,8 +205,13 @@ export const TradeEntry = () => {
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
 
   useEffect(() => {
+    setLoading(true)
     setAmounts([])
     setDistributions([])
+    setTokenSwapAmount(undefined)
+    setSerumMarketAmount(undefined)
+    setPool(undefined)
+    setMarket(undefined)
 
     const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
       const mints: string[] = [pool.mintA, pool.mintB]
@@ -237,6 +241,8 @@ export const TradeEntry = () => {
       && A.mintAddress !== B.mintAddress
     ) {
       fetchDistrubition()
+    } else {
+      setLoading(false)
     }
 
     return () => {
@@ -290,6 +296,7 @@ export const TradeEntry = () => {
 
       await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwapAmount, serumMarketAmount);
     } catch (e) {
+      console.error(e)
       notify({
         description: "Please try again and approve transactions from your wallet",
         message: "Swap trade cancelled.",
@@ -305,6 +312,10 @@ export const TradeEntry = () => {
   const handleRefresh = () => { 
     setDistributions([])
     setAmounts([])
+    setTokenSwapAmount(undefined)
+    setSerumMarketAmount(undefined)
+    setPool(undefined)
+    setMarket(undefined)
 
     fetchDistrubition() 
   }

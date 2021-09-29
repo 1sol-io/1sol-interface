@@ -664,6 +664,7 @@ export async function tokenSwapSwap (
     toAccount,
     transferAuthority,
     amountIn,
+    output,
     minAmountOut,
     tokenSwapInfo,
     instructions,
@@ -687,7 +688,7 @@ export async function tokenSwapSwap (
 export async function serumMarketSwap (
   connection: Connection,
   onesolProtocol: OneSolProtocol,
-  swapAmount: SerumAmountProps,
+  swapAmount: TokenSwapAmountProps,
   swapInfo: SerumDexMarketInfo,
   wallet: any,
   slippage: number, 
@@ -750,7 +751,7 @@ export async function serumMarketSwap (
       pubkey: new PublicKey(B.mintAddress), 
       mintInfo: B.mint
     }, 
-    amountIn, minAmountOut, instructions, signers
+    amountIn, output, minAmountOut, instructions, signers
   )
   // TODO cancel openOrder
 
@@ -778,7 +779,7 @@ export async function onesolProtocolSwap (
   slippage: number, 
   components: LiquidityComponent[],
   tokenSwapAmount: TokenSwapAmountProps | undefined,
-  serumMarketAmount: SerumAmountProps | undefined
+  serumMarketAmount: TokenSwapAmountProps | undefined
 ) {
   // const onesolProgramId =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
 
