@@ -26,6 +26,7 @@ export const SYMBOL_PAIRS = [
 
 export const TOKEN_SWAP_NAME = 'Token Swap'
 export const SERUM_DEX_MARKET_NAME = 'Serum Dex'
+export const ONESOL_NAME = '1Sol'
 
 export const PROVIDER_MAP: { [key: string]: string } = {
   '1sol': '1Sol',

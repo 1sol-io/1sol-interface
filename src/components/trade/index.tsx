@@ -44,9 +44,9 @@ import "./trade.less";
 import { TokenIcon } from "../tokenIcon";
 
 // import { cache, useUserAccounts } from "../../utils/accounts";
-import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
+import { TokenSwapAmountProps } from '../../utils/pools'
 
-import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME } from "../../utils/constant";
+import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME, ONESOL_NAME } from "../../utils/constant";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -76,7 +76,7 @@ export const TradeEntry = () => {
   const [soloTokenSwapAmount, setSoloTokenSwapAmount] = useState<TokenSwapAmountProps>()
   const [soloSerumMarketAmount, setSoloSerumMarketAmount] = useState<TokenSwapAmountProps>()
 
-  const [choice, setChoice] = useState<Distribution | undefined>()
+  const [choice, setChoice] = useState(ONESOL_NAME)
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
@@ -126,9 +126,9 @@ export const TradeEntry = () => {
       return
     }
 
-    if (cancel.current) {
-      cancel.current()
-    }
+    // if (cancel.current) {
+    //   cancel.current()
+    // }
 
     if (timer.current) {
       clearTimeout(timer.current)
@@ -147,19 +147,34 @@ export const TradeEntry = () => {
       providers.push(market.address)
     }
 
-    axios({
-      url: 'https://api.1sol.io/distribution2',
-      // url: 'http://192.168.4.11:8080/distribution2',
-      method: 'post', 
-      data: {
-        amount_in: Number(A.amount) * 10 ** A.mint.decimals,
-        chain_id: pool?.chainId,
-        source_token_mint_key: A.mintAddress,
-        destination_token_mint_key: B.mintAddress, 
-        providers,
-      }, 
-      cancelToken: new CancelToken((c) => cancel.current = c)
-    }).then(({data: {best, distributions}}: {data: {best: {amount_out: number, provider_type: string, routes: any[]}, distributions: any}}) => {
+    try {
+      const {
+        data: {
+          best, 
+          distributions
+        }
+      }: {
+        data: {
+          best: {
+            amount_out: number, 
+            provider_type: string, 
+            routes: any[]
+          }, 
+          distributions: any
+        }
+      } = await axios({
+        url: 'https://api.1sol.io/distribution2',
+        method: 'post', 
+        data: {
+          amount_in: Number(A.amount) * 10 ** A.mint.decimals,
+          chain_id: pool?.chainId,
+          source_token_mint_key: A.mintAddress,
+          destination_token_mint_key: B.mintAddress, 
+          providers,
+        }, 
+        cancelToken: new CancelToken((c) => cancel.current = c)
+      })
+
       const result: Distribution[] = [
         {
           output: best.amount_out / 10 ** decimals[1], 
@@ -223,18 +238,15 @@ export const TradeEntry = () => {
       }
 
       setAmounts(amounts)
-      setLoading(false)
+    } catch(e) {}
 
-      timer.current = setTimeout(() => { 
-        fetchDistrubition() 
-      }, 10 * 1000)
-    }).catch(e => {
-      setLoading(false)
-    })  
+    setLoading(false)
+    timer.current = setTimeout(() => { 
+      fetchDistrubition() 
+    }, 10 * 1000)
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
 
   useEffect(() => {
-    setLoading(true)
     setAmounts([])
     setDistributions([])
     setTokenSwapAmount(undefined)
@@ -243,6 +255,7 @@ export const TradeEntry = () => {
     setMarket(undefined)
     setSoloTokenSwapAmount(undefined)
     setSoloSerumMarketAmount(undefined)
+    setChoice(ONESOL_NAME)
 
     const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
       const mints: string[] = [pool.mintA, pool.mintB]
@@ -272,9 +285,7 @@ export const TradeEntry = () => {
       && A.mintAddress !== B.mintAddress
     ) {
       fetchDistrubition()
-    } else {
-      setLoading(false)
-    }
+    } 
 
     return () => {
       if (timer.current) {
@@ -328,12 +339,12 @@ export const TradeEntry = () => {
       let tokenSwap = tokenSwapAmount
       let serumMarket = serumMarketAmount
 
-      if (choice?.provider === TOKEN_SWAP_NAME) {
+      if (choice === TOKEN_SWAP_NAME) {
         tokenSwap = soloTokenSwapAmount
         serumMarket = undefined
       }
 
-      if (choice?.provider === SERUM_DEX_MARKET_NAME) {
+      if (choice === SERUM_DEX_MARKET_NAME) {
         tokenSwap = undefined
         serumMarket = soloSerumMarketAmount
       }
@@ -352,11 +363,12 @@ export const TradeEntry = () => {
     }
   };
 
-  const handleSwitchChoice = (choice: Distribution) => {
+  const handleSwitchChoice = (choice: string) => {
     setChoice(choice) 
   }
 
   const handleRefresh = () => { 
+    setLoading(true)
     setDistributions([])
     setAmounts([])
     setTokenSwapAmount(undefined)
@@ -365,8 +377,7 @@ export const TradeEntry = () => {
     setMarket(undefined)
     setSoloTokenSwapAmount(undefined)
     setSoloSerumMarketAmount(undefined)
-
-    fetchDistrubition() 
+    setChoice(ONESOL_NAME)
   }
   const handleShowRoute = () => setShowRoute(true)
 
@@ -444,7 +455,7 @@ export const TradeEntry = () => {
         <Result
          loading={loading && !distributions.length} 
          data={distributions} 
-         active={choice?.provider} 
+         active={choice} 
          handleSwitchChoice={handleSwitchChoice} 
          handleShowRoute={handleShowRoute} 
         />
@@ -505,7 +516,7 @@ export const TradeEntry = () => {
 export const Result = (props: {
   data: Distribution[], 
   loading: boolean, 
-  handleSwitchChoice: (a: Distribution) => void,
+  handleSwitchChoice: (a: string) => void,
   handleShowRoute: () => void,
   active?: string
 }) => {
@@ -518,8 +529,8 @@ export const Result = (props: {
         {data.map(({provider, output, offset}, i) => (
           <div
             key={provider}
-            className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
-            onClick={() => handleSwitchChoice({provider, output, offset})}
+            className={provider === active ? "mod-result active": 'mod-result'}
+            onClick={() => handleSwitchChoice(provider)}
           >
             <div className="hd">{provider}</div>
             <div className="bd">
