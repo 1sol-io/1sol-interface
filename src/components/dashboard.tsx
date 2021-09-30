@@ -1,8 +1,9 @@
-import { Card, Table, Button, Spin } from 'antd'
+import { Card, Table, Button, Spin, Tabs } from 'antd'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import echarts from 'echarts'
+import { StockOutlined, DollarCircleOutlined } from '@ant-design/icons'
 
 import { SYMBOL_PAIRS } from '../utils/constant'
 import { formatShortDate } from '../utils/utils'
@@ -12,6 +13,7 @@ import usePyth from '../hooks/usePyth'
 
 import { AppBar } from './appBar'
 import Social from './social'
+import { TVL } from './tvl/tvl'
 
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink_footer.svg'
@@ -27,6 +29,8 @@ const COINS_MAP: { [key: string]: string } = {
   usdc: 'usd-coin',
   usdt: 'tether'
 }
+
+const { TabPane } = Tabs
 
 // const columns: Array<{
 //   title: string
@@ -287,98 +291,128 @@ export const Dashboard = () => {
     <div className="page-dashboard">
       <AppBar />
       <div className="bd">
-        <div className="sidebar">
-          {SYMBOL_PAIRS.map(
-            ({ token, icon }: { token: string; icon: string }) => (
-              <div
-                className={
-                  active === token.toLowerCase() ? 'token active' : 'token'
-                }
-                key={token}
-                onClick={() => handleSwitchToken(token)}
-              >
-                <img className="icon" src={icon} alt={token} />
-                <span>{token}</span>
+        <Tabs tabPosition="left">
+          <TabPane
+            tab={
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <StockOutlined style={{ fontSize: '20px' }} />Assets
               </div>
-            )
-          )}
-        </div>
-        <div className="center">
-          <div className="hd">
-            <Card
-              className="partner-card"
-              style={{ margin: '0', padding: '0 30px', width: '100%' }}
-            >
-              <div className="partners">
+            }
+            key="assets"
+          >
+            <div className="assets-mod">
+              <div className="sidebar">
+                {SYMBOL_PAIRS.map(
+                  ({ token, icon }: { token: string; icon: string }) => (
+                    <div
+                      className={
+                        active === token.toLowerCase() ? (
+                          'token active'
+                        ) : (
+                          'token'
+                        )
+                      }
+                      key={token}
+                      onClick={() => handleSwitchToken(token)}
+                    >
+                      <img className="icon" src={icon} alt={token} />
+                      <span>{token}</span>
+                    </div>
+                  )
+                )}
+              </div>
+              <div className="center">
                 <div className="hd">
-                  <div className="partner">
-                    <div className="hd">
-                      ${pythMap && pythMap[`${active}/usd`] ? (
-                        pythMap[`${active}/usd`].price
-                      ) : (
-                        '-'
-                      )}
-                    </div>
-                    <div className="bd">
-                      <img style={{ width: '50px' }} src={pythLogo} alt="" />
-                    </div>
-                  </div>
+                  <Card
+                    className="partner-card"
+                    style={{ margin: '0', padding: '0 30px', width: '100%' }}
+                  >
+                    <div className="partners">
+                      <div className="hd">
+                        <div className="partner">
+                          <div className="hd">
+                            ${pythMap && pythMap[`${active}/usd`] ? (
+                              pythMap[`${active}/usd`].price
+                            ) : (
+                              '-'
+                            )}
+                          </div>
+                          <div className="bd">
+                            <img
+                              style={{ width: '50px' }}
+                              src={pythLogo}
+                              alt=""
+                            />
+                          </div>
+                        </div>
 
-                  <div className="partner">
-                    <div className="hd">
-                      ${chainlinkMap && chainlinkMap[active] ? (
-                        chainlinkMap[active].price
-                      ) : (
-                        '-'
-                      )}
+                        <div className="partner">
+                          <div className="hd">
+                            ${chainlinkMap && chainlinkMap[active] ? (
+                              chainlinkMap[active].price
+                            ) : (
+                              '-'
+                            )}
+                          </div>
+                          <div className="bd">
+                            <img
+                              style={{ width: '50px' }}
+                              src={chainkLinkLogo}
+                              alt=""
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bd">
+                        <Link
+                          to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}
+                        >
+                          <Button type="primary" size="small">
+                            Trade
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                    <div className="bd">
-                      <img
-                        style={{ width: '50px' }}
-                        src={chainkLinkLogo}
-                        alt=""
-                      />
-                    </div>
-                  </div>
+                  </Card>
                 </div>
                 <div className="bd">
-                  <Link
-                    to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}
-                  >
-                    <Button type="primary" size="small">
-                      Trade
-                    </Button>
-                  </Link>
+                  <Card className="chart-card">
+                    {loading ? (
+                      <Spin style={{ position: 'absolute', top: '200px' }} />
+                    ) : null}
+                    <div ref={chartDiv} className="price-chart" />
+                  </Card>
                 </div>
               </div>
-            </Card>
-          </div>
-          <div className="bd">
-            <Card className="chart-card">
-              {loading ? (
-                <Spin style={{ position: 'absolute', top: '200px' }} />
-              ) : null}
-              <div ref={chartDiv} className="price-chart" />
-            </Card>
-          </div>
-        </div>
-        <div className="right">
-          <div className="pro">
-            <div className="hd">
-              <img style={{ height: '80px' }} src={onesole_te} alt="" />
             </div>
-            <div className="bd">1SOL Community</div>
-            <div className="ft">
-              <Button type="primary" size="small">
-                <a
-                  href="https://t.me/onesolcommunity"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Join
-                </a>
-              </Button>
-            </div>
+          </TabPane>
+          <TabPane
+            tab={
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <DollarCircleOutlined style={{ fontSize: '20px' }} />TVL
+              </div>
+            }
+            key="tvl"
+          >
+            <TVL />
+          </TabPane>
+        </Tabs>
+
+        <div className="pro">
+          <div className="hd">
+            <img style={{ height: '50px' }} src={onesole_te} alt="" />
+          </div>
+          <div className="bd">1SOL Community</div>
+          <div className="ft">
+            <Button type="primary" size="small">
+              <a
+                href="https://t.me/onesolcommunity"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Join
+              </a>
+            </Button>
           </div>
         </div>
       </div>
