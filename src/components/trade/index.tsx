@@ -310,27 +310,27 @@ export const TradeEntry = () => {
     }
   }, [A.amount, A.mintAddress, B.mintAddress, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
 
-  // const swapAccounts = () => {
-  //   const tempMint = A.mintAddress;
-  //   const tempAmount = A.amount;
+  const swapAccounts = () => {
+    const tempMint = A.mintAddress;
+    // const tempAmount = A.amount;
 
-  //   A.setMint(B.mintAddress);
-  //   A.setAmount(B.amount);
-  //   B.setMint(tempMint);
-  //   B.setAmount(tempAmount);
+    A.setMint(B.mintAddress);
+    // A.setAmount(B.amount);
+    B.setMint(tempMint);
+    // B.setAmount(tempAmount);
 
-  //   // @ts-ignore
-  //   setPoolOperation((op: PoolOperation) => {
-  //     switch (+op) {
-  //       case PoolOperation.SwapGivenInput:
-  //         return PoolOperation.SwapGivenProceeds;
-  //       case PoolOperation.SwapGivenProceeds:
-  //         return PoolOperation.SwapGivenInput;
-  //       case PoolOperation.Add:
-  //         return PoolOperation.SwapGivenInput;
-  //     }
-  //   });
-  // };
+    // @ts-ignore
+    setPoolOperation((op: PoolOperation) => {
+      switch (+op) {
+        case PoolOperation.SwapGivenInput:
+          return PoolOperation.SwapGivenProceeds;
+        case PoolOperation.SwapGivenProceeds:
+          return PoolOperation.SwapGivenInput;
+        case PoolOperation.Add:
+          return PoolOperation.SwapGivenInput;
+      }
+    });
+  };
 
   const handleSwap = async () => {
     if (!A.amount || !B.mintAddress || (!pool && !market)) {
@@ -450,7 +450,15 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="primary" className="swap-button" style={{cursor: 'default', display: 'flex', justifyContent: 'space-around', margin: '-10px auto'}}>&#8595;</Button>
+        <Button
+         type="primary" 
+         className="swap-button" 
+         style={{display: 'flex', justifyContent: 'space-around', margin: '-10px auto'}}
+         onClick={swapAccounts}
+        >
+          {/* &#8595; */}
+          &#10607;
+        </Button>
         <Card
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
           bodyStyle={{ padding: 0 }}
