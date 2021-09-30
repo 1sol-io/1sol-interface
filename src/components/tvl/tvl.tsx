@@ -9,6 +9,7 @@ import { formatShortDate } from '../../utils/utils'
 import './index.less'
 
 interface Protocal {
+  logo: string,
   name: string
   symbol: string
   mcap: number
@@ -28,7 +29,10 @@ const columns: {
     key: 'name',
     dataIndex: 'name',
     align: 'left',
-    render: (value: string, record: any) => `${record.name} (${record.symbol})`
+    render: (value: string, record: any) => (<>
+      {/* <img style={{width: '24px', height: '24px', marginRight: '10px'}} src={record.logo} alt="" /> */}
+      {record.name} ({record.symbol})
+    </>)
   },
   {
     title: '7d Change',
@@ -107,8 +111,6 @@ export const TVL = () => {
               },
             // eslint-disable-next-line
             formatter(data: any) {
-              console.log(data)
-
               return `${data[0].name}<br />$${numeral(data[0].value).format(
                 '0.0a'
               )}`
@@ -242,10 +244,11 @@ export const TVL = () => {
     const datasource: Protocal[] = []
 
     data.forEach((item: any) => {
-      const { name, symbol, tvl, mcap, change_7d, chains } = item
+      const { name, symbol, tvl, mcap, change_7d, chains, logo } = item
 
       if (chains.includes('Solana')) {
         datasource.push({
+          logo,
           name,
           symbol,
           mcap,

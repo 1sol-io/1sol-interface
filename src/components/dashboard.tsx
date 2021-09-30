@@ -295,7 +295,7 @@ export const Dashboard = () => {
           <TabPane
             tab={
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <StockOutlined style={{ fontSize: '20px' }} />Assets
+                <DollarCircleOutlined style={{ fontSize: '20px' }} />Assets
               </div>
             }
             key="assets"
@@ -389,7 +389,7 @@ export const Dashboard = () => {
           <TabPane
             tab={
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <DollarCircleOutlined style={{ fontSize: '20px' }} />TVL
+                <StockOutlined style={{ fontSize: '20px' }} />TVL
               </div>
             }
             key="tvl"
