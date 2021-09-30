@@ -366,6 +366,8 @@ export const TradeEntry = () => {
       }
 
       await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwap, serumMarket);
+
+      setShowShare(true)
     } catch (e) {
       console.error(e)
 
@@ -517,16 +519,21 @@ export const TradeEntry = () => {
       <Modal visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
-      <Modal title="Share to Twitter" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
-      <TwitterShareButton 
-        url={window.location.href}
-        title="@gaowhen"
-        via="1Sol"
-        hashtags={['dex']}
-        related={['@gaowhen']}
-      >
-        <Button type="primary">Share</Button>
-      </TwitterShareButton>
+      <Modal title="Transaction Succeed!" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
+        <div style={{
+          fontSize: '16px',
+          marginBottom: '20px'
+        }}>Tweet to tell your friends 1SOL aggregator? We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</div>
+        <div style={{display: 'flex', justifyContent: 'space-around'}}>
+          <TwitterShareButton 
+            url="https://devnet.1sol.io"
+            title="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
+            via="1solProtocol"
+            hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
+          >
+            <Button type="primary">Share to Twitter</Button>
+          </TwitterShareButton>
+        </div>
       </Modal>
     </>
   );
