@@ -265,6 +265,10 @@ export const TradeEntry = () => {
     setSoloSerumMarketAmount(undefined)
     setChoice(ONESOL_NAME)
 
+    if (timer.current) {
+      clearTimeout(timer.current)
+    }
+
     const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
       const mints: string[] = [pool.mintA, pool.mintB]
 
