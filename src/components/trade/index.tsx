@@ -67,6 +67,8 @@ export const TradeEntry = () => {
     setPoolOperation,
   } = useCurrencyPairState();
 
+  const refreshBtnRef: {current: any} = useRef()
+
   const [loading, setLoading] = useState(false)
 
   // best routes
@@ -120,6 +122,7 @@ export const TradeEntry = () => {
   // }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
+
     if (!A.mint || !B.mint) {
       setLoading(false)
 
@@ -241,6 +244,11 @@ export const TradeEntry = () => {
     } catch(e) {}
 
     setLoading(false)
+
+    refreshBtnRef.current.classList.remove('timeout')
+    void refreshBtnRef.current.offsetWidth
+    refreshBtnRef.current.classList.add('timeout')
+
     timer.current = setTimeout(() => { 
       fetchDistrubition() 
     }, 10 * 1000)
@@ -275,6 +283,10 @@ export const TradeEntry = () => {
 
     if (market) {
       setMarket(market)
+    }
+
+    if (!Number(A.amount)) {
+      refreshBtnRef.current.classList.remove('timeout')
     }
 
     if (
@@ -378,6 +390,8 @@ export const TradeEntry = () => {
     setSoloTokenSwapAmount(undefined)
     setSoloSerumMarketAmount(undefined)
     setChoice(ONESOL_NAME)
+
+    refreshBtnRef.current.classList.remove('timeout')
   }
   const handleShowRoute = () => setShowRoute(true)
 
@@ -387,6 +401,7 @@ export const TradeEntry = () => {
         <div className="hd">Trade(devnet)</div>
         <div className="bd">
           <Button
+            ref={refreshBtnRef}
             className={loading ? 'loading' : ''}
             shape="circle"
             size="large"
