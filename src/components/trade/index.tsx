@@ -23,6 +23,13 @@ import {
   
 } from "@ant-design/icons";
 import {
+  // FacebookShareButton,
+  // RedditShareButton,
+  // TelegramShareButton,
+  TwitterShareButton,
+} from "react-share";
+
+import {
   onesolProtocolSwap,
   PoolOperation,
 } from "../../utils/pools";
@@ -39,8 +46,7 @@ import { TokenIcon } from "../tokenIcon";
 // import { cache, useUserAccounts } from "../../utils/accounts";
 import {TokenSwapAmountProps, SerumAmountProps } from '../../utils/pools'
 
-import { PROVIDER_MAP } from "../../utils/constant";
-import { off } from "process";
+import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME } from "../../utils/constant";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -63,14 +69,20 @@ export const TradeEntry = () => {
 
   const [loading, setLoading] = useState(false)
 
+  // best routes
   const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
   const [serumMarketAmount, setSerumMarketAmount] = useState<TokenSwapAmountProps>()
+
+  const [soloTokenSwapAmount, setSoloTokenSwapAmount] = useState<TokenSwapAmountProps>()
+  const [soloSerumMarketAmount, setSoloSerumMarketAmount] = useState<TokenSwapAmountProps>()
+
   const [choice, setChoice] = useState<Distribution | undefined>()
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
   const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   const { slippage } = useSlippageConfig();
   const { tokenMap, serumMarkets, tokenSwapPools } = useConnectionConfig();
@@ -193,6 +205,23 @@ export const TradeEntry = () => {
         })
       }
 
+      const soloTokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
+      const soloSerumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
+
+      if (soloTokenSwap) {
+        setSoloTokenSwapAmount({
+          input: soloTokenSwap.amount_in,
+          output: soloTokenSwap.amount_out
+        })
+      }
+
+      if (soloSerumMarket) {
+        setSoloSerumMarketAmount({
+          input: soloSerumMarket.amount_in,
+          output: soloSerumMarket.amount_out
+        })
+      }
+
       setAmounts(amounts)
       setLoading(false)
 
@@ -212,6 +241,8 @@ export const TradeEntry = () => {
     setSerumMarketAmount(undefined)
     setPool(undefined)
     setMarket(undefined)
+    setSoloTokenSwapAmount(undefined)
+    setSoloSerumMarketAmount(undefined)
 
     const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
       const mints: string[] = [pool.mintA, pool.mintB]
@@ -294,9 +325,23 @@ export const TradeEntry = () => {
         },
       ];
 
-      await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwapAmount, serumMarketAmount);
+      let tokenSwap = tokenSwapAmount
+      let serumMarket = serumMarketAmount
+
+      if (choice?.provider === TOKEN_SWAP_NAME) {
+        tokenSwap = soloTokenSwapAmount
+        serumMarket = undefined
+      }
+
+      if (choice?.provider === SERUM_DEX_MARKET_NAME) {
+        tokenSwap = undefined
+        serumMarket = soloSerumMarketAmount
+      }
+
+      await onesolProtocolSwap(connection, wallet, A, B, pool, market, slippage, components, tokenSwap, serumMarket);
     } catch (e) {
       console.error(e)
+
       notify({
         description: "Please try again and approve transactions from your wallet",
         message: "Swap trade cancelled.",
@@ -307,7 +352,9 @@ export const TradeEntry = () => {
     }
   };
 
-  const handleSwitchChoice = (choice: any) => setChoice(choice)
+  const handleSwitchChoice = (choice: Distribution) => {
+    setChoice(choice) 
+  }
 
   const handleRefresh = () => { 
     setDistributions([])
@@ -316,6 +363,8 @@ export const TradeEntry = () => {
     setSerumMarketAmount(undefined)
     setPool(undefined)
     setMarket(undefined)
+    setSoloTokenSwapAmount(undefined)
+    setSoloSerumMarketAmount(undefined)
 
     fetchDistrubition() 
   }
@@ -438,6 +487,17 @@ export const TradeEntry = () => {
       <Modal visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
+      <Modal title="Share to Twitter" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
+      <TwitterShareButton 
+        url={window.location.href}
+        title="@gaowhen"
+        via="1Sol"
+        hashtags={['dex']}
+        related={['@gaowhen']}
+      >
+        <Button type="primary">Share</Button>
+      </TwitterShareButton>
+      </Modal>
     </>
   );
 };
@@ -445,7 +505,7 @@ export const TradeEntry = () => {
 export const Result = (props: {
   data: Distribution[], 
   loading: boolean, 
-  handleSwitchChoice: (a: object) => void,
+  handleSwitchChoice: (a: Distribution) => void,
   handleShowRoute: () => void,
   active?: string
 }) => {
@@ -459,7 +519,7 @@ export const Result = (props: {
           <div
             key={provider}
             className={(!active && i === 0) || provider === active ? "mod-result active": 'mod-result'}
-            onClick={() => handleSwitchChoice({provider, output, off})}
+            onClick={() => handleSwitchChoice({provider, output, offset})}
           >
             <div className="hd">{provider}</div>
             <div className="bd">

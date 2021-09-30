@@ -24,8 +24,11 @@ export const SYMBOL_PAIRS = [
   { name: 'USDT', key: 'FG5FPJnT4ubjoNMm9Bh2uAfgbq2bwxP7aY6AKVmYou1p', token: 'USDT', icon: usdt },
 ]
 
+export const TOKEN_SWAP_NAME = 'Token Swap'
+export const SERUM_DEX_MARKET_NAME = 'Serum Dex'
+
 export const PROVIDER_MAP: { [key: string]: string } = {
   '1sol': '1Sol',
-  token_swap_pool: 'Token Swap',
-  serum_dex_market: 'Serum Dex'
+  token_swap_pool: TOKEN_SWAP_NAME,
+  serum_dex_market: SERUM_DEX_MARKET_NAME
 }
