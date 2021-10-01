@@ -4,7 +4,7 @@ import axios from 'axios'
 import numeral from 'numeral'
 import echarts from 'echarts'
 
-import { formatShortDate } from '../../utils/utils'
+import { formatShortDateTime } from '../../utils/utils'
 
 import './index.less'
 
@@ -55,7 +55,7 @@ export const Beach = () => {
   ) => {
     if (echartsRef.current) {
       const xAxisData = data.map((data) =>
-        formatShortDate.format(new Date(data.timestamp))
+        formatShortDateTime.format(new Date(data.timestamp))
       )
       const yAxisData = data.map((data) => data.volume_24h)
 
@@ -218,7 +218,7 @@ export const Beach = () => {
   return (
     <div className="page-beach">
       <div className="hd">
-        <Card style={{ margin: '0 30px 0 0' }}>
+        <Card>
           <div className="supply-card">
             <div className="supply">
               <div className="mod">

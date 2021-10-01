@@ -171,6 +171,13 @@ export const formatShortDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
 });
 
+export const formatShortDateTime = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  hour: 'numeric', minute: 'numeric',
+  // second: 'numeric',
+})
+
 // returns a Color from a 4 color array, green to red, depending on the index
 // of the closer (up) checkpoint number from the value
 export const colorWarning = (value = 0, valueCheckpoints = [1, 3, 5, 100]) => {

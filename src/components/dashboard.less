@@ -160,7 +160,7 @@
     position: relative;
 
     .assets-mod {
-      max-width: 1200px;
+      // max-width: 1200px;
       min-height: 531px;
       margin: 20px;
       padding: 0 1rem;
@@ -291,17 +291,22 @@
         align-items: center;
       }
     }
+  }
+
+  > .ft {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
 
     .pro {
-      position: absolute;
-      left: 20px;
-      top: 400px;
-      // background-color: #212327;
       border: 1px solid #383a3e;
-      // background-color: #383a3e;
       border-radius: 10px;
       padding: 0px 5px 10px;
       background-color: #272a2e;
+
+      a {
+        color: #fff;
+      }
 
       > .bd {
         font-size: 12px;
@@ -362,7 +367,7 @@
       display: none;
     }
 
-    .pro {
+    > .ft {
       position: static !important;
       margin: 20px 20px 0;
     }

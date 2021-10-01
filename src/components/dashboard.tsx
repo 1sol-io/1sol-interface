@@ -1,4 +1,4 @@
-import { Card, Table, Button, Spin, Tabs } from 'antd'
+import { Card, Button, Spin, Tabs } from 'antd'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
@@ -412,26 +412,27 @@ export const Dashboard = () => {
             <Beach />
           </TabPane>
         </Tabs>
-
-        <div className="pro">
-          <div className="hd">
-            <img style={{ height: '50px' }} src={onesole_te} alt="" />
-          </div>
-          <div className="bd">1SOL Community</div>
-          <div className="ft">
-            <Button type="primary" size="small">
-              <a
-                href="https://t.me/onesolcommunity"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Join
-              </a>
-            </Button>
-          </div>
-        </div>
       </div>
-      <Social />
+      <div className="ft">
+        <div className="pro">
+          <a
+            href="https://t.me/onesolcommunity"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div className="hd">
+              <img style={{ height: '50px' }} src={onesole_te} alt="" />
+            </div>
+            <div className="bd">1SOL Community</div>
+            <div className="ft">
+              <Button type="primary" size="small">
+                Join
+              </Button>
+            </div>
+          </a>
+        </div>
+        <Social />
+      </div>
     </div>
   )
 }
