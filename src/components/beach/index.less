@@ -1,0 +1,70 @@
+.page-beach {
+  margin: 20px;
+  padding: 0 1rem;
+
+  .supply-card {
+    display: flex;
+    padding: 0 40px;
+    justify-content: space-between;
+
+    .supply {
+      flex-grow: 0;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 90px 0 0;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 1px;
+        background: rgba(29, 29, 29, 0.5);
+        margin: 0px 45px;
+      }
+
+      .mod {
+        margin-bottom: 20px;
+        text-align: left;
+
+        > .hd {
+          font-size: 14px;
+          color: rgb(136, 136, 136);
+          text-align: left;
+        }
+
+        > .bd {
+          font-size: 36px;
+          font-weight: 600;
+          color: rgb(105, 245, 225);
+        }
+
+        > .ft {
+          font-size: 14px;
+          color: rgb(136, 136, 136);
+          strong {
+            color: rgb(105, 245, 225);
+          }
+        }
+      }
+    }
+
+    .chart {
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .price-chart {
+      height: 450px;
+      width: 100%;
+
+      @media only screen and (max-width: 600px) {
+        height: 300px;
+      }
+    }
+  }
+}

@@ -3,7 +3,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import echarts from 'echarts'
-import { StockOutlined, DollarCircleOutlined } from '@ant-design/icons'
+import {
+  StockOutlined,
+  DollarCircleOutlined,
+  LinkOutlined
+} from '@ant-design/icons'
 
 import { SYMBOL_PAIRS } from '../utils/constant'
 import { formatShortDate } from '../utils/utils'
@@ -14,6 +18,7 @@ import usePyth from '../hooks/usePyth'
 import { AppBar } from './appBar'
 import Social from './social'
 import { TVL } from './tvl/tvl'
+import { Beach } from './beach'
 
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink_footer.svg'
@@ -395,6 +400,16 @@ export const Dashboard = () => {
             key="tvl"
           >
             <TVL />
+          </TabPane>
+          <TabPane
+            tab={
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <LinkOutlined style={{ fontSize: '20px' }} />Chain
+              </div>
+            }
+            key="chain"
+          >
+            <Beach />
           </TabPane>
         </Tabs>
 

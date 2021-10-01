@@ -8,7 +8,6 @@ import { Breakpoint } from 'antd/lib/_util/responsiveObserve'
 import { formatShortDate } from '../../utils/utils'
 
 import './index.less'
-
 interface Protocal {
   logo: string,
   name: string
