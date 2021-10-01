@@ -1,8 +1,11 @@
-.tvl-mod {
+.tvl-page {
+  .ant-table {
+    margin: 0;
+  }
+
   padding: 0 1rem;
   max-width: 1200px;
-  margin: 20px 40px 0 0;
-
+  margin: 20px;
   .chart {
     display: flex;
     justify-content: space-between;
@@ -16,6 +19,11 @@
   }
 
   .tvl-mod {
+    margin: 20px 0 0 40px;
+
+    &:last-child {
+      margin: 20px 40px 0 0;
+    }
     > .hd {
       font-size: 16px;
       font-weight: 500;
@@ -54,5 +62,19 @@
   h3 {
     text-align: left;
     margin: 50px 0 10px 30px;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .tvl-page {
+    margin: 20px 0 0;
+
+    .tvl-mod {
+      margin: 0 10px 0 10px;
+
+      &:last-child {
+        margin: 0 10px 0 0;
+      }
+    }
   }
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import echarts from 'echarts'
 import numeral from 'numeral'
+import { Breakpoint } from 'antd/lib/_util/responsiveObserve'
 
 import { formatShortDate } from '../../utils/utils'
 
@@ -22,7 +23,8 @@ const columns: {
   dataIndex: string
   key: string
   align?: 'left' | 'center' | 'right' | undefined
-  render?: any
+  render?: any,
+  responsive?: Breakpoint[]
 }[] = [
   {
     title: 'Name',
@@ -32,14 +34,14 @@ const columns: {
     render: (value: string, record: any) => (<>
       {/* <img style={{width: '24px', height: '24px', marginRight: '10px'}} src={record.logo} alt="" /> */}
       {record.name} ({record.symbol})
-    </>)
+    </>),
   },
   {
     title: '7d Change',
     key: 'change',
     dataIndex: 'change',
     align: 'left',
-    render: (value: number) => `${value ? value.toFixed(2) : '-'}%`
+    render: (value: number) => `${value ? value.toFixed(2) : '-'}%`,
   },
   {
     title: 'TVL',
@@ -47,7 +49,7 @@ const columns: {
     dataIndex: 'tvl',
     align: 'left',
     render:
-      (value: number) => `${value ? `$${numeral(value).format('0.0a')}` : '-'}`
+      (value: number) => `${value ? `$${numeral(value).format('0.0a')}` : '-'}`,
   },
   {
     title: 'Mcap/TVL',
@@ -58,7 +60,8 @@ const columns: {
       (value: number, record: any) =>
         `${record.mcap / record.tvl
           ? (record.mcap / record.tvl).toFixed(5)
-          : '-'}`
+          : '-'}`,
+    responsive: ["sm"]
   }
 ]
 
@@ -271,7 +274,7 @@ export const TVL = () => {
   )
 
   return (
-    <div className="tvl-mod">
+    <div className="tvl-page">
       <div className="hd">
         <Card>
           <div className="cards">
