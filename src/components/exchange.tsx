@@ -10,6 +10,7 @@ import Social from "./social";
 
 import { notify } from "../utils/notifications";
 import { useWallet } from "../context/wallet";
+import { Canvas } from "../components/canvas";
 
 import './exchange.less'
 
@@ -76,35 +77,38 @@ export const ExchangeView = (props: {}) => {
         }
       />
 
-      <Card
-        className="airdrop-card exchange-card"
-        headStyle={{ padding: 0 }}
-      >
-        <div className="airdrop">
-          <div className="hd">Sol Token<strong>(devnet)</strong></div>
-          <div className="bd">
-            <Button 
-              type="primary" 
-              shape="round"
-              onClick={connected ? handleRequestAirdrop : connect}
-            >
-              {loading ? 'Requesting' : 'Airdrop'}
-            </Button>
+      <div style={{position: 'relative', zIndex: 10}}>
+        <Card
+          className="airdrop-card exchange-card"
+          headStyle={{ padding: 0 }}
+        >
+          <div className="airdrop">
+            <div className="hd">Sol Token<strong>(devnet)</strong></div>
+            <div className="bd">
+              <Button 
+                type="primary" 
+                shape="round"
+                onClick={connected ? handleRequestAirdrop : connect}
+              >
+                {loading ? 'Requesting' : 'Airdrop'}
+              </Button>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card
-        className="exchange-card"
-        headStyle={{ padding: 0 }}
-        bodyStyle={{ position: "relative", padding: '0 24px 24px' }}
-        // title="Trade(devnet)"
-      >
-        
-        {tradeTab.render()}
-      </Card>
+        <Card
+          className="exchange-card"
+          headStyle={{ padding: 0 }}
+          bodyStyle={{ position: "relative", padding: '0 24px 24px' }}
+          // title="Trade(devnet)"
+        >
+          
+          {tradeTab.render()}
+        </Card>
 
-      <Social />
+        <Social />
+      </div>
+      <Canvas />
     </>
   );
 };

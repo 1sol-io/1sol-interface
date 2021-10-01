@@ -1,6 +1,17 @@
 import { Button, Card, Spin, Skeleton, Popover, Modal } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-
+import {
+  LoadingOutlined,
+  PlusOutlined ,
+  RightOutlined,
+  ArrowRightOutlined,
+  SettingOutlined,
+  ReloadOutlined,
+  ExpandOutlined
+} from "@ant-design/icons";
+import {
+  TwitterShareButton,
+} from "react-share";
 import axios from 'axios'
 
 import {
@@ -12,22 +23,6 @@ import {
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
 import { QuoteCurrencyInput } from "../quoteCurrencyInput";
-import {
-  LoadingOutlined,
-  PlusOutlined ,
-  RightOutlined,
-  ArrowRightOutlined,
-  SettingOutlined,
-  ReloadOutlined,
-  ExpandOutlined
-  
-} from "@ant-design/icons";
-import {
-  // FacebookShareButton,
-  // RedditShareButton,
-  // TelegramShareButton,
-  TwitterShareButton,
-} from "react-share";
 
 import {
   onesolProtocolSwap,
@@ -39,14 +34,14 @@ import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import { getTokenName } from "../../utils/utils";
 import { Settings } from "../settings";
 
-import "./trade.less";
-
 import { TokenIcon } from "../tokenIcon";
 
 // import { cache, useUserAccounts } from "../../utils/accounts";
 import { TokenSwapAmountProps } from '../../utils/pools'
 
 import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME, ONESOL_NAME } from "../../utils/constant";
+
+import "./trade.less";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
