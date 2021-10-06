@@ -373,12 +373,12 @@ export const TradeEntry = () => {
     }
   };
 
-  useEffect(() => {
-    if (showShare) {
-      // @ts-ignore
-      window.twttr.widgets.load()
-    }
-  }, [showShare])
+  // useEffect(() => {
+  //   if (showShare) {
+  //     // @ts-ignore
+  //     window.twttr.widgets.load()
+  //   }
+  // }, [showShare])
 
   const handleSwitchChoice = (choice: string) => {
     setChoice(choice) 
@@ -533,15 +533,18 @@ export const TradeEntry = () => {
         }}><p>Tweet to tell your friends 1SOL aggregator? </p>
         <p>We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</p></div>
         <div style={{display: 'flex', justifyContent: 'space-around'}}>
-          <a className="twitter-share-button"
-            href="https://twitter.com/intent/tweet"
-            data-size="large"
-            data-url="https://devnet.1sol.io"
-            data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
-            data-via="1solProtocol"
-            data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
-          >
-          Tweet</a>
+          <Button type="primary">
+            <a className="twitter-share-button"
+              href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-size="large"
+              data-url="https://devnet.1sol.io"
+              data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
+              data-via="1solProtocol"
+              data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
+            >Tweet</a>
+          </Button>
         </div>
       </Modal>
     </>
