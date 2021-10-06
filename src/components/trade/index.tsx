@@ -373,6 +373,13 @@ export const TradeEntry = () => {
     }
   };
 
+  useEffect(() => {
+    if (showShare) {
+      // @ts-ignore
+      window.twttr.widgets.load()
+    }
+  }, [showShare])
+
   const handleSwitchChoice = (choice: string) => {
     setChoice(choice) 
   }
