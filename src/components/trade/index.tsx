@@ -9,9 +9,6 @@ import {
   ReloadOutlined,
   ExpandOutlined
 } from "@ant-design/icons";
-import {
-  TwitterShareButton,
-} from "react-share";
 import axios from 'axios'
 
 import {
@@ -526,16 +523,18 @@ export const TradeEntry = () => {
         <div style={{
           fontSize: '16px',
           marginBottom: '20px'
-        }}>Tweet to tell your friends 1SOL aggregator? We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</div>
+        }}><p>Tweet to tell your friends 1SOL aggregator? </p>
+        <p>We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</p></div>
         <div style={{display: 'flex', justifyContent: 'space-around'}}>
-          <TwitterShareButton 
-            url="https://devnet.1sol.io"
-            title="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
-            via="1solProtocol"
-            hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
+          <a className="twitter-share-button"
+            href="https://twitter.com/intent/tweet"
+            data-size="large"
+            data-url="https://devnet.1sol.io"
+            data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
+            data-via="1solProtocol"
+            data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
           >
-            <Button type="primary">Share to Twitter</Button>
-          </TwitterShareButton>
+          Tweet</a>
         </div>
       </Modal>
     </>

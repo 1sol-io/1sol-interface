@@ -39,7 +39,6 @@
     "react-github-btn": "^1.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
-    "react-share": "^4.4.0",
     "typescript": "3.9.7",
     "web3": "^1.4.2"
   },
@@ -59,11 +58,7 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
