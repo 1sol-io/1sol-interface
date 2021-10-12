@@ -29,7 +29,7 @@ export const SERUM_DEX_MARKET_NAME = 'Serum Dex'
 export const ONESOL_NAME = '1Sol'
 
 export const PROVIDER_MAP: { [key: string]: string } = {
-  '1sol': '1Sol',
-  token_swap_pool: TOKEN_SWAP_NAME,
-  serum_dex_market: SERUM_DEX_MARKET_NAME
+  best_route: '1Sol',
+  SplTokenSwap: TOKEN_SWAP_NAME,
+  SerumDex: SERUM_DEX_MARKET_NAME
 }

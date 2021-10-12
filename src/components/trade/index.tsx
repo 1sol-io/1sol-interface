@@ -10,6 +10,7 @@ import {
   ExpandOutlined
 } from "@ant-design/icons";
 import axios from 'axios'
+import classNames from "classnames";
 
 import {
   useConnection,
@@ -38,6 +39,8 @@ import { TokenSwapAmountProps } from '../../utils/pools'
 
 import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME, ONESOL_NAME } from "../../utils/constant";
 
+import tweetBg from '../../assets/tweet-bg.png'
+
 import "./trade.less";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -46,6 +49,15 @@ interface Distribution {
   output: number, 
   provider: string,
   offset?: number
+}
+
+interface Route {
+  from: string,
+  to: string,
+  in: number,
+  out: number,
+  provider: string,
+  ratio: number
 }
 
 export const TradeEntry = () => {
@@ -62,6 +74,7 @@ export const TradeEntry = () => {
   const refreshBtnRef: {current: any} = useRef()
 
   const [loading, setLoading] = useState(false)
+  const [timeoutLoading, setTimeoutLoading] = useState(false)
 
   // best routes
   const [tokenSwapAmount, setTokenSwapAmount] = useState<TokenSwapAmountProps>()
@@ -73,18 +86,20 @@ export const TradeEntry = () => {
   const [choice, setChoice] = useState(ONESOL_NAME)
   const [pool, setPool] = useState<TokenSwapPool | undefined>()
   const [market, setMarket] = useState<TokenSwapPool | undefined>()
-  const [amounts, setAmounts] = useState<{name: string, input: number, output: number}[]>([])
+  // best swap routes
+  const [amounts, setAmounts] = useState<Route[][]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
   const [showShare, setShowShare] = useState(false)
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap, serumMarkets, tokenSwapPools } = useConnectionConfig();
+  const { tokenMap, serumMarkets, tokenSwapPools, chainId } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
 
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
+  const [routeLabel, setRouteLable] = useState<string[]>([])
 
   // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
@@ -114,9 +129,9 @@ export const TradeEntry = () => {
   // }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
-
     if (!A.mint || !B.mint) {
       setLoading(false)
+      setTimeoutLoading(false)
 
       return
     }
@@ -125,22 +140,23 @@ export const TradeEntry = () => {
     //   cancel.current()
     // }
 
-    if (timer.current) {
-      clearTimeout(timer.current)
-    }
+    // if (timer.current) {
+    //   clearTimeout(timer.current)
+    // }
 
     setLoading(true)
+    setTimeoutLoading(false)
 
     const decimals = [A.mint.decimals, B.mint.decimals]
-    const providers = []
+    // const providers = []
 
-    if (pool) {
-      providers.push(pool.address)
-    }
+    // if (pool) {
+    //   providers.push(pool.address)
+    // }
 
-    if (market) {
-      providers.push(market.address)
-    }
+    // if (market) {
+    //   providers.push(market.address)
+    // }
 
     try {
       const {
@@ -152,68 +168,100 @@ export const TradeEntry = () => {
         data: {
           best: {
             amount_out: number, 
-            provider_type: string, 
+            exchanger_flag: string, 
             routes: any[]
-          }, 
+          } | undefined, 
           distributions: any
         }
       } = await axios({
-        url: 'https://api.1sol.io/distribution2',
+        url: `https://api.1sol.io/1/swap/1/${chainId}`,
         method: 'post', 
         data: {
           amount_in: Number(A.amount) * 10 ** A.mint.decimals,
-          chain_id: pool?.chainId,
           source_token_mint_key: A.mintAddress,
           destination_token_mint_key: B.mintAddress, 
-          providers,
+          programs: [
+            "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+            "DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY"
+          ]
         }, 
         cancelToken: new CancelToken((c) => cancel.current = c)
       })
 
-      const result: Distribution[] = [
-        {
+      let amounts: Route[][] = []
+      let result: Distribution[] = []
+
+      if (best) {
+        result.push({
           output: best.amount_out / 10 ** decimals[1], 
-          provider: PROVIDER_MAP[best.provider_type]
-        },
-        ...distributions.sort((a: any, b: any) => b.amount_out - a.amount_out ).map(({amount_out, provider_type}: {amount_out: number, provider_type: string}) => ({
+          provider: PROVIDER_MAP[best.exchanger_flag]
+        })
+
+        // swap routes
+        amounts = best.routes.map((routes: any) => routes.map(({
+          amount_in,
+          amount_out,
+          exchanger_flag,
+          source_token_mint,
+          destination_token_mint
+        }: {
+          amount_in: number, 
+          amount_out: number, 
+          exchanger_flag: string, 
+          source_token_mint: { pubkey: string, decimals: number }
+          destination_token_mint: { pubkey: string, decimals: number }
+        }) => ({
+            from: tokenMap.get(source_token_mint.pubkey)?.symbol,
+            to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
+            in: amount_in / 10 ** source_token_mint.decimals,
+            out: amount_out / 10 ** destination_token_mint.decimals,
+            provider: PROVIDER_MAP[exchanger_flag],
+            ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals , 0) * 100
+          }
+        )))
+      }
+
+      result = [...result, 
+        ...distributions
+        .sort((a: any, b: any) => b.amount_out - a.amount_out )
+        .map(({ amount_out, exchanger_flag }: { amount_out: number, exchanger_flag: string }) => ({
           output: amount_out / 10 ** decimals[1], 
-          provider: PROVIDER_MAP[provider_type],
-          offset: (amount_out - best.amount_out) / best.amount_out * 100
+          provider: PROVIDER_MAP[exchanger_flag],
+          offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0
         }))
       ]
 
+      // result list
       setDistributions(result)
 
-      const amounts = []
+      // const tokenSwap = best.routes.find(({exchanger_flag}: {exchanger_flag: string}) => exchanger_flag === 'token_swap_pool')
+      // const serumMarket = best.routes.find(({exchanger_flag}: {exchanger_flag: string}) => exchanger_flag === 'serum_dex_market')
 
-      const tokenSwap = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
-      const serumMarket = best.routes.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
+      // if (tokenSwap) {
+      //   setTokenSwapAmount({
+      //     input: tokenSwap.amount_in,
+      //     output: tokenSwap.amount_out,
+      //   })
 
-      if (tokenSwap) {
-        setTokenSwapAmount({
-          input: tokenSwap.amount_in,
-          output: tokenSwap.amount_out,
-        })
+      //   amounts.push({
+      //     name: 'Token Swap(devnet)',
+      //     input: tokenSwap.amount_in / 10 ** decimals[0],
+      //     output: tokenSwap.amount_out / 10 ** decimals[1],
+      //   })
+      // }
 
-        amounts.push({
-          name: 'Token Swap(devnet)',
-          input: tokenSwap.amount_in / 10 ** decimals[0],
-          output: tokenSwap.amount_out / 10 ** decimals[1],
-        })
-      }
+      // if (serumMarket) {
+      //   setSerumMarketAmount({
+      //     input: serumMarket.amount_in,
+      //     output: serumMarket.amount_out,
+      //   })
 
-      if (serumMarket) {
-        setSerumMarketAmount({
-          input: serumMarket.amount_in,
-          output: serumMarket.amount_out,
-        })
-
-        amounts.push({
-          name: 'Serum Dex(devnet)',
-          input: serumMarket.amount_in / 10 ** decimals[0],
-          output: serumMarket.amount_out / 10 ** decimals[1]
-        })
-      }
+      //   amounts.push({
+      //     name: 'Serum Dex(devnet)',
+      //     input: serumMarket.amount_in / 10 ** decimals[0],
+      //     output: serumMarket.amount_out / 10 ** decimals[1]
+      //   })
+      // }
 
       const soloTokenSwap = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'token_swap_pool')
       const soloSerumMarket = distributions.find(({provider_type}: {provider_type: string}) => provider_type === 'serum_dex_market')
@@ -233,63 +281,71 @@ export const TradeEntry = () => {
       }
 
       setAmounts(amounts)
-    } catch(e) {}
+
+
+      setTimeoutLoading(true)
+      timer.current = setTimeout(() => { 
+        fetchDistrubition() 
+      }, 10 * 1000)
+    } catch(e) {
+      setAmounts([])
+      setDistributions([])
+    }
+
+      refreshBtnRef.current.classList.remove('refresh-btn')
+      void refreshBtnRef.current.offsetHeight
+      refreshBtnRef.current.classList.add('refresh-btn')
 
     setLoading(false)
-
-    refreshBtnRef.current.classList.remove('timeout')
-    void refreshBtnRef.current.offsetWidth
-    refreshBtnRef.current.classList.add('timeout')
-
-    timer.current = setTimeout(() => { 
-      fetchDistrubition() 
-    }, 10 * 1000)
-  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, pool, market, CancelToken])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
 
   useEffect(() => {
     setAmounts([])
     setDistributions([])
-    // setTokenSwapAmount(undefined)
-    // setSerumMarketAmount(undefined)
-    // setPool(undefined)
-    // setMarket(undefined)
-    // setSoloTokenSwapAmount(undefined)
-    // setSoloSerumMarketAmount(undefined)
     setChoice(ONESOL_NAME)
+
+    refreshBtnRef.current.classList.remove('refresh-btn')
+    void refreshBtnRef.current.offsetHeight
+    refreshBtnRef.current.classList.add('refresh-btn')
+    setTimeoutLoading(false)
+
+    if (cancel.current) {
+      cancel.current()
+    }
 
     if (timer.current) {
       clearTimeout(timer.current)
     }
 
-    const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
-      const mints: string[] = [pool.mintA, pool.mintB]
+    // const pool: TokenSwapPool | undefined = tokenSwapPools.find((pool) => {
+    //   const mints: string[] = [pool.mintA, pool.mintB]
 
-      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
-    })
+    //   return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    // })
 
-    if (pool) {
-      setPool(pool)
-    }
+    // if (pool) {
+    //   setPool(pool)
+    // }
 
-    const market: TokenSwapPool | undefined = serumMarkets.find((pool) => {
-      const mints: string[] = [pool.mintA, pool.mintB]
+    // const market: TokenSwapPool | undefined = serumMarkets.find((pool) => {
+    //   const mints: string[] = [pool.mintA, pool.mintB]
 
-      return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
-    })
+    //   return mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
+    // })
 
-    if (market) {
-      setMarket(market)
-    }
+    // if (market) {
+    //   setMarket(market)
+    // }
 
-    if (!Number(A.amount)) {
-      refreshBtnRef.current.classList.remove('timeout')
-    }
+    // if (!Number(A.amount)) {
+    //   refreshBtnRef.current.classList.remove('timeout')
+    // }
 
     if (
       A.mintAddress && 
       B.mintAddress && 
-      Number(A.amount) && 
-      (pool || market) 
+      Number(A.amount)  
+      // && (pool || market) 
       && A.mintAddress !== B.mintAddress
     ) {
       fetchDistrubition()
@@ -300,7 +356,7 @@ export const TradeEntry = () => {
         clearTimeout(timer.current)
       }
     }
-  }, [A.amount, A.mintAddress, B.mintAddress, pool, market, fetchDistrubition, tokenSwapPools, serumMarkets])
+  }, [A.amount, A.mintAddress, B.mintAddress, fetchDistrubition, tokenSwapPools, serumMarkets])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
@@ -373,13 +429,6 @@ export const TradeEntry = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (showShare) {
-  //     // @ts-ignore
-  //     window.twttr.widgets.load()
-  //   }
-  // }, [showShare])
-
   const handleSwitchChoice = (choice: string) => {
     setChoice(choice) 
   }
@@ -388,17 +437,27 @@ export const TradeEntry = () => {
     setLoading(true)
     setDistributions([])
     setAmounts([])
-    // setTokenSwapAmount(undefined)
-    // setSerumMarketAmount(undefined)
-    // setPool(undefined)
-    // setMarket(undefined)
-    // setSoloTokenSwapAmount(undefined)
-    // setSoloSerumMarketAmount(undefined)
     setChoice(ONESOL_NAME)
 
-    refreshBtnRef.current.classList.remove('timeout')
+    setTimeoutLoading(false)
+    // refreshBtnRef.current.classList.remove('timeout')
   }
   const handleShowRoute = () => setShowRoute(true)
+
+  useEffect(() => {
+    let label: string[] = []
+
+    amounts.forEach(routes => {
+      const [first] = routes
+
+      if (first) {
+        label.push(first.from)
+        label.push(first.to)
+      }
+    })
+
+    setRouteLable([...new Set(label)])
+  }, [amounts])
 
   return (
     <>
@@ -407,7 +466,7 @@ export const TradeEntry = () => {
         <div className="bd">
           <Button
             ref={refreshBtnRef}
-            className={loading ? 'loading' : ''}
+            className={classNames('refresh-btn', {loading: loading}, {timeout: timeoutLoading})}
             shape="circle"
             size="large"
             type="text"
@@ -486,6 +545,7 @@ export const TradeEntry = () => {
          active={choice} 
          handleSwitchChoice={handleSwitchChoice} 
          handleShowRoute={handleShowRoute} 
+         routes={routeLabel}
         />
       </Card>
       </div>
@@ -504,17 +564,20 @@ export const TradeEntry = () => {
             !B.mintAddress ||
             A.account === B.account ||
             !A.sufficientBalance() ||
-            (!pool && !market) ||
+            // (!pool && !market) ||
+            !distributions.length ||
             (!tokenSwapAmount && !serumMarketAmount))
         }
       >
         {generateActionLabel(
-        !pool && !market
+        // !pool && !market
+        !distributions.length && !loading
           ? POOL_NOT_AVAILABLE(
               getTokenName(tokenMap, A.mintAddress),
               getTokenName(tokenMap, B.mintAddress)
             )
-        : SWAP_LABEL,
+        : 
+        SWAP_LABEL,
         connected,
         tokenMap,
         A,
@@ -523,28 +586,58 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
-      <Modal visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
+
+      <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
+
+      <div className="twitter-share">
+        <div className="bd">
+          <div className="in">
+            <h4>Get 1 & Win 200 1SOL!</h4>
+            <p>1. Tweet using this link:
+              <Button type="primary" size="small" style={{marginLeft: '5px'}}>
+                <a className="twitter-share-button"
+                  href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-size="large"
+                  data-url="https://devnet.1sol.io"
+                  data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
+                  data-via="1solProtocol"
+                  data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
+                >Tweet</a>
+              </Button>
+            </p>
+            <p>2. Talk to <a href="https://t.me/OnesolMasterBot" target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
+            <p>3. We’re announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
+          </div>
+        </div>
+      </div>
+
       <Modal title="Transaction Succeed!" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
-        <div style={{
-          fontSize: '16px',
-          marginBottom: '20px'
-        }}><p>Tweet to tell your friends 1SOL aggregator? </p>
-        <p>We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</p></div>
-        <div style={{display: 'flex', justifyContent: 'space-around'}}>
-          <Button type="primary">
-            <a className="twitter-share-button"
-              href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-size="large"
-              data-url="https://devnet.1sol.io"
-              data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
-              data-via="1solProtocol"
-              data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
-            >Tweet</a>
-          </Button>
+        <div>
+          <div style={{
+            fontSize: '16px',
+            marginBottom: '20px'
+          }}>
+            <p>Tweet to tell your friends 1SOL aggregator? </p>
+            <p>We’ll randomly pickup 5 tweets to send 100 1SOL airdrop.</p>
+          </div>
+          <div style={{display: 'flex', justifyContent: 'space-around'}}>
+            <Button type="primary">
+              <a className="twitter-share-button"
+                href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-size="large"
+                data-url="https://devnet.1sol.io"
+                data-text="Hey guys, I’ve successfully swapped tokens via #1SOL dex aggregator on Solana Devnet. Use #1SOL to gain more token with less swap loss. @1solProtocol @solana @SBF_FTX @ProjectSerum @RaydiumProtocol"
+                data-via="1solProtocol"
+                data-hashtags={['DeFi', 'Solana', '1SOL', 'SOL', 'Ignition']}
+              >Tweet</a>
+            </Button>
+          </div>
         </div>
       </Modal>
     </>
@@ -556,10 +649,11 @@ export const Result = (props: {
   loading: boolean, 
   handleSwitchChoice: (a: string) => void,
   handleShowRoute: () => void,
-  active?: string
+  active?: string,
+  routes?: string[]
 }) => {
-  const {data, loading, handleSwitchChoice, active, handleShowRoute} = props
-  const { A, B } = useCurrencyPairState();
+  const {data, loading, handleSwitchChoice, active, handleShowRoute, routes} = props
+  // const { A, B } = useCurrencyPairState();
 
   return (
     <div className="mod-results">
@@ -573,11 +667,22 @@ export const Result = (props: {
             <div className="hd">{provider}</div>
             <div className="bd">
               <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)`: ''}</div>
-              {i === 0 ?
-              <div onClick={handleShowRoute} className="route">
-                {A.name} &#10148; {B.name}
-                <ExpandOutlined style={{marginLeft: '5px'}} /> 
-              </div> : null}
+              {
+                i === 0 ?
+                <div onClick={handleShowRoute} className="route">
+                  { routes ? routes.map((label: string, i: number) => (
+                    <span key={i}>
+                      {label}
+                      {
+                        i !== routes.length -1 ? <RightOutlined style={{margin: '0 2px'}} /> : null
+                      }
+                    </span>
+                  )): null }
+                  {/* {A.name} &#10148; {B.name} */}
+                  <ExpandOutlined style={{marginLeft: '5px'}} /> 
+                </div> : 
+                null
+              }
             </div>
             {i === 0 ? <div className="ft">Best</div> : null}
           </div>
@@ -587,7 +692,7 @@ export const Result = (props: {
   )
 }
 
-export const TradeRoute = (props: { amounts: {name: string, input: number, output: number}[] }) => {
+export const TradeRoute = (props: { amounts: Route[][] }) => {
   const { A, B } = useCurrencyPairState();
   const {amounts} = props
 
@@ -596,22 +701,36 @@ export const TradeRoute = (props: { amounts: {name: string, input: number, outpu
       <div className="hd"><TokenIcon mintAddress={A.mintAddress} style={{width: '30px', height: '30px'}} /></div>
       <RightOutlined style={{margin: '0 5px'}} />
       <div className="bd">
-        {amounts.map(({name, input, output}, i) => (
-          <div key={i} style={{width: '100%'}}>
-            <div className="pool">
-              <div className="name">{name}</div>
-              <div className="amount">
-                <span>{A.name} {input}</span>
-                <ArrowRightOutlined />
-                <span>{output} {B.name}</span>
-              </div>
+        {amounts.map((routes, i: number) => (
+          <>
+            <div className="token-route" key={i}>
+              {routes.map((route, j: number) => (
+                <>
+                  <div className="market-route" key={j}>
+                    <div className="pool">
+                      <div className="name">{route.provider}</div>
+                      <div className="amount">
+                        <span>{route.from}</span>
+                        <ArrowRightOutlined />
+                        <span>{route.to}</span>
+                        <span>{route.ratio}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  {
+                    j !== routes.length - 1 ?
+                    <PlusOutlined style={{margin: '5px 0'}} />
+                    : null
+                  }
+                </>
+              ))}
             </div>
             {
               i !== amounts.length - 1 ?
-              <PlusOutlined style={{margin: '10px 0'}} />
+                <RightOutlined style={{margin: '0 10px'}} />
               : null
             }
-          </div>
+          </>
         ))}  
       </div>
       <RightOutlined style={{margin: '0 5px'}} />

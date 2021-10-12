@@ -68,23 +68,39 @@
 
   > .bd {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
-    flex-direction: column;
-    width: 45vw;
     flex-grow: 1;
+    // min-width: 45vw;
+
+    .token-route {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-direction: column;
+      flex-grow: 1;
+      border: 1px solid #383a3e;
+      border-radius: 16px;
+      padding: 10px;
+      background-color: #272a2e;
+    }
+
+    .market-route {
+      width: 100%;
+    }
 
     .pool {
       border: 1px solid #383a3e;
-      border-radius: 16px;
+      border-radius: 10px;
       padding: 5px 10px;
       text-align: left;
       width: 100%;
+      background-color: #323437;
 
       .name {
         color: rgb(126, 150, 184);
         font-size: 14px;
-        margin-bottom: 2px;
+        margin-bottom: 5px;
 
         @media only screen and (max-width: 600px) {
           text-align: center;
@@ -93,7 +109,7 @@
 
       .amount {
         color: #fff;
-        font-size: 13px;
+        font-size: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -182,11 +198,17 @@
   }
 }
 
+.refresh-btn {
+  transform: rotate(0deg);
+}
+
 .loading {
+  transform: rotate(0deg);
   animation: rotation 1s 1s infinite linear;
 }
 
 .timeout {
+  transform: rotate(0deg);
   animation: rotation 9s 1s infinite linear;
 }
 
@@ -196,5 +218,36 @@
   }
   to {
     transform: rotate(359deg);
+  }
+}
+
+.twitter-share {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+
+  > .bd {
+    width: 80vw;
+    height: 40vw;
+    background: url('../../assets/tweet-bg.png') no-repeat left top;
+    background-size: cover;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    @media only screen and (max-width: 600px) {
+      width: 80vw;
+      height: 160vw;
+      background: url('../../assets/mobile-tweet-bg.png') no-repeat left top;
+      background-size: cover;
+    }
   }
 }
