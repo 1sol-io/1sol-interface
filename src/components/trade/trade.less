@@ -227,14 +227,39 @@
   height: 100vh;
   left: 0;
   top: 0;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.45);
   display: none;
 
+  &.show {
+    display: block;
+  }
+
+  .mask {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
   > .bd {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: relative;
+    z-index: 15;
+  }
+
+  .btn-close {
+    border: 0 none;
+    cursor: pointer;
+  }
+
+  .in {
     width: 80vw;
     height: 40vw;
     background: url('../../assets/tweet-bg.png') no-repeat left top;
@@ -242,12 +267,18 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
+    padding: 0 20px;
+
+    .text {
+      padding: 0 20px;
+    }
 
     @media only screen and (max-width: 600px) {
       width: 80vw;
       height: 160vw;
       background: url('../../assets/mobile-tweet-bg.png') no-repeat left top;
       background-size: cover;
+      padding: 0 10vw;
     }
   }
 }

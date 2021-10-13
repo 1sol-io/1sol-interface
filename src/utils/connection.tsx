@@ -19,6 +19,9 @@ import {
 } from "@solana/spl-token-registry";
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, queryJSONFile } from './utils'
+
+import {OneSolProtocol, AmmInfo} from '../utils/onesol-protocol'
+
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
 export const ENDPOINTS = [
@@ -67,9 +70,10 @@ interface ConnectionConfig {
   setEndpoint: (val: string) => void;
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
-  tokenSwapPools: TokenSwapPool[],
-  serumMarkets: TokenSwapPool[],
-  chainId: number
+  // tokenSwapPools: TokenSwapPool[],
+  // serumMarkets: TokenSwapPool[],
+  chainId: number,
+  ammInfos: AmmInfo[]
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -82,9 +86,10 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   env: ENDPOINTS[0].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
-  tokenSwapPools: [],
-  serumMarkets: [],
-  chainId: 103
+  // tokenSwapPools: [],
+  // serumMarkets: [],
+  chainId: 103,
+  ammInfos: []
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -114,8 +119,9 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
 
-  const [tokenSwapPools, setTokenSwapPools] = useState([])
-  const [serumMarkets, setSerumMarkets] = useState([])
+  // const [tokenSwapPools, setTokenSwapPools] = useState([])
+  // const [serumMarkets, setSerumMarkets] = useState([])
+  const [ammInfos, setAmmInfos] = useState<AmmInfo[]>([])
 
   useEffect(() => {
     if (chain.endpoint !== ENDPOINTS[2].endpoint) {
@@ -128,23 +134,31 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const json = await queryJSONFile(
-        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
-      );
+      const infos = await OneSolProtocol.loadAllAmmInfos(connection)
 
-      setTokenSwapPools(json)
-    })();
-  }, [chain, connection])
+      setAmmInfos(infos)
+    })()
+  }, [connection])
 
-  useEffect(() => {
-    (async () => {
-      const json = await queryJSONFile(
-        "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/markets/1sol.markets.json",
-      );
+  // useEffect(() => {
+  //   (async () => {
+  //     const json = await queryJSONFile(
+  //       "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
+  //     );
 
-      setSerumMarkets(json)
-    })();
-  }, [chain, connection])
+  //     setTokenSwapPools(json)
+  //   })();
+  // }, [chain, connection])
+
+  // useEffect(() => {
+  //   (async () => {
+  //     const json = await queryJSONFile(
+  //       "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/markets/1sol.markets.json",
+  //     );
+
+  //     setSerumMarkets(json)
+  //   })();
+  // }, [chain, connection])
 
   useEffect(() => {
     (async () => {
@@ -237,9 +251,10 @@ export function ConnectionProvider({ children = undefined as any }) {
         tokens,
         tokenMap,
         env,
-        tokenSwapPools,
-        serumMarkets,
-        chainId
+        // tokenSwapPools,
+        // serumMarkets,
+        chainId,
+        ammInfos
       }}
     >
       {children}
@@ -263,9 +278,10 @@ export function useConnectionConfig() {
     env: context.env,
     tokens: context.tokens,
     tokenMap: context.tokenMap,
-    tokenSwapPools: context.tokenSwapPools,
-    serumMarkets: context.serumMarkets,
-    chainId: context.chainId
+    // tokenSwapPools: context.tokenSwapPools,
+    // serumMarkets: context.serumMarkets,
+    chainId: context.chainId,
+    ammInfos: context.ammInfos
   };
 }
 
@@ -308,11 +324,13 @@ export const sendTransaction = async (
   signers: Signer[],
   awaitConfirmation = true
 ) => {
+  console.log(instructions)
   let transaction = new Transaction();
   instructions.forEach((instruction) => transaction.add(instruction));
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
+  console.log(transaction)
 
   // transaction.setSigners(
   //   // fee payied by the wallet owner

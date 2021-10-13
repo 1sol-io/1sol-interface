@@ -33,3 +33,6 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   SplTokenSwap: TOKEN_SWAP_NAME,
   SerumDex: SERUM_DEX_MARKET_NAME
 }
+
+export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
+export const EXCHANGER_SERUM_DEX = 'SerumDex'

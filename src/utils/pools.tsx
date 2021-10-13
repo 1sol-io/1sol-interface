@@ -32,9 +32,17 @@ import {
   TokenSwapLayoutV1,
   PoolConfig,
 } from "./../models";
-import {deserializeAccount, loadTokenSwapInfo, loadSerumDexMarket, findOneSolProtocol, OneSolProtocol, TokenSwapInfo, SerumDexMarketInfo} from '../utils/onesol-protocol'
+import { 
+  loadTokenSwapInfo, 
+  loadSerumDexMarket, 
+  OneSolProtocol, 
+  TokenSwapInfo, 
+  SerumDexMarketInfo, 
+  AmmInfo, 
+  Numberu64
+} from '../utils/onesol-protocol'
 import {CurrencyContextState} from '../utils/currencyPair'
-import {TokenSwapPool} from '../utils/connection'
+import { EXCHANGER_SERUM_DEX, EXCHANGER_SPL_TOKEN_SWAP } from "./constant";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -313,7 +321,7 @@ function findOrCreateAccountByMint(
           []
         )
       );
-    }
+    } 
   }
 
   return toAccount;
@@ -559,6 +567,38 @@ function createSplAccount(
   return account;
 }
 
+function createSplAssociatedTokenAccount(
+  instructions: TransactionInstruction[],
+  payer: PublicKey,
+  accountRentExempt: number,
+  mint: PublicKey,
+  owner: PublicKey,
+  space: number
+) {
+  const account = Keypair.generate();
+
+  instructions.push(
+    SystemProgram.createAccount({
+      fromPubkey: payer,
+      newAccountPubkey: account.publicKey,
+      lamports: accountRentExempt,
+      space,
+      programId: programIds().token,
+    })
+  );
+
+  instructions.push(
+    Token.createInitAccountInstruction(
+      programIds().token,
+      mint,
+      account.publicKey,
+      owner
+    )
+  );
+
+  return account;
+}
+
 export async function createTokenAccount (
   connection: Connection, 
   wallet: any, 
@@ -659,6 +699,7 @@ export async function tokenSwapSwap (
   );
   // signers.push(transferAuthority);
 
+  /**
   await onesolProtocol.createSwapTokenSwapInstruction(
     fromAccount,
     toAccount,
@@ -682,7 +723,7 @@ export async function tokenSwapSwap (
     message: "Trade executed.",
     type: "success",
     description: `Transaction - ${tx}`,
-  });
+  }); */
 }
 
 export async function serumMarketSwap (
@@ -739,6 +780,7 @@ export async function serumMarketSwap (
     return
   }
 
+  /**
   await onesolProtocol.createSwapSerumDexInstruction(
     fromAccount, 
     toAccount, 
@@ -766,7 +808,7 @@ export async function serumMarketSwap (
     message: "Trade executed.",
     type: "success",
     description: `Transaction - ${tx}`,
-  });
+  }); */
 }
 
 export async function onesolProtocolSwap (
@@ -774,91 +816,47 @@ export async function onesolProtocolSwap (
   wallet: any, 
   A: CurrencyContextState,
   B: CurrencyContextState, 
-  tokenSwapPool: TokenSwapPool | undefined, 
-  serumDexMarket: TokenSwapPool | undefined, 
-  slippage: number, 
+  ammInfos: AmmInfo[],
+  distribution: any,
   components: LiquidityComponent[],
-  tokenSwapAmount: TokenSwapAmountProps | undefined,
-  serumMarketAmount: TokenSwapAmountProps | undefined
+  slippage: number
 ) {
-  // const onesolProgramId =  new PublicKey('26XgL6X46AHxcMkfDNfnfQHrqZGzYEcTLj9SmAV5dLrV')
-
-  // const fetchAccounts = async () => {
-  //   const accounts = await connection.getProgramAccounts(onesolProgramId)
-  //   const [deserialized] = accounts.map((info: any) => deserializeAccount(info)).filter((account: any) =>  new PublicKey(account.info.mint).toString() === B.mintAddress)
-
-  //   let onesolProtocol 
-
-  //   if (deserialized) {
-  //     onesolProtocol = getOneSolProtocol(deserialized.info, connection, deserialized.pubkey, onesolProgramId, wallet.publicKey)
-  //   }
-
-  //   return onesolProtocol
-  // }
-
-  const onesolProtocol = await findOneSolProtocol(connection, new PublicKey(B.mintAddress), wallet.publicKey)
+  const onesolProtocol = await OneSolProtocol.createOneSolProtocol({connection, wallet: wallet.publicKey})
 
   if (!onesolProtocol) {
     return
   }
 
-  let tokenSwapInfo = null
-  let serumSwapInfo = null
+  const fromMintKey = new PublicKey(A.mintAddress)
+  const toMintKey = new PublicKey(B.mintAddress)
 
-  if (tokenSwapPool && tokenSwapAmount) {
-    tokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(tokenSwapPool.address), new PublicKey(tokenSwapPool.programId), null)
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
 
-    await tokenSwapSwap(connection, onesolProtocol, tokenSwapAmount, tokenSwapInfo, wallet, slippage, A, B)
-  }
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+  const signers: Signer[] = [];
 
-  if (serumDexMarket && serumMarketAmount) {
-    serumSwapInfo = await loadSerumDexMarket(connection, new PublicKey(serumDexMarket.address), new PublicKey(serumDexMarket.programId))
+  // 
+  const fromAccount = getWrappedAccount(
+    instructions,
+    cleanupInstructions,
+    A.account,
+    wallet.publicKey,
+    components[0].amount + accountRentExempt,
+    signers
+  );
 
-    await serumMarketSwap(connection, onesolProtocol, serumMarketAmount, serumSwapInfo, wallet, slippage, A, B)
-  }
-
-  // const amountIn = components[0].amount; 
-  // const minAmountOut = components[1].amount * (1 - slippage);
-
-  // const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-  //   AccountLayout.span
-  // );
-
-  // const toAccountInstructions: TransactionInstruction[] = [];
-  // const cleanupToAccountInstructions: TransactionInstruction[] = [];
-  // const toAccountigners: Account[] = [];
-
-  // let toAccount = findOrCreateAccountByMint(
-  //   wallet.publicKey,
-  //   wallet.publicKey,
-  //   toAccountInstructions,
-  //   cleanupToAccountInstructions,
-  //   accountRentExempt,
-  //   new PublicKey(components[1].mintAddress),
-  //   toAccountigners
-  // );
-
-  // // if (toAccountInstructions.length) {
-  // //   await sendTransaction(
-  // //     connection,
-  // //     wallet,
-  // //     toAccountInstructions,
-  // //     toAccountigners
-  // //   )
-  // // }
-
-  // const instructions: TransactionInstruction[] = [];
-  // const cleanupInstructions: TransactionInstruction[] = [];
-  // const signers: Account[] = [];
-
-  // const fromAccount = getWrappedAccount(
-  //   instructions,
-  //   cleanupInstructions,
-  //   components[0].account,
-  //   wallet.publicKey,
-  //   amountIn + accountRentExempt,
-  //   signers
-  // );
+  const toAccount = findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    instructions,
+    cleanupInstructions,
+    accountRentExempt,
+    toMintKey,
+    signers
+  );
 
   // const transferAuthority = approveAmount(
   //   instructions,
@@ -871,29 +869,93 @@ export async function onesolProtocolSwap (
 
   // signers.push(transferAuthority);
 
-  // const swapInstruction = onesolProtocol.newSwapInstruction(
-  //   transferAuthority,
-  //   fromAccount,
-  //   toAccount,
-  //   amountIn,
-  //   minAmountOut,
-  //   tokenSwapInfo0,
-  //   tokenSwapInfo1,
-  // )
+  // direct exchange(SOL -> USDC)
+  if (ammInfos.length === 1) {
+    const [routes] = distribution.routes
 
-  // instructions.push(swapInstruction)
+    const promises = routes.map(async (route: any) => {
+      if (route.exchanger_flag === EXCHANGER_SPL_TOKEN_SWAP) {
+        const splTokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
 
-  // let tx = await sendTransaction(
-  //   connection,
-  //   wallet,
-  //   instructions.concat(cleanupInstructions),
-  //   signers
-  // );
+        return onesolProtocol.createSwapByTokenSwapInstruction({
+          fromTokenAccountKey: fromAccount, 
+          toTokenAccountKey: toAccount,
+          fromMintKey,
+          toMintKey,
+          userTransferAuthority: wallet.publicKey, 
+          ammInfo: ammInfos[0],
+          amountIn: new Numberu64(route.amount_in),
+          expectAmountOut: new Numberu64(route.amount_out),
+          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+          splTokenSwapInfo
+        }, instructions ,signers)
+      } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
+        const dexMarketInfo = await loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
 
-  // notify({
-  //   message: "Trade executed.",
-  //   type: "success",
-  //   description: `Transaction - ${tx}`,
-  // });
-  
+        return onesolProtocol.createSwapBySerumDexInstruction({
+          fromTokenAccountKey: fromAccount, 
+          toTokenAccountKey: toAccount,
+          fromMintKey,
+          toMintKey,
+          userTransferAuthority: wallet.publicKey, 
+          ammInfo: ammInfos[0],
+          amountIn: new Numberu64(route.amount_in),
+          expectAmountOut: new Numberu64(route.amount_out),
+          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+          dexMarketInfo,
+        }, instructions, signers)
+      }
+    })
+
+    await Promise.all(promises)
+  }
+
+  // indirect exchange(SOL -> USDC -> ETH)
+  if (ammInfos.length === 2) {
+    const promises = distribution.routes.map((routes: any[]) => {
+      const [route] = routes
+
+      if (route.exchanger_flag === EXCHANGER_SPL_TOKEN_SWAP) {
+         return loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
+      } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
+        return loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
+      }
+    })
+
+    const data: any[] = await Promise.all(promises)
+    const [step1Info, step2Info] = data 
+
+    await onesolProtocol.createSwapTwoStepsInstruction({
+      fromTokenAccountKey: fromAccount, 
+      toTokenAccountKey: toAccount,
+      fromMintKey,
+      toMintKey,
+      userTransferAuthority: wallet.publicKey, 
+      amountIn: new Numberu64(distribution.amount_in),
+      expectAmountOut: new Numberu64(distribution.amount_out),
+      minimumAmountOut: new Numberu64(distribution.amount_out * (1 - slippage)),
+      step1: {
+        ammInfo: ammInfos[0],
+        stepInfo: step1Info
+      },
+      step2: {
+        ammInfo: ammInfos[1],
+        stepInfo: step2Info
+      }
+    }, instructions, signers)
+  } 
+  console.log(instructions)
+
+  let tx = await sendTransaction(
+    connection,
+    wallet,
+    instructions.concat(cleanupInstructions),
+    signers
+  );
+
+  notify({
+    message: "Trade executed.",
+    type: "success",
+    description: `Transaction - ${tx}`,
+  });
 }
