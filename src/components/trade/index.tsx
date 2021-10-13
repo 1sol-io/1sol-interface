@@ -558,7 +558,7 @@ export const TradeEntry = () => {
                 <p>1. Tweet using this link:
                   <Button type="primary" size="small" style={{marginLeft: '5px'}}>
                     <a className="twitter-share-button"
-                      href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. Use #1SOL to gain more tokens with less swap loss. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+                      href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
                       target="_blank"
                       rel="noopener noreferrer"
                       data-size="large"
