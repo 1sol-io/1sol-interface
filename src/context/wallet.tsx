@@ -155,7 +155,7 @@ export function WalletProvider({ children = null as any }) {
   useEffect(() => {
     if (wallet && autoConnect) {
       wallet.connect();
-      setAutoConnect(false);
+      setAutoConnect(true);
     }
 
     return () => {};

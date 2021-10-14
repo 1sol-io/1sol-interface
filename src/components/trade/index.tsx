@@ -8,7 +8,7 @@ import {
   SettingOutlined,
   ReloadOutlined,
   ExpandOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import axios from 'axios'
 import classNames from "classnames";
@@ -453,7 +453,7 @@ export const TradeEntry = () => {
             size="large"
             type="text"
             onClick={handleRefresh}
-            disabled={loading}
+            disabled={!A.amount || loading}
           >
             <ReloadOutlined spin={loading} />
           </Button>
@@ -574,9 +574,9 @@ export const TradeEntry = () => {
       </Modal>
 
       <div className={classNames("twitter-share", {show: showShare})}>
-        <div className="mask"onClick={() => setShowShare(false)}></div>
-        <div className="bd">
-          <div className="inner">
+        <div className="mask"></div>
+        <div className="bd" onClick={() => setShowShare(false)}>
+          <div className="inner" onClick={(e) => e.stopPropagation()}>
             <div className="in">
               <div className="text">
                 <h4>Get 1 & Win 200 1SOL!</h4>
@@ -590,8 +590,8 @@ export const TradeEntry = () => {
                     >Tweet</a>
                   </Button>
                 </p>
-                <p>2. Talk to <a href="https://t.me/OnesolMasterBot" target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
-                <p>3. We’re announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
+                <p>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=wallet%3D${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
+                <p>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
               </div>
             </div>
             <Button onClick={() => setShowShare(false)} size="large" className="btn-close" icon={<CloseCircleOutlined />}></Button>
