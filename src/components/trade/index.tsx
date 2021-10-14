@@ -23,9 +23,9 @@ import { CurrencyInput } from "../currencyInput";
 import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 
 import {
-  createTokenAccount,
   PoolOperation,
   onesolProtocolSwap,
+  createTokenAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -44,6 +44,7 @@ import { AmmInfo } from "../../utils/onesol-protocol";
 import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
 import "./trade.less";
+import { PublicKey } from "@solana/web3.js";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -418,27 +419,16 @@ export const TradeEntry = () => {
 
 
   const handleCreateTokenAccount = async () => {
-    if (A.account && B.mintAddress) {
+    if (B.mintAddress) {
       try {
         setPendingTx(true);
 
-        const components = [
-          {
-            account: A.account,
-            mintAddress: A.mintAddress,
-            amount: A.convertAmount(),
-          },
-          {
-            mintAddress: B.mintAddress,
-            amount: B.convertAmount(),
-          },
-        ];
-
-        await createTokenAccount(connection, wallet, components);
+        await createTokenAccount(connection, wallet, new PublicKey(B.mintAddress));
 
         setHasTokenAccount(true)
       } catch (e) {
-        console.log(e)
+        console.error(e)
+
         notify({
           description:
             "Please try again",

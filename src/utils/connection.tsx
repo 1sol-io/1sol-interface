@@ -324,13 +324,11 @@ export const sendTransaction = async (
   signers: Signer[],
   awaitConfirmation = true
 ) => {
-  console.log(instructions)
   let transaction = new Transaction();
   instructions.forEach((instruction) => transaction.add(instruction));
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
-  console.log(transaction)
 
   // transaction.setSigners(
   //   // fee payied by the wallet owner

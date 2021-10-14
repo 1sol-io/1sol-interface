@@ -9,7 +9,7 @@ import {
 } from "@solana/web3.js";
 import { sendTransaction, useConnection } from "./connection";
 import { useEffect, useMemo, useState } from "react";
-import { Token, MintLayout, AccountLayout } from "@solana/spl-token";
+import { Token, MintLayout, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import { notify } from "./notifications";
 import {
   cache,
@@ -272,6 +272,53 @@ export const hasAccount = (
     return false
   }
 
+}
+
+export async function findOrCreateTokenAssociatedAccountByMint(
+  payer: PublicKey,
+  owner: PublicKey,
+  instructions: TransactionInstruction[],
+  cleanupInstructions: TransactionInstruction[],
+  mint: PublicKey, // use to identify same type
+  signers: Signer[],
+  excluded?: Set<string>
+): Promise<PublicKey> {
+  const accountToFind = mint.toBase58();
+  const account = getCachedAccount(
+    (acc) =>
+      acc.info.mint.toBase58() === accountToFind &&
+      acc.info.owner.toBase58() === owner.toBase58() &&
+      (excluded === undefined || !excluded.has(acc.pubkey.toBase58()))
+  );
+  const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58();
+
+  let toAccount: PublicKey;
+
+  if (account && !isWrappedSol) {
+    toAccount = account.pubkey;
+  } else {
+    // creating depositor pool account
+    toAccount = await createSplAssociatedTokenAccount(
+      instructions,
+      payer,
+      mint,
+      owner,
+    );
+
+    if (isWrappedSol) {
+      cleanupInstructions.push(
+        Token.createCloseAccountInstruction(
+          programIds().token,
+          toAccount,
+          payer,
+          payer,
+          []
+        )
+      );
+    } 
+  }
+
+  return toAccount;
 }
 
 function findOrCreateAccountByMint(
@@ -567,67 +614,56 @@ function createSplAccount(
   return account;
 }
 
-function createSplAssociatedTokenAccount(
+export async function createSplAssociatedTokenAccount(
   instructions: TransactionInstruction[],
   payer: PublicKey,
-  accountRentExempt: number,
   mint: PublicKey,
   owner: PublicKey,
-  space: number
 ) {
-  const account = Keypair.generate();
-
-  instructions.push(
-    SystemProgram.createAccount({
-      fromPubkey: payer,
-      newAccountPubkey: account.publicKey,
-      lamports: accountRentExempt,
-      space,
-      programId: programIds().token,
-    })
+  const associatedAddress = await Token.getAssociatedTokenAddress(
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    programIds().token,
+    mint,
+    owner,
   );
 
   instructions.push(
-    Token.createInitAccountInstruction(
+    Token.createAssociatedTokenAccountInstruction(
+      ASSOCIATED_TOKEN_PROGRAM_ID,
       programIds().token,
       mint,
-      account.publicKey,
-      owner
-    )
-  );
+      associatedAddress,
+      owner,
+      payer,
+  ))
 
-  return account;
+  return associatedAddress;
 }
 
 export async function createTokenAccount (
   connection: Connection, 
   wallet: any, 
-  components: LiquidityComponent[]
+  mint: PublicKey,
 ) {
-  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-    AccountLayout.span
-  );
-
   const toAccountInstructions: TransactionInstruction[] = [];
   const cleanupToAccountInstructions: TransactionInstruction[] = [];
   const toAccountigners: Signer[] = [];
 
-  findOrCreateAccountByMint(
+  await findOrCreateTokenAssociatedAccountByMint(
     wallet.publicKey,
     wallet.publicKey,
     toAccountInstructions,
     cleanupToAccountInstructions,
-    accountRentExempt,
-    new PublicKey(components[1].mintAddress),
+    mint,
     toAccountigners
-  );
+  )
 
-    await sendTransaction(
-      connection,
-      wallet,
-      toAccountInstructions,
-      toAccountigners
-    )
+  await sendTransaction(
+    connection,
+    wallet,
+    toAccountInstructions,
+    toAccountigners
+  )
 
   notify({
     message: `Token account created`,
