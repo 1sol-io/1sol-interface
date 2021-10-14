@@ -6,12 +6,13 @@ import {
   RightOutlined,
   ArrowRightOutlined,
   SettingOutlined,
-  ReloadOutlined,
   ExpandOutlined,
-  CloseCircleOutlined,
+  TwitterOutlined,
+  ReloadOutlined
 } from "@ant-design/icons";
 import axios from 'axios'
 import classNames from "classnames";
+import { PublicKey } from "@solana/web3.js";
 
 import {
   useConnection,
@@ -36,15 +37,13 @@ import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
-
 import { PROVIDER_MAP } from "../../utils/constant";
-
 import { AmmInfo } from "../../utils/onesol-protocol";
-
 import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
+import timeoutIcon from '../../assets/2.gif'
+
 import "./trade.less";
-import { PublicKey } from "@solana/web3.js";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -448,14 +447,19 @@ export const TradeEntry = () => {
         <div className="bd">
           <Button
             ref={refreshBtnRef}
-            className={classNames('refresh-btn', {loading: loading}, {timeout: timeoutLoading})}
             shape="circle"
             size="large"
             type="text"
             onClick={handleRefresh}
             disabled={!A.amount || loading}
           >
-            <ReloadOutlined spin={loading} />
+            {
+              timeoutLoading ?
+              <img width="22" src={timeoutIcon} alt="" /> :
+              loading ?
+              <LoadingOutlined style={{fontSize: '20px'}} />:
+              <ReloadOutlined style={{fontSize: '20px'}} />
+            }
           </Button>
           <Popover
             placement="rightTop"
@@ -496,7 +500,6 @@ export const TradeEntry = () => {
          style={{display: 'flex', justifyContent: 'space-around', margin: '-10px auto'}}
          onClick={swapAccounts}
         >
-          {/* &#8595; */}
           &#10607;
         </Button>
         <Card
@@ -573,7 +576,7 @@ export const TradeEntry = () => {
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
 
-      <div className={classNames("twitter-share", {show: showShare})}>
+      {/* <div className={classNames("twitter-share", {show: !showShare})}>
         <div className="mask"></div>
         <div className="bd" onClick={() => setShowShare(false)}>
           <div className="inner" onClick={(e) => e.stopPropagation()}>
@@ -597,7 +600,44 @@ export const TradeEntry = () => {
             <Button onClick={() => setShowShare(false)} size="large" className="btn-close" icon={<CloseCircleOutlined />}></Button>
           </div>
         </div>
-      </div>
+      </div> */}
+
+      <Modal width={590} title="Transaction Succeed!" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
+        <div>
+          <div style={{
+            fontSize: '16px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            <h4 style={{fontSize: '24px', margin: '0 0 30px', color: '#B73F95'}}>Get 1 & Win 200 1SOL!</h4>
+            <p style={{margin: '0 0 8px 0'}}>
+              1. Tweet using this link 
+            </p>
+            <p>
+              <Button type="primary" size="large">
+                <a className="twitter-share-button"
+                  href={`https://twitter.com/intent/tweet?url=${encodeURI('https://app.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{display: 'flex', alignItems: 'center'}}
+                ><TwitterOutlined /><span style={{marginLeft: '5px'}}>Tweet</span></a>
+              </Button>
+            </p>
+            <p style={{margin: '0 0 8px 0'}}>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=wallet%3D${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
+            <p style={{margin: '0'}}>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
+          </div>
+          {/* <div style={{display: 'flex', justifyContent: 'space-around', marginTop: '60px'}}>
+            <Button type="primary" size="large">
+              <a className="twitter-share-button"
+                href={`https://twitter.com/intent/tweet?url=${encodeURI('https://app.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{display: 'flex', alignItems: 'center'}}
+              ><TwitterOutlined /><span style={{marginLeft: '5px'}}>Tweet</span></a>
+            </Button>
+          </div> */}
+        </div>
+      </Modal>
     </>
   );
 };
