@@ -23,6 +23,7 @@ import { CurrencyInput } from "../currencyInput";
 import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 
 import {
+  createTokenAccount,
   PoolOperation,
   onesolProtocolSwap,
 } from "../../utils/pools";
@@ -34,13 +35,13 @@ import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
 
-// import { cache, useUserAccounts } from "../../utils/accounts";
-import { TokenSwapAmountProps } from '../../utils/pools'
+import { cache, useUserAccounts } from "../../utils/accounts";
 
-import { PROVIDER_MAP, TOKEN_SWAP_NAME, SERUM_DEX_MARKET_NAME, ONESOL_NAME } from "../../utils/constant";
+import { PROVIDER_MAP } from "../../utils/constant";
 
-import tweetBg from '../../assets/tweet-bg.png'
 import { AmmInfo } from "../../utils/onesol-protocol";
+
+import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
 import "./trade.less";
 
@@ -96,32 +97,37 @@ export const TradeEntry = () => {
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
   const choice: {current: string} = useRef('')
 
-  // const [hasTokenAccount, setHasTokenAccount] = useState(false)
+  const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
-  // const { userAccounts } = useUserAccounts();
+  const { userAccounts } = useUserAccounts();
 
-  // useEffect(() => {
-  //   const getTokenAccount = (mint: string) => {
-  //     const index = userAccounts.findIndex(
-  //       (acc: any) => acc.info.mint.toBase58() === mint
-  //     );
+  useEffect(() => {
+    const getTokenAccount = (mint: string) => {
+      // if B is SOL
+      if (mint === WRAPPED_SOL_MINT.toBase58()) {
+        return false
+      }
 
-  //     if (index !== -1) {
-  //       return userAccounts[index];
-  //     }
+      const index = userAccounts.findIndex(
+        (acc: any) => acc.info.mint.toBase58() === mint
+      );
 
-  //     return;
-  //   }
+      if (index !== -1) {
+        return userAccounts[index];
+      }
+
+      return;
+    }
     
-  //   setHasTokenAccount(false)
+    setHasTokenAccount(false)
 
-  //   const tokenMint = cache.getMint(B.mintAddress);
-  //   const tokenAccount = getTokenAccount(B.mintAddress);
+    const tokenMint = cache.getMint(B.mintAddress);
+    const tokenAccount = getTokenAccount(B.mintAddress);
 
-  //   if (connected && tokenAccount && tokenMint) {
-  //     setHasTokenAccount(true)
-  //   }
-  // }, [connected, B.mintAddress, userAccounts])
+    if (connected && tokenAccount && tokenMint) {
+      setHasTokenAccount(true)
+    }
+  }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
@@ -279,14 +285,6 @@ export const TradeEntry = () => {
       clearTimeout(timer.current)
     }
 
-    // const ammInfo: AmmInfo | undefined = ammInfos.find((pool: AmmInfo) => {
-    //   const mints: string[] = [pool.tokenMintA().toBase58(), pool.tokenMintB().toBase58()]
-
-    //   return A.mintAddress !== B.mintAddress && mints.includes(A.mintAddress) && mints.includes(B.mintAddress)
-    // })
-
-    // setAmmInfo(ammInfo)
-
     if (
       A.mintAddress && 
       B.mintAddress && 
@@ -400,6 +398,7 @@ export const TradeEntry = () => {
     setTimeoutLoading(false)
     // refreshBtnRef.current.classList.remove('timeout')
   }
+
   const handleShowRoute = () => setShowRoute(true)
 
   useEffect(() => {
@@ -416,6 +415,41 @@ export const TradeEntry = () => {
 
     setRouteLable([...new Set(label)])
   }, [amounts])
+
+
+  const handleCreateTokenAccount = async () => {
+    if (A.account && B.mintAddress) {
+      try {
+        setPendingTx(true);
+
+        const components = [
+          {
+            account: A.account,
+            mintAddress: A.mintAddress,
+            amount: A.convertAmount(),
+          },
+          {
+            mintAddress: B.mintAddress,
+            amount: B.convertAmount(),
+          },
+        ];
+
+        await createTokenAccount(connection, wallet, components);
+
+        setHasTokenAccount(true)
+      } catch (e) {
+        console.log(e)
+        notify({
+          description:
+            "Please try again",
+          message: "Create account cancelled.",
+          type: "error",
+        });
+      } finally {
+        setPendingTx(false);
+      }
+    }
+  }
 
   return (
     <>
@@ -513,7 +547,7 @@ export const TradeEntry = () => {
         size="large"
         shape="round"
         block
-        onClick={connected ? handleSwap : connect}
+        onClick={connected ? hasTokenAccount ? handleSwap : handleCreateTokenAccount : connect}
         style={{ marginTop: '20px' }}
         disabled={
           connected &&
@@ -539,7 +573,8 @@ export const TradeEntry = () => {
         tokenMap,
         A,
         B,
-        true
+        true,
+        hasTokenAccount
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
