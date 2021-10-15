@@ -29,6 +29,7 @@ export interface CurrencyContextState {
   amount: string;
   name: string;
   icon?: string;
+  balance: number,
   setAmount: (val: string) => void;
   setMint: (mintAddress: string) => void;
   convertAmount: () => number;
@@ -71,6 +72,7 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
       setAmount: setAmount,
       setMint: setMintAddress,
       convertAmount: () => convertAmount(amount, mint),
+      balance: convert(account, mint),
       sufficientBalance: () =>
         account !== undefined &&
         (convert(account, mint) >= parseFloat(amount) ||

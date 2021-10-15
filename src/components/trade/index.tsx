@@ -1,5 +1,5 @@
-import { Button, Card, Spin, Skeleton, Popover, Modal } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Button, Card, Spin, Skeleton, Popover, Modal, Tooltip } from "antd";
 import {
   LoadingOutlined,
   PlusOutlined ,
@@ -8,10 +8,10 @@ import {
   SettingOutlined,
   ExpandOutlined,
   TwitterOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  InfoCircleOutlined
 } from "@ant-design/icons";
 import axios from 'axios'
-import classNames from "classnames";
 import { PublicKey } from "@solana/web3.js";
 
 import {
@@ -493,6 +493,7 @@ export const TradeEntry = () => {
           onMintChange={(item) => {
             A.setMint(item);
           }}
+          onMaxClick={() => A.setAmount(`${A.balance}`)}
         />
         <Button
          type="primary" 
@@ -571,6 +572,24 @@ export const TradeEntry = () => {
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
+
+      {
+        connected &&
+        A.mintAddress === WRAPPED_SOL_MINT.toBase58() &&
+        (A.balance < 0.05 || A.balance - (+A.amount) < 0.05)  ?
+        <div className="sol-tip">
+          Caution: Your SOL balance is low
+          <Tooltip title={(
+            <>
+              SOL is needed for Solana network fees.<br/>
+              A minimum balance of 0.05 SOL is recommended to avoid failed transactions.
+            </>
+          )}>
+            <InfoCircleOutlined style={{marginLeft: '5px'}} />
+          </Tooltip>
+        </div>
+        : null
+       }
 
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}

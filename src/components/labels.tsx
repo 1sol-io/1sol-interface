@@ -31,15 +31,15 @@ export const generateActionLabel = (
         ? ENTER_AMOUNT_LABEL
         : !B.mintAddress
           ? SELECT_TOKEN_LABEL
-          : !hasTokenAccount
-            ? `Create ${B.name} Account`
-            : !A.sufficientBalance()
-              ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, A.mintAddress))
-              : ignoreToBalance || B.sufficientBalance()
-                ? action
-                : INSUFFICIENT_FUNDS_LABEL(
-                    getTokenName(tokenMap, B.mintAddress)
-                  )
+          : !A.sufficientBalance()
+            ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, A.mintAddress))
+            : !hasTokenAccount
+              ? `Create ${B.name} Account`
+              : // : ignoreToBalance || B.sufficientBalance()
+                action
+  // : INSUFFICIENT_FUNDS_LABEL(
+  //     getTokenName(tokenMap, B.mintAddress)
+  //   )
 }
 
 export const generateRemoveLabel = (

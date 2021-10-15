@@ -73,7 +73,8 @@ export const CurrencyInput = (props: {
   hideSelect?: boolean;
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
-  disabled?: boolean
+  disabled?: boolean,
+  onMaxClick?: () => void
 }) => {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
@@ -175,6 +176,7 @@ export const CurrencyInput = (props: {
         </div>
       </div>
       <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
+        <div className="ccy-input-header-left">
         <NumericInput
           disabled={props.disabled}
           value={props.amount}
@@ -192,6 +194,15 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
+        <div 
+          style={{cursor: 'pointer'}}
+          onClick={() => {
+            if (props.onMaxClick) {
+              props.onMaxClick()
+            }
+          }}
+        >Max</div>
+        </div>
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
           {!props.hideSelect ? (
             <Select
