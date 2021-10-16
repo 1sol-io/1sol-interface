@@ -444,17 +444,21 @@ export const TradeEntry = () => {
           <Button
             ref={refreshBtnRef}
             shape="circle"
-            size="large"
+            size="small"
             type="text"
             onClick={handleRefresh}
             disabled={!A.amount || loading.current}
+            style={{
+              display: 'flex',
+              alignItems: 'center'
+            }}
           >
             {
               timeoutLoading ?
-              <img width="22" src={timeoutIcon} alt="" /> :
+              <img style={{display: 'block', width: '24px', margin: '0'}} src={timeoutIcon} alt="" /> :
               loading.current ?
-              <LoadingOutlined style={{fontSize: '20px'}} />:
-              <ReloadOutlined style={{fontSize: '20px'}} />
+              <LoadingOutlined style={{fontSize: '19px'}} />:
+              <ReloadOutlined style={{fontSize: '19px'}} />
             }
           </Button>
           <Popover
