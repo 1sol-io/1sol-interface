@@ -41,7 +41,7 @@ import { PROVIDER_MAP } from "../../utils/constant";
 import { AmmInfo } from "../../utils/onesol-protocol";
 import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
-import timeoutIcon from '../../assets/2.gif'
+import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
 

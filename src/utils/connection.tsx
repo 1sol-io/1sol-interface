@@ -48,7 +48,7 @@ export const ENDPOINTS = [
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;
-const DEFAULT_SLIPPAGE = 0.25;
+const DEFAULT_SLIPPAGE = 0.5;
 
 export interface TokenSwapPool {
   address: string,
