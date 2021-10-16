@@ -83,7 +83,7 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Sol Token<strong>(devnet)</strong></div>
+            <div className="hd">Sol Token<strong>(Devnet)</strong></div>
             <div className="bd">
               <Button 
                 type="primary" 
