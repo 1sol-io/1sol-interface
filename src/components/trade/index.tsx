@@ -77,7 +77,8 @@ export const TradeEntry = () => {
 
   const refreshBtnRef: {current: any} = useRef()
 
-  const [loading, setLoading] = useState(false)
+  // const [loading, setLoading] = useState(false)
+  const loading: {current: boolean} = useRef(false) 
   const [timeoutLoading, setTimeoutLoading] = useState(false)
   
   // const [choice, setChoice] = useState('')
@@ -132,33 +133,17 @@ export const TradeEntry = () => {
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
-      setLoading(false)
+      loading.current = false
       setTimeoutLoading(false)
 
       return
     }
 
-    // if (cancel.current) {
-    //   cancel.current()
-    // }
-
-    // if (timer.current) {
-    //   clearTimeout(timer.current)
-    // }
-
-    setLoading(true)
+    loading.current = true
     setTimeoutLoading(false)
 
     const decimals = [A.mint.decimals, B.mint.decimals]
-    // const providers = []
-
-    // if (pool) {
-    //   providers.push(pool.address)
-    // }
-
-    // if (market) {
-    //   providers.push(market.address)
-    // }
+    
 
     try {
       const {
@@ -272,15 +257,18 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
 
-    setLoading(false)
+    loading.current = true
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
 
   useEffect(() => {
     setAmounts([])
     setDistributions([])
-    // setChoice('')
     choice.current = ''
     errorMessage.current = ''
+
+    if (!A.amount) {
+      loading.current = false
+    }
 
     refreshBtnRef.current.classList.remove('refresh-btn')
     void refreshBtnRef.current.offsetHeight
@@ -399,14 +387,11 @@ export const TradeEntry = () => {
   }
 
   const handleRefresh = () => { 
-    setLoading(true)
     setDistributions([])
     setAmounts([])
-    // setChoice(ONESOL_NAME)
     choice.current = ''
 
     setTimeoutLoading(false)
-    // refreshBtnRef.current.classList.remove('timeout')
   }
 
   const handleShowRoute = () => setShowRoute(true)
@@ -461,12 +446,12 @@ export const TradeEntry = () => {
             size="large"
             type="text"
             onClick={handleRefresh}
-            disabled={!A.amount || loading}
+            disabled={!A.amount || loading.current}
           >
             {
               timeoutLoading ?
               <img width="22" src={timeoutIcon} alt="" /> :
-              loading ?
+              loading.current ?
               <LoadingOutlined style={{fontSize: '20px'}} />:
               <ReloadOutlined style={{fontSize: '20px'}} />
             }
@@ -536,7 +521,7 @@ export const TradeEntry = () => {
           disabled
         />
         <Result
-         loading={loading && !distributions.length} 
+         loading={loading.current && !distributions.length} 
          data={distributions} 
          active={choice.current} 
          handleSwitchChoice={handleSwitchChoice} 
