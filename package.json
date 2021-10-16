@@ -34,6 +34,7 @@
     "eventemitter3": "^4.0.7",
     "identicon.js": "^2.3.3",
     "jazzicon": "^1.5.0",
+    "lodash.debounce": "^4.0.8",
     "numeral": "^2.0.6",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -59,7 +60,11 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
@@ -76,6 +81,7 @@
     "@types/jest": "^24.9.1",
     "@types/ledgerhq__hw-transport": "^4.21.3",
     "@types/ledgerhq__hw-transport-webusb": "^4.70.1",
+    "@types/lodash.debounce": "^4.0.6",
     "@types/node": "^12.12.62",
     "@types/react": "^16.9.50",
     "@types/react-dom": "^16.9.8",

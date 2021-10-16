@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Spin, Skeleton, Popover, Modal, Tooltip } from "antd";
+import { Button, Card, Spin, Popover, Modal, Tooltip } from "antd";
 import {
   LoadingOutlined,
   PlusOutlined ,
@@ -96,6 +96,7 @@ export const TradeEntry = () => {
 
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
   const choice: {current: string} = useRef('')
+  const errorMessage: {current: string} = useRef('')
 
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
@@ -255,6 +256,14 @@ export const TradeEntry = () => {
         fetchDistrubition() 
       }, 10 * 1000)
     } catch(e) {
+      if (axios.isAxiosError(e)) {
+        console.error(e)
+
+        if (!axios.isCancel(e) && e.response) {
+          errorMessage.current = e.message || 'Error Occurred'
+        }
+      }
+
       setAmounts([])
       setDistributions([])
     }
@@ -271,6 +280,7 @@ export const TradeEntry = () => {
     setDistributions([])
     // setChoice('')
     choice.current = ''
+    errorMessage.current = ''
 
     refreshBtnRef.current.classList.remove('refresh-btn')
     void refreshBtnRef.current.offsetHeight
@@ -532,6 +542,7 @@ export const TradeEntry = () => {
          handleSwitchChoice={handleSwitchChoice} 
          handleShowRoute={handleShowRoute} 
          routes={routeLabel}
+         error={errorMessage.current}
         />
       </Card>
       </div>
@@ -595,32 +606,6 @@ export const TradeEntry = () => {
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
 
-      {/* <div className={classNames("twitter-share", {show: !showShare})}>
-        <div className="mask"></div>
-        <div className="bd" onClick={() => setShowShare(false)}>
-          <div className="inner" onClick={(e) => e.stopPropagation()}>
-            <div className="in">
-              <div className="text">
-                <h4>Get 1 & Win 200 1SOL!</h4>
-                <p>1. Tweet using this link:
-                  <Button type="primary" size="small" style={{marginLeft: '5px'}}>
-                    <a className="twitter-share-button"
-                      href={`https://twitter.com/intent/tweet?url=${encodeURI('https://devnet.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-size="large"
-                    >Tweet</a>
-                  </Button>
-                </p>
-                <p>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=wallet%3D${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
-                <p>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
-              </div>
-            </div>
-            <Button onClick={() => setShowShare(false)} size="large" className="btn-close" icon={<CloseCircleOutlined />}></Button>
-          </div>
-        </div>
-      </div> */}
-
       <Modal width={590} title="Transaction Succeed!" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
         <div>
           <div style={{
@@ -645,16 +630,6 @@ export const TradeEntry = () => {
             <p style={{margin: '0 0 8px 0'}}>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=wallet%3D${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
             <p style={{margin: '0'}}>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
           </div>
-          {/* <div style={{display: 'flex', justifyContent: 'space-around', marginTop: '60px'}}>
-            <Button type="primary" size="large">
-              <a className="twitter-share-button"
-                href={`https://twitter.com/intent/tweet?url=${encodeURI('https://app.1sol.io')}&text=${encodeURIComponent("🚀Just successfully swapped tokens via #1SOL dex aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX. Join the devnet test to get the airdrop and win a daily 200 prize here!🎁")}&via=1solProtocol&hashtags=DeFi,Solana,1SOL,SOL,Ignition`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{display: 'flex', alignItems: 'center'}}
-              ><TwitterOutlined /><span style={{marginLeft: '5px'}}>Tweet</span></a>
-            </Button>
-          </div> */}
         </div>
       </Modal>
     </>
@@ -666,15 +641,20 @@ export const Result = (props: {
   loading: boolean, 
   handleSwitchChoice: (a: string) => void,
   handleShowRoute: () => void,
+  error: string,
   active?: string,
-  routes?: string[]
+  routes?: string[],
 }) => {
-  const {data, loading, handleSwitchChoice, active, handleShowRoute, routes} = props
+  const { data, loading, handleSwitchChoice, active, handleShowRoute, routes, error } = props
 
   return (
     <div className="mod-results">
-      <Skeleton paragraph={{rows: 1, width: '100%'}} title={false}  active loading={loading}>
-        {data.map(({provider, output, offset, id}, i) => (
+      {
+        loading ?
+        <LoadingOutlined style={{ fontSize: 24 }} spin /> :
+        !data.length && error ?
+        <div>{error}</div> :
+        data.map(({provider, output, offset, id}, i) => (
           <div
             key={id}
             className={id === active ? "mod-result active": 'mod-result'}
@@ -702,8 +682,8 @@ export const Result = (props: {
             </div>
             {i === 0 ? <div className="ft">Best</div> : null}
           </div>
-        ))}
-      </Skeleton>
+        ))
+      }
     </div>
   )
 }
