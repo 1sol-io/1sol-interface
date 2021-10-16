@@ -444,7 +444,6 @@ export const TradeEntry = () => {
           <Button
             ref={refreshBtnRef}
             shape="circle"
-            size="small"
             type="text"
             onClick={handleRefresh}
             disabled={!A.amount || loading.current}
