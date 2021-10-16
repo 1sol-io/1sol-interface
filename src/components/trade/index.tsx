@@ -594,7 +594,7 @@ export const TradeEntry = () => {
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
       </Modal>
 
-      <Modal width={590} title="Transaction Succeed!" visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
+      <Modal width={590} visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
         <div>
           <div style={{
             fontSize: '16px',

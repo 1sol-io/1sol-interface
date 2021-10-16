@@ -980,7 +980,6 @@ export async function onesolProtocolSwap (
       }
     }, instructions, signers)
   } 
-  console.log(instructions)
 
   let tx = await sendTransaction(
     connection,
