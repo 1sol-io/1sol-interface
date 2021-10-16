@@ -235,6 +235,7 @@ export const TradeEntry = () => {
       }
 
       setAmounts(amounts)
+      loading.current = false
 
       setTimeoutLoading(true)
       timer.current = setTimeout(() => { 
@@ -245,10 +246,11 @@ export const TradeEntry = () => {
         console.error(e)
 
         if (!axios.isCancel(e) && e.response) {
-          errorMessage.current = e.message || 'Error Occurred'
+          errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
         }
       }
 
+      loading.current = false
       setAmounts([])
       setDistributions([])
     }
@@ -257,7 +259,6 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
 
-    loading.current = true
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
 
   useEffect(() => {
@@ -612,7 +613,7 @@ export const TradeEntry = () => {
                 ><TwitterOutlined /><span style={{marginLeft: '5px'}}>Tweet</span></a>
               </Button>
             </p>
-            <p style={{margin: '0 0 8px 0'}}>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=wallet%3D${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
+            <p style={{margin: '0 0 8px 0'}}>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
             <p style={{margin: '0'}}>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
           </div>
         </div>
