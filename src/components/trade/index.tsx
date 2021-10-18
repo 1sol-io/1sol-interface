@@ -143,7 +143,6 @@ export const TradeEntry = () => {
     setTimeoutLoading(false)
 
     const decimals = [A.mint.decimals, B.mint.decimals]
-    
 
     try {
       const {
@@ -242,13 +241,18 @@ export const TradeEntry = () => {
         fetchDistrubition() 
       }, 10 * 1000)
     } catch(e) {
+      console.error(e)
+    
       if (axios.isAxiosError(e)) {
-        console.error(e)
-
-        if (!axios.isCancel(e) && e.response) {
+        if (!e.response) {
+          notify({
+            message: 'Network Error',
+            type: 'error'
+          })
+        } else if (!axios.isCancel(e) && e.response) {
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
         }
-      }
+      } 
 
       loading.current = false
       setAmounts([])
