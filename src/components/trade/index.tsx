@@ -467,7 +467,7 @@ export const TradeEntry = () => {
           >
             {
               timeoutLoading ?
-              <img style={{display: 'block', width: '24px', margin: '0', marginTop: '-3px'}} src={timeoutIcon} alt="" /> :
+              <img style={{display: 'block', width: '24px', margin: '0'}} src={timeoutIcon} alt="" /> :
               loading.current ?
               <LoadingOutlined style={{fontSize: '19px', marginTop: '-2px'}} />:
               <ReloadOutlined style={{fontSize: '19px', marginTop: '-2px'}} />
