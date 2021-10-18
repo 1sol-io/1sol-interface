@@ -335,6 +335,17 @@ export const TradeEntry = () => {
       return
     }
 
+    if (cancel.current) {
+      cancel.current()
+    }
+
+    if (timer.current) {
+      clearTimeout(timer.current)
+    }
+
+    loading.current = false
+    setTimeoutLoading(false)
+
     try {
       setPendingTx(true);
 
@@ -376,6 +387,7 @@ export const TradeEntry = () => {
 
       await onesolProtocolSwap(connection, wallet, A, B, amms, distribution, components, slippage);
 
+      A.setAmount('')
       setShowShare(true)
     } catch (e) {
       console.error(e)
@@ -458,7 +470,7 @@ export const TradeEntry = () => {
             shape="circle"
             type="text"
             onClick={handleRefresh}
-            disabled={!A.amount || loading.current}
+            disabled={!A.amount || loading.current || pendingTx}
             style={{
               display: 'flex',
               justifyContent: 'space-around',
