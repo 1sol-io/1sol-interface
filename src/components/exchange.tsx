@@ -83,14 +83,33 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Sol Token<strong>(Devnet)</strong></div>
+            <div className="hd">Beta Test Airdrop 🎁</div>
             <div className="bd">
               <Button 
                 type="primary" 
                 shape="round"
+                style={{width: '82px'}}
+              >
+                <a href="https://link.medium.com/2WJ2P88Mqkb" target="_blank" rel="noopener noreferrer">How-To</a>
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="airdrop-card exchange-card"
+          headStyle={{ padding: 0 }}
+        >
+          <div className="airdrop">
+            <div className="hd">SOL Token<strong>(Devnet)</strong></div>
+            <div className="bd">
+              <Button 
+                type="primary" 
+                shape="round"
+                style={{width: '82px'}}
                 onClick={connected ? handleRequestAirdrop : connect}
               >
-                {loading ? 'Requesting' : 'Airdrop'}
+                {loading ? 'Requesting' : 'Faucet'}
               </Button>
             </div>
           </div>
