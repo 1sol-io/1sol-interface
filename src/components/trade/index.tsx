@@ -105,9 +105,9 @@ export const TradeEntry = () => {
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
-      // if B is SOL
+      // if B is SOL, 
       if (mint === WRAPPED_SOL_MINT.toBase58()) {
-        return false
+        return true
       }
 
       const index = userAccounts.findIndex(
@@ -458,9 +458,10 @@ export const TradeEntry = () => {
             shape="circle"
             type="text"
             onClick={handleRefresh}
-            disabled={!A.amount}
+            disabled={!A.amount || loading.current}
             style={{
               display: 'flex',
+              justifyContent: 'space-around',
               alignItems: 'center'
             }}
           >
