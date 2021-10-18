@@ -250,11 +250,11 @@ export const TradeEntry = () => {
         //   })
         // } else 
         if (!axios.isCancel(e) && e.response) {
+          loading.current = false
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
         }
       } 
 
-      loading.current = false
       setAmounts([])
       setDistributions([])
     }
@@ -312,6 +312,10 @@ export const TradeEntry = () => {
     // A.setAmount(B.amount);
     B.setMint(tempMint);
     // B.setAmount(tempAmount);
+
+    if (A.amount) {
+      loading.current = true
+    }
 
     // @ts-ignore
     setPoolOperation((op: PoolOperation) => {
@@ -395,6 +399,10 @@ export const TradeEntry = () => {
     setDistributions([])
     setAmounts([])
     choice.current = ''
+
+    if (A.amount) {
+      loading.current = true
+    }
 
     setTimeoutLoading(false)
   }
