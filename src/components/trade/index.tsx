@@ -241,15 +241,15 @@ export const TradeEntry = () => {
         fetchDistrubition() 
       }, 10 * 1000)
     } catch(e) {
-      console.error(e)
-    
       if (axios.isAxiosError(e)) {
-        if (!e.response) {
-          notify({
-            message: 'Network Error',
-            type: 'error'
-          })
-        } else if (!axios.isCancel(e) && e.response) {
+        console.error(e)
+        // if (!e.response) {
+        //   notify({
+        //     message: 'Network Error',
+        //     type: 'error'
+        //   })
+        // } else 
+        if (!axios.isCancel(e) && e.response) {
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
         }
       } 
