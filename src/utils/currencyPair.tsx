@@ -21,6 +21,7 @@ import { convert, getTokenIcon, getTokenName } from "./utils";
 import { useHistory, useLocation } from "react-router-dom";
 import bs58 from "bs58";
 import { TokenInfo } from "@solana/spl-token-registry";
+import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -75,8 +76,13 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
       balance: convert(account, mint),
       sufficientBalance: () =>
         account !== undefined &&
-        (convert(account, mint) >= parseFloat(amount) ||
-          config.curveType === CurveType.ConstantProductWithOffset),
+        (
+          // at least 0.05 SOL is needed for paying gas
+          mintAddress === WRAPPED_SOL_MINT.toBase58() ?
+          convert(account, mint) - 0.05 >= parseFloat(amount): 
+          convert(account, mint) >= parseFloat(amount) ||
+          config.curveType === CurveType.ConstantProductWithOffset
+        ),
     }),
     [
       mintAddress,

@@ -458,7 +458,7 @@ export const TradeEntry = () => {
             shape="circle"
             type="text"
             onClick={handleRefresh}
-            disabled={!A.amount || loading.current}
+            disabled={!A.amount}
             style={{
               display: 'flex',
               alignItems: 'center'
@@ -503,7 +503,7 @@ export const TradeEntry = () => {
           onMintChange={(item) => {
             A.setMint(item);
           }}
-          onMaxClick={() => A.setAmount(`${A.balance}`)}
+          onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
         />
         <Button
          type="primary" 
