@@ -633,7 +633,7 @@ export const TradeEntry = () => {
             <p>
               <Button type="primary" size="large">
                 <a className="twitter-share-button"
-                  href={`https://twitter.com/intent/tweet?url=${encodeURI('https://beta-app.1sol.io')}&text=${encodeURIComponent("🚀Have just successfully swapped some tokens via #1Sol the cross-chain DEX aggregator on #Solana Devnet. @1solProtocol @solana @SBF_FTX Join the test and win a 200 $1SOL daily prize here!🎁")}&via=1solProtocol&hashtags=DeFi,IGNITION,giveaway,Airdrops`}
+                  href={`https://twitter.com/intent/tweet?url=${encodeURI('https://beta-app.1sol.io')}&text=${encodeURIComponent("🚀Have just successfully swapped some tokens via #1Sol the cross-chain DEX aggregator on #Solana Devnet. @1solProtocol @solana Join the test and win a 200 $1SOL daily prize here!🎁")}&via=1solProtocol&hashtags=DeFi,IGNITION,giveaway,Airdrops`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{display: 'flex', alignItems: 'center'}}
