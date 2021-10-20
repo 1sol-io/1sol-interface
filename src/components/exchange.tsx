@@ -88,7 +88,7 @@ export const ExchangeView = (props: {}) => {
               <Button 
                 type="primary" 
                 shape="round"
-                style={{width: '82px'}}
+                style={{minWidth: '82px'}}
               >
                 <a href="https://link.medium.com/2WJ2P88Mqkb" target="_blank" rel="noopener noreferrer">How-To</a>
               </Button>
@@ -106,7 +106,7 @@ export const ExchangeView = (props: {}) => {
               <Button 
                 type="primary" 
                 shape="round"
-                style={{width: '82px'}}
+                style={{minWidth: '82px'}}
                 onClick={connected ? handleRequestAirdrop : connect}
               >
                 {loading ? 'Requesting' : 'Faucet'}
