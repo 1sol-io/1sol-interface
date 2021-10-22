@@ -163,7 +163,7 @@ export const TradeEntry = () => {
         url: `https://api.1sol.io/1/swap/1/${chainId}`,
         method: 'post', 
         data: {
-          amount_in: Number(A.amount) * 10 ** A.mint.decimals,
+          amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
           source_token_mint_key: A.mintAddress,
           destination_token_mint_key: B.mintAddress, 
           programs: [
