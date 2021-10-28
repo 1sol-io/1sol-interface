@@ -144,6 +144,7 @@ export const TradeEntry = () => {
 
     const decimals = [A.mint.decimals, B.mint.decimals]
 
+    const startTime = Date.now()
     try {
       const {
         data: {
@@ -172,6 +173,22 @@ export const TradeEntry = () => {
           ]
         }, 
         cancelToken: new CancelToken((c) => cancel.current = c)
+      })
+      const endTime = Date.now()
+
+      //@ts-ignore
+      window.gtag('event', 'api_request_time', {
+        time: endTime - startTime,
+        url: `https://api.1sol.io/1/swap/1/${chainId}`,
+        data: {
+          amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
+          source_token_mint_key: A.mintAddress,
+          destination_token_mint_key: B.mintAddress, 
+          programs: [
+            "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+            "DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY"
+          ]
+        }
       })
 
       let amounts: Route[][] = []
