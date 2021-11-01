@@ -39,10 +39,11 @@ import {
   TokenSwapInfo, 
   SerumDexMarketInfo, 
   AmmInfo, 
-  Numberu64
+  Numberu64,
+  loadSaberStableSwap
 } from '../utils/onesol-protocol'
 import {CurrencyContextState} from '../utils/currencyPair'
-import { EXCHANGER_SERUM_DEX, EXCHANGER_SPL_TOKEN_SWAP } from "./constant";
+import { EXCHANGER_SERUM_DEX, EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_SABER_STABLE_SWAP } from "./constant";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -778,14 +779,27 @@ export async function onesolProtocolSwap (
           minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
           dexMarketInfo,
         }, instructions, signers)
+      } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
+        const stableSwapInfo = await loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
+
+        return onesolProtocol.createSwapBySaberStableSwapInstruction({
+          fromTokenAccountKey: fromAccount, 
+          toTokenAccountKey: toAccount,
+          fromMintKey,
+          toMintKey,
+          userTransferAuthority: wallet.publicKey, 
+          ammInfo: ammInfos[0],
+          amountIn: new Numberu64(route.amount_in),
+          expectAmountOut: new Numberu64(route.amount_out),
+          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+          stableSwapInfo,
+        }, instructions, signers)
       }
     })
 
     await Promise.all(promises)
-  }
-
-  // indirect exchange(SOL -> USDC -> ETH)
-  if (ammInfos.length === 2) {
+  } else if (ammInfos.length === 2) {
+    // indirect exchange(SOL -> USDC -> ETH)
     const promises = distribution.routes.map((routes: any[]) => {
       const [route] = routes
 
@@ -793,6 +807,8 @@ export async function onesolProtocolSwap (
          return loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
       } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
         return loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
+      } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
+        return loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
       }
     })
 
