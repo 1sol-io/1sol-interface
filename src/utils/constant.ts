@@ -28,15 +28,17 @@ export const TOKEN_SWAP_NAME = 'Token Swap'
 export const SERUM_DEX_MARKET_NAME = 'Serum Dex'
 export const ONESOL_NAME = '1Sol'
 export const SABER_STABLE_SWAP_NAME = 'Stable Swap'
-
-export const PROVIDER_MAP: { [key: string]: string } = {
-  best_route: '1Sol',
-  SplTokenSwap: TOKEN_SWAP_NAME,
-  SerumDex: SERUM_DEX_MARKET_NAME,
-  SaberStableSwap: SABER_STABLE_SWAP_NAME,
-}
-
+export const ORCA_SWAP_NAME = 'Orca Swap'
 
 export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
 export const EXCHANGER_SERUM_DEX = 'SerumDex'
 export const EXCHANGER_SABER_STABLE_SWAP = 'SaberStableSwap'
+export const EXCHANGER_ORCA_SWAP = 'OrcaSwap'
+
+export const PROVIDER_MAP: { [key: string]: string } = {
+  best_route: ONESOL_NAME,
+  [EXCHANGER_SPL_TOKEN_SWAP]: TOKEN_SWAP_NAME,
+  [EXCHANGER_SERUM_DEX]: SERUM_DEX_MARKET_NAME,
+  [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
+  [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
+}

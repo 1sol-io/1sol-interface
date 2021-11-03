@@ -43,7 +43,12 @@ import {
   loadSaberStableSwap
 } from '../utils/onesol-protocol'
 import {CurrencyContextState} from '../utils/currencyPair'
-import { EXCHANGER_SERUM_DEX, EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_SABER_STABLE_SWAP } from "./constant";
+import { 
+  EXCHANGER_SERUM_DEX, 
+  EXCHANGER_SPL_TOKEN_SWAP, 
+  EXCHANGER_SABER_STABLE_SWAP, 
+  EXCHANGER_ORCA_SWAP 
+} from "./constant";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -749,7 +754,7 @@ export async function onesolProtocolSwap (
     const [routes] = distribution.routes
 
     const promises = routes.map(async (route: any) => {
-      if (route.exchanger_flag === EXCHANGER_SPL_TOKEN_SWAP) {
+      if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
         const splTokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
 
         return onesolProtocol.createSwapByTokenSwapInstruction({
@@ -803,7 +808,7 @@ export async function onesolProtocolSwap (
     const promises = distribution.routes.map((routes: any[]) => {
       const [route] = routes
 
-      if (route.exchanger_flag === EXCHANGER_SPL_TOKEN_SWAP) {
+      if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
          return loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
       } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
         return loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))

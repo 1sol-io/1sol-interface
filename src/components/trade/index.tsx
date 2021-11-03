@@ -156,12 +156,13 @@ export const TradeEntry = () => {
           destination_token_mint_key: B.mintAddress, 
           programs: [
             TOKEN_SWAP_PROGRAM_ID.toBase58(), 
-            "DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY",
+            "DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY", // SERUM
             STABLE_SWAP_PROGRAM_ID.toBase58(),
+            '554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3', // orca devnet
+            // '9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP' // orca mainnet
           ]
         }, 
         cancelToken: new CancelToken((c) => cancel.current = c)
-
     }
 
     try {
