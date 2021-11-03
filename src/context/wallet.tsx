@@ -5,72 +5,91 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import Wallet from "@project-serum/sol-wallet-adapter";
 import { Button, Modal } from "antd";
-import {
-  WalletAdapter,
-  LedgerWalletAdapter,
-  SolongWalletAdapter,
-  PhantomWalletAdapter,
-  MathWalletAdapter,
-  SolletExtensionAdapter,
-  SafePalWalletAdapter
-} from "../wallet-adapters";
+
+import Wallet from "@project-serum/sol-wallet-adapter";
+import { WalletAdapter } from '@solana/wallet-adapter-base'
+import { SolletWalletAdapter } from "@solana/wallet-adapter-sollet";
+import { SolongWalletAdapter } from "@solana/wallet-adapter-solong";
+import { MathWalletWalletAdapter } from "@solana/wallet-adapter-mathwallet";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
+import { SafePalWalletAdapter } from "@solana/wallet-adapter-safepal";
+import { Coin98WalletAdapter } from '@solana/wallet-adapter-coin98'
+import { SlopeWalletAdapter } from '@solana/wallet-adapter-slope'
+import { BloctoWalletAdapter } from '@solana/wallet-adapter-blocto'
+import { BitpieWalletAdapter } from '@solana/wallet-adapter-bitpie'
+import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare'
+import { LedgerWalletAdapter } from "@solana/wallet-adapter-ledger"
+
 import { useConnectionConfig } from "../utils/connection";
 import { useLocalStorageState } from "../utils/utils";
 import { notify } from "../utils/notifications";
 
+import PhantomLogo from "../assets/phantom.png";
+import SolletLogo from "../assets/sollet.svg"
 import SafePalLogo from '../assets/safepal_white.svg'
-
-const ASSET_URL =
-  "https://cdn.jsdelivr.net/gh/solana-labs/oyster@main/assets/wallets";
+import Coin98Logo from '../assets/coin98.png'
+import SlopeLogo from '../assets/slope.png'
+import BitpieLogo from '../assets/bitpie.png'
+import BloctoLogo from '../assets/blocto.png'
+import SolflareLogo from '../assets/solflare.svg'
+import LedgerLogo from '../assets/ledger.svg'
+import SolongLogo from "../assets/solong.png"
+import MathWalletLogo from "../assets/mathwallet.svg"
 
 export const WALLET_PROVIDERS = [
   {
+    name: "Phantom",
+    url: "https://www.phantom.app",
+    icon: PhantomLogo,
+    adapter: PhantomWalletAdapter,
+  },
+  {
     key: "sollet.io",
-    name: "sollet.io",
+    name: "Sollet Web",
     url: "https://www.sollet.io",
-    icon: `${ASSET_URL}/sollet.svg`,
+    icon: SolletLogo,
   },
   {
     key: "Sollet",
     name: "Sollet Extension",
     url: "https://www.sollet.io/extension",
-    icon: `${ASSET_URL}/sollet.svg`,
-    adapter: SolletExtensionAdapter,
+    icon: SolletLogo,
+    adapter: SolletWalletAdapter,
   },
   {
-    key: "Solflare",
-    name: "Solflare",
+    key: "Solflare Web",
+    name: "Solflare Web",
     url: "https://solflare.com/access-wallet",
-    icon: `${ASSET_URL}/solflare.svg`,
+    icon: SolflareLogo,
+  },
+  {
+    key: "Solflare Extension",
+    name: "Solflare Extension",
+    url: "https://solflare.com/access-wallet/extension",
+    icon: SolflareLogo,
+    adapter: SolflareWalletAdapter,
   },
   {
     key: "Ledger",
     name: "Ledger",
     url: "https://www.ledger.com",
-    icon: `${ASSET_URL}/ledger.svg`,
+    icon: LedgerLogo,
     adapter: LedgerWalletAdapter,
   },
   {
     key: "Solong",
     name: "Solong",
     url: "https://www.solong.com",
-    icon: `${ASSET_URL}/solong.png`,
+    icon: SolongLogo,
     adapter: SolongWalletAdapter,
   },
   {
     key: "MathWallet",
     name: "MathWallet",
     url: "https://www.mathwallet.org",
-    icon: `${ASSET_URL}/mathwallet.svg`,
-    adapter: MathWalletAdapter,
-  },
-  {
-    name: "Phantom",
-    url: "https://www.phantom.app",
-    icon: `https://www.phantom.app/img/logo.png`,
-    adapter: PhantomWalletAdapter,
+    icon: MathWalletLogo,
+    adapter: MathWalletWalletAdapter,
   },
   {
     key: "SafePalWallet",
@@ -78,7 +97,35 @@ export const WALLET_PROVIDERS = [
     url: "https://www.safepal.io/",
     icon: SafePalLogo,
     adapter: SafePalWalletAdapter,
-  }
+  },
+  {
+    key: "Coin98",
+    name: "Coin98",
+    url: "https://www.coin98.com",
+    icon: Coin98Logo,
+    adapter: Coin98WalletAdapter,
+  },
+  {
+    key: 'Blocto',
+    name: 'Blocto',
+    icon: BloctoLogo,
+    url: 'https://blocto.portto.io',
+    adapter: BloctoWalletAdapter
+  },
+  {
+    key: 'Slope',
+    name: 'Slope',
+    icon: SlopeLogo,
+    url: 'https://slope.finance',
+    adapter: SlopeWalletAdapter
+  },
+  {
+    key: 'Bitpie',
+    name: 'Bitpie',
+    icon: BitpieLogo,
+    url: 'https://bitpie.com',
+    adapter: BitpieWalletAdapter
+  },
 ];
 
 const WalletContext = React.createContext<any>(null);
@@ -86,7 +133,7 @@ const WalletContext = React.createContext<any>(null);
 export function WalletProvider({ children = null as any }) {
   const { endpoint } = useConnectionConfig();
 
-  const [autoConnect, setAutoConnect] = useState(false);
+  const [autoConnect, setAutoConnect] = useState(true);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
 
   const provider = useMemo(
@@ -114,7 +161,9 @@ export function WalletProvider({ children = null as any }) {
         if (wallet.publicKey) {
           localStorage.removeItem("feeDiscountKey");
           setConnected(true);
+
           const walletPublicKey = wallet.publicKey.toBase58();
+
           const keyToDisplay =
             walletPublicKey.length > 20
               ? `${walletPublicKey.substring(
@@ -135,16 +184,19 @@ export function WalletProvider({ children = null as any }) {
 
       wallet.on("disconnect", () => {
         setConnected(false);
+
         notify({
           message: "Wallet update",
           description: "Disconnected from wallet",
         });
+
         localStorage.removeItem("feeDiscountKey");
       });
     }
 
     return () => {
       setConnected(false);
+
       if (wallet) {
         wallet.disconnect();
         setConnected(false);
@@ -154,8 +206,12 @@ export function WalletProvider({ children = null as any }) {
 
   useEffect(() => {
     if (wallet && autoConnect) {
-      wallet.connect();
-      setAutoConnect(true);
+      try {
+        wallet.connect();
+        setAutoConnect(true);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     return () => {};
@@ -228,11 +284,13 @@ export function WalletProvider({ children = null as any }) {
 
 export function useWallet() {
   const context = useContext(WalletContext);
+
   if (!context) {
     throw new Error("Missing wallet context");
   }
 
   const wallet = context.wallet;
+
   return {
     connected: context.connected,
     wallet: wallet,
