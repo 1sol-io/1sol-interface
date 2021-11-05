@@ -1,14 +1,11 @@
 import React from 'react'
-import { Button, Menu } from 'antd'
-import { useWallet } from '../context/wallet'
+import { Menu } from 'antd'
 import { AccountInfo } from './accountInfo'
 import { WalletConnect } from './walletConnect'
-import { Link, useHistory, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
-  const { connected } = useWallet()
   const location = useLocation()
-  const history = useHistory()
 
   const TopBar = (
     <div className="App-Bar">
@@ -17,13 +14,6 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         <Menu mode="horizontal" selectedKeys={[location.pathname]}>
           <Menu.Item key="/home">
             <a href="https://1sol.io">Home</a>
-            {/* <Link
-              to={{
-                pathname: '/',
-              }}
-            >
-              Home
-            </Link> */}
           </Menu.Item>
           <Menu.Item key="/dashboard">
             <Link
@@ -34,10 +24,10 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Dashboard
             </Link>
           </Menu.Item>
-          <Menu.Item key="/">
+          <Menu.Item key="/trade/SOL-AJN">
             <Link
               to={{
-                pathname: '/'
+                pathname: '/trade/SOL-AJN'
               }}
             >
               Trade
@@ -49,44 +39,6 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           <Menu.Item disabled key="nft">
             NFT
           </Menu.Item>
-          {/* <Menu.Item key="/crosschain">
-            <Link
-              to={{
-                pathname: "/crosschain",
-              }}
-            >
-              Crosschain
-            </Link>
-          </Menu.Item> */}
-          {/* <Menu.Item key="/info">
-            <Link
-              to={{
-                pathname: "/info",
-              }}
-            >
-              Charts
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="trade">
-            <a
-              href={"https://dex.projectserum.com"}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Trade
-              <sup>↗</sup>
-            </a>
-          </Menu.Item>
-          <Menu.Item key="help">
-            <a
-              href={"https://serum-academy.com/en/serum-swap/"}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Help
-              <sup>↗</sup>
-            </a>
-          </Menu.Item> */}
         </Menu>
         {props.left}
       </div>
@@ -94,15 +46,6 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
         <WalletConnect>
           <AccountInfo />
         </WalletConnect>
-        {/* {connected && (
-          <Button
-            type="text"
-            size="large"
-            onClick={() => history.push({ pathname: "/pool" })}
-          >
-            My Pools
-          </Button>
-        )} */}
         {props.right}
       </div>
     </div>

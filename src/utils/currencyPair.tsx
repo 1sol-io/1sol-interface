@@ -1,15 +1,19 @@
 import React, {
-  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
+import { useHistory, useLocation, useParams } from "react-router-dom";
+import { MintInfo } from "@solana/spl-token";
+import bs58 from "bs58";
+import { TokenInfo } from "@solana/spl-token-registry";
+import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
+
 import {
   PoolOperation,
 } from "./pools";
 import { cache, useAccountByMint } from "./accounts";
-import { MintInfo } from "@solana/spl-token";
 import { useConnection, useConnectionConfig } from "./connection";
 import {
   CurveType,
@@ -18,10 +22,6 @@ import {
   DEFAULT_DENOMINATOR,
 } from "../models";
 import { convert, getTokenIcon, getTokenName } from "./utils";
-import { useHistory, useLocation } from "react-router-dom";
-import bs58 from "bs58";
-import { TokenInfo } from "@solana/spl-token-registry";
-import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -134,6 +134,7 @@ export function CurrencyPairProvider({ children = null as any }) {
   const setMintAddressB = quote.setMint;
   const amountB = quote.amount;
   const setAmountB = quote.setAmount;
+  const params: {pair: string | undefined} = useParams();
 
   useEffect(() => {
     const base =
@@ -141,7 +142,7 @@ export function CurrencyPairProvider({ children = null as any }) {
     const quote =
       tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
-    if (location.pathname === '/') {
+    if (location.pathname.includes('/trade/')) {
       document.title = `Trade | 1Sol (${base}/${quote})`;
     }
   }, [mintAddressA, mintAddressB, tokens, location]);
@@ -151,11 +152,13 @@ export function CurrencyPairProvider({ children = null as any }) {
     const urlParams = new URLSearchParams(location.search);
     const from = urlParams.get("from");
 
-    if (from === 'dashboard') {
+    // if from other page, only location change handler below can only called
+    // or there will be infinite loop
+    if (from) {
       return
     }
 
-    if (location.pathname === '/') {
+    if (location.pathname.includes('/trade/')) {
       // set history
       const base =
         tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
@@ -163,26 +166,23 @@ export function CurrencyPairProvider({ children = null as any }) {
         tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
 
       if (base && quote) {
-        history.push({
-          search: `?pair=${base}-${quote}`,
-        });
+        // will trigger location change handler below
+        history.push(`/trade/${base}-${quote}`);
       }
-    } else {
-      history.push({
-        search: ``,
-      });
-    }
-  }, [mintAddressA, mintAddressB, tokens, history, location.search, location.pathname]);
+    } 
+  }, [mintAddressA, mintAddressB, tokens, history, location.pathname, location.search]);
 
   // Updates tokens on location change
   useEffect(() => {
-    if (!location.search && mintAddressA && mintAddressB) {
-      return;
+    if (!location.pathname.includes('/trade/')) {
+      return
     }
+
+    const pair = location.pathname.replace('/trade/', '')
 
     const { defaultBase, defaultQuote } = getDefaultTokens(
       tokens,
-      location.search
+      pair
     );
 
     if (!defaultBase || !defaultQuote) {
@@ -199,9 +199,15 @@ export function CurrencyPairProvider({ children = null as any }) {
         (isValidAddress(defaultQuote) ? defaultQuote : "") ||
         ""
     );
+
+    // remove query parameter so token change handler can be vaild
+    history.push({
+      search: ``,
+    });
+
     // mintAddressA and mintAddressB are not included here to prevent infinite loop
     // eslint-disable-next-line
-  }, [location, location.search, setMintAddressA, setMintAddressB, tokens]);
+  }, [location.pathname, setMintAddressA, setMintAddressB, tokens]);
 
   return (
     <CurrencyPairContext.Provider
@@ -234,7 +240,7 @@ const isValidAddress = (address: string) => {
   }
 };
 
-function getDefaultTokens(tokens: TokenInfo[], search: string) {
+function getDefaultTokens(tokens: TokenInfo[], pair: string) {
   let defaultBase = "SOL";
   let defaultQuote = "AJN";
 
@@ -243,24 +249,20 @@ function getDefaultTokens(tokens: TokenInfo[], search: string) {
     return map;
   }, new Map<string, any>());
 
-  if (search) {
-    const urlParams = new URLSearchParams(search);
-    const pair = urlParams.get("pair");
+  if (pair) {
+    const items = pair.split('-');
 
-    if (pair) {
-      let items = pair.split("-");
+    if (items.length > 1) {
+      if (nameToToken.has(items[0]) || isValidAddress(items[0])) {
+        defaultBase = items[0];
+      }
 
-      if (items.length > 1) {
-        if (nameToToken.has(items[0]) || isValidAddress(items[0])) {
-          defaultBase = items[0];
-        }
-
-        if (nameToToken.has(items[1]) || isValidAddress(items[1])) {
-          defaultQuote = items[1];
-        }
+      if (nameToToken.has(items[1]) || isValidAddress(items[1])) {
+        defaultQuote = items[1];
       }
     }
   }
+
   return {
     defaultBase,
     defaultQuote,

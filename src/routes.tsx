@@ -1,4 +1,4 @@
-import { BrowserRouter, Route } from "react-router-dom";
+import { BrowserRouter, Route, Redirect } from "react-router-dom";
 import React from "react";
 
 import { WalletProvider } from "./context/wallet";
@@ -18,7 +18,10 @@ export function Routes() {
           <WalletProvider>
             <AccountsProvider>
               <CurrencyPairProvider>
-                <Route exact path="/" component={ExchangeView} />
+                <Route exact path="/">
+                  <Redirect to="/trade/" />
+                </Route>
+                <Route exact path="/trade/:pair" component={ExchangeView} />
                 <Route exact path="/dashboard" component={() => <Dashboard />} />
                 <Route exact path="/crosschain" component={() => <CrossChain />} />
               </CurrencyPairProvider>

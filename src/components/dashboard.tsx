@@ -370,7 +370,9 @@ export const Dashboard = () => {
                       </div>
                       <div className="bd">
                         <Link
-                          to={`/?pair=SOL-${active.toUpperCase()}&from=dashboard`}
+                          to={`/trade/SOL-${active.toUpperCase() === 'SOL'
+                            ? 'USDT'
+                            : active.toUpperCase()}?from=dashboard`}
                         >
                           <Button type="primary" size="small">
                             Trade
