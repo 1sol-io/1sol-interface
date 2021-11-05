@@ -73,18 +73,14 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
     ]
   },
-  "homepage": ".",
+  "homepage": "/",
   "devDependencies": {
     "@types/bn.js": "^4.11.6",
     "@types/bs58": "^4.0.1",
