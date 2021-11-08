@@ -10,7 +10,6 @@ import Social from "./social";
 
 import { notify } from "../utils/notifications";
 import { useWallet } from "../context/wallet";
-import { Canvas } from "../components/canvas";
 
 import './exchange.less'
 
@@ -127,7 +126,6 @@ export const ExchangeView = (props: {}) => {
 
         <Social />
       </div>
-      <Canvas />
     </>
   );
 };

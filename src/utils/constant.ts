@@ -25,10 +25,10 @@ export const SYMBOL_PAIRS = [
 ]
 
 export const TOKEN_SWAP_NAME = 'Token Swap'
-export const SERUM_DEX_MARKET_NAME = 'Serum Dex'
+export const SERUM_DEX_MARKET_NAME = 'Serum'
 export const ONESOL_NAME = '1Sol'
-export const SABER_STABLE_SWAP_NAME = 'Stable Swap'
-export const ORCA_SWAP_NAME = 'Orca Swap'
+export const SABER_STABLE_SWAP_NAME = 'Saber'
+export const ORCA_SWAP_NAME = 'Orca'
 
 export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
 export const EXCHANGER_SERUM_DEX = 'SerumDex'
