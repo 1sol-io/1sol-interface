@@ -160,7 +160,8 @@ export const TradeEntry = () => {
             STABLE_SWAP_PROGRAM_ID.toBase58(),
             '554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3', // orca devnet
             // '9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP' // orca mainnet
-          ]
+          ],
+          support_single_route_per_tx: true
         }, 
         cancelToken: new CancelToken((c) => cancel.current = c)
     }
