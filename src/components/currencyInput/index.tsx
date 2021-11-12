@@ -79,9 +79,23 @@ export const CurrencyInput = (props: {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
 
-  const { tokens, tokenMap } = useConnectionConfig();
+  const { tokenMap } = useConnectionConfig();
+
+  const keys = [...tokenMap.keys()]
+  const sortByBalance = userAccounts.sort((a, b) => {
+      return b.info.amount.gt(a.info.amount) ? 1 : -1;
+  })
+
+  const tokensUserHave = [...new Set(sortByBalance.map((item) => item.info.mint.toBase58()))]
+  const filteredKeys = keys.filter(key => !tokensUserHave.includes(key))
+
+  const tokens = [...tokensUserHave, ...filteredKeys].map(key => tokenMap.get(key))
 
   const renderPopularTokens = tokens.map((item) => {
+    if (!item) {
+      return null;
+    }
+
     return (
       <Option
         key={item.address}
