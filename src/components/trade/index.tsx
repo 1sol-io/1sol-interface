@@ -406,7 +406,6 @@ export const TradeEntry = () => {
       await onesolProtocolSwap(connection, wallet, A, B, amms, distribution, components, slippage);
 
       A.setAmount('')
-      setShowShare(true)
     } catch (e) {
       console.error(e)
 

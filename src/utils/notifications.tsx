@@ -29,5 +29,6 @@ export function notify({
     style: {
       backgroundColor: "white",
     },
+    // duration: null
   });
 }
