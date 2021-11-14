@@ -10,6 +10,7 @@ import Social from "./social";
 
 import { notify } from "../utils/notifications";
 import { useWallet } from "../context/wallet";
+import Warning from "./warning";
 
 import './exchange.less'
 
@@ -125,6 +126,8 @@ export const ExchangeView = (props: {}) => {
         </Card>
 
         <Social />
+
+        <Warning />
       </div>
     </>
   );
