@@ -59,12 +59,8 @@ const Warning = () => {
         </p>
 
         <p style={{ fontSize: '16px' }}>
-          You do NOT reside in a Prohibited Jurisdiction.
-        </p>
-        <p style={{ fontSize: '16px' }}>
-          You are legally allowed to use 1Sol in the area you're living.
-        </p>
-        <p style={{ fontSize: '16px' }}>
+          You do NOT reside in a Prohibited Jurisdiction.<br />
+          You are legally allowed to use 1Sol in the area you're living.<br />
           You use 1Sol entirely at your own risk.
         </p>
 
