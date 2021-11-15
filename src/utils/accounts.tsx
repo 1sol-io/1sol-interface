@@ -27,7 +27,7 @@ const accountsCache = new Map<string, TokenAccount>();
 const pendingCalls = new Map<string, Promise<ParsedAccountBase>>();
 const genericCache = new Map<string, ParsedAccountBase>();
 
-const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
+export const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
   const info = await connection.getAccountInfo(pubKey);
   if (info === null) {
     throw new Error("Failed to find account");

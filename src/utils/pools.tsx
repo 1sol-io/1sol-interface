@@ -7,15 +7,19 @@ import {
   Keypair,
   TransactionInstruction,
 } from "@solana/web3.js";
+import BN from 'bn.js';
 import { sendTransaction, useConnection } from "./connection";
 import { useEffect, useMemo, useState } from "react";
 import { Token, MintLayout, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID} from "@solana/spl-token";
+
 import { notify } from "./notifications";
 import {
   cache,
   getCachedAccount,
   useUserAccounts,
   getMultipleAccounts,
+  useAccountByMint,
+  getAccountInfo,
 } from "./accounts";
 import {
   programIds,
@@ -42,13 +46,14 @@ import {
   Numberu64,
   loadSaberStableSwap
 } from '../utils/onesol-protocol'
-import {CurrencyContextState} from '../utils/currencyPair'
+import {CurrencyContextState, useCurrencyLeg} from '../utils/currencyPair'
 import { 
   EXCHANGER_SERUM_DEX, 
   EXCHANGER_SPL_TOKEN_SWAP, 
   EXCHANGER_SABER_STABLE_SWAP, 
   EXCHANGER_ORCA_SWAP 
 } from "./constant";
+import { convert } from "../utils/utils";
 
 const LIQUIDITY_TOKEN_PRECISION = 8;
 
@@ -691,6 +696,143 @@ export interface SerumAmountProps {
   maxPcQty: number
 }
 
+export interface DistributionRoute {
+  amount_in: number,
+  amount_out: number,
+  source_token_mint: {
+    decimals: number,
+    pubkey: string,
+  },
+  destination_token_mint: {
+    decimals: number,
+    pubkey: string,
+  },
+  exchanger_flag: string,
+  program_id: string,
+  pubkey: string,
+  ext_pubkey: string,
+  ext_program_id: string,
+}
+
+async function oneStepSwap(
+  {
+    onesolProtocol,
+    connection,
+    wallet,
+    A,
+    B,
+    ammInfo,
+    component,
+    route,
+    slippage
+  }:
+  {
+    onesolProtocol: any,
+    connection: Connection, 
+    wallet: any, 
+    A: {mintAddress: string, account: TokenAccount | undefined},
+    B: {mintAddress: string, account: TokenAccount | undefined}, 
+    ammInfo: AmmInfo,
+    component: LiquidityComponent,
+    route: DistributionRoute,
+    slippage: number
+  }
+): Promise<PublicKey> {
+  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+    AccountLayout.span
+  );
+
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+  const signers: Signer[] = [];
+
+  const { exchanger_flag, pubkey, program_id, amount_in, amount_out, ext_program_id, ext_pubkey }  = route
+
+  const fromMintKey = new PublicKey(A.mintAddress)
+  const toMintKey = new PublicKey(B.mintAddress)
+
+  const fromAccount = getWrappedAccount(
+    instructions,
+    cleanupInstructions,
+    A.account,
+    wallet.publicKey,
+    component.amount + accountRentExempt,
+    signers
+  );
+
+  const toAccount = findOrCreateAccountByMint(
+    wallet.publicKey,
+    wallet.publicKey,
+    instructions,
+    cleanupInstructions,
+    accountRentExempt,
+    toMintKey,
+    signers
+  )
+
+  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(exchanger_flag)) {
+    const splTokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(pubkey), new PublicKey(program_id), null)
+
+    await onesolProtocol.createSwapByTokenSwapInstruction({
+      fromTokenAccountKey: fromAccount, 
+      toTokenAccountKey: toAccount,
+      fromMintKey,
+      toMintKey,
+      userTransferAuthority: wallet.publicKey, 
+      ammInfo,
+      amountIn: new Numberu64(amount_in),
+      expectAmountOut: new Numberu64(amount_out),
+      minimumAmountOut: new Numberu64(amount_out * (1 - slippage)),
+      splTokenSwapInfo
+    }, instructions ,signers)
+  } else if (exchanger_flag === EXCHANGER_SERUM_DEX) {
+    const dexMarketInfo = await loadSerumDexMarket(connection, new PublicKey(pubkey), new PublicKey(program_id), new PublicKey(ext_pubkey), new PublicKey(ext_program_id))
+
+    await onesolProtocol.createSwapBySerumDexInstruction({
+      fromTokenAccountKey: fromAccount, 
+      toTokenAccountKey: toAccount,
+      fromMintKey,
+      toMintKey,
+      userTransferAuthority: wallet.publicKey, 
+      ammInfo,
+      amountIn: new Numberu64(amount_in),
+      expectAmountOut: new Numberu64(amount_out),
+      minimumAmountOut: new Numberu64(amount_out * (1 - slippage)),
+      dexMarketInfo,
+    }, instructions, signers)
+  } else if (exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
+    const stableSwapInfo = await loadSaberStableSwap({connection, address: new PublicKey(pubkey), programId: new PublicKey(program_id)})
+
+    await onesolProtocol.createSwapBySaberStableSwapInstruction({
+      fromTokenAccountKey: fromAccount, 
+      toTokenAccountKey: toAccount,
+      fromMintKey,
+      toMintKey,
+      userTransferAuthority: wallet.publicKey, 
+      ammInfo,
+      amountIn: new Numberu64(amount_in),
+      expectAmountOut: new Numberu64(amount_out),
+      minimumAmountOut: new Numberu64(amount_out * (1 - slippage)),
+      stableSwapInfo,
+    }, instructions, signers)
+  }
+
+  const tx = await sendTransaction(
+    connection,
+    wallet,
+    instructions.concat(cleanupInstructions),
+    signers
+  )
+
+  notify({
+    message: "Trade executed.",
+    type: "success",
+    description: `Transaction - ${tx}`,
+  });
+
+  return toAccount
+}
+
 export async function onesolProtocolSwap (
   connection: Connection, 
   wallet: any, 
@@ -707,149 +849,193 @@ export async function onesolProtocolSwap (
     return
   }
 
-  const fromMintKey = new PublicKey(A.mintAddress)
-  const toMintKey = new PublicKey(B.mintAddress)
+  // indirect exchange(SOL -> USDC -> ETH) and need to split transactions
+  if (ammInfos.length === 2 && distribution.split_tx) { 
+      const [oneRoutes, twoRoutes] = distribution.routes
+      const [one] = oneRoutes
+      const [two] = twoRoutes
 
-  const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-    AccountLayout.span
-  );
+      let balancePrev = new BN('0')
 
-  const instructions: TransactionInstruction[] = [];
-  const cleanupInstructions: TransactionInstruction[] = [];
-  const signers: Signer[] = [];
+      const tokenAccountCPrev = getCachedAccount(
+        (acc) =>
+          acc.info.mint.toBase58() === one.destination_token_mint.pubkey &&
+          acc.info.owner.toBase58() === wallet.publicKey.toBase58()
+      )
 
-  // 
-  const fromAccount = getWrappedAccount(
-    instructions,
-    cleanupInstructions,
-    A.account,
-    wallet.publicKey,
-    components[0].amount + accountRentExempt,
-    signers
-  );
-
-  const toAccount = findOrCreateAccountByMint(
-    wallet.publicKey,
-    wallet.publicKey,
-    instructions,
-    cleanupInstructions,
-    accountRentExempt,
-    toMintKey,
-    signers
-  );
-
-  // const transferAuthority = approveAmount(
-  //   instructions,
-  //   cleanupInstructions,
-  //   fromAccount,
-  //   wallet.publicKey,
-  //   amountIn,
-  //   undefined
-  // );
-
-  // signers.push(transferAuthority);
-
-  // direct exchange(SOL -> USDC)
-  if (ammInfos.length === 1) {
-    const [routes] = distribution.routes
-
-    const promises = routes.map(async (route: any) => {
-      if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
-        const splTokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
-
-        return onesolProtocol.createSwapByTokenSwapInstruction({
-          fromTokenAccountKey: fromAccount, 
-          toTokenAccountKey: toAccount,
-          fromMintKey,
-          toMintKey,
-          userTransferAuthority: wallet.publicKey, 
-          ammInfo: ammInfos[0],
-          amountIn: new Numberu64(route.amount_in),
-          expectAmountOut: new Numberu64(route.amount_out),
-          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
-          splTokenSwapInfo
-        }, instructions ,signers)
-      } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
-        const dexMarketInfo = await loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
-
-        return onesolProtocol.createSwapBySerumDexInstruction({
-          fromTokenAccountKey: fromAccount, 
-          toTokenAccountKey: toAccount,
-          fromMintKey,
-          toMintKey,
-          userTransferAuthority: wallet.publicKey, 
-          ammInfo: ammInfos[0],
-          amountIn: new Numberu64(route.amount_in),
-          expectAmountOut: new Numberu64(route.amount_out),
-          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
-          dexMarketInfo,
-        }, instructions, signers)
-      } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
-        const stableSwapInfo = await loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
-
-        return onesolProtocol.createSwapBySaberStableSwapInstruction({
-          fromTokenAccountKey: fromAccount, 
-          toTokenAccountKey: toAccount,
-          fromMintKey,
-          toMintKey,
-          userTransferAuthority: wallet.publicKey, 
-          ammInfo: ammInfos[0],
-          amountIn: new Numberu64(route.amount_in),
-          expectAmountOut: new Numberu64(route.amount_out),
-          minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
-          stableSwapInfo,
-        }, instructions, signers)
+      if (tokenAccountCPrev) {
+        balancePrev = tokenAccountCPrev.info.amount
       }
-    })
 
-    await Promise.all(promises)
-  } else if (ammInfos.length === 2) {
-    // indirect exchange(SOL -> USDC -> ETH)
-    const promises = distribution.routes.map((routes: any[]) => {
-      const [route] = routes
-
-      if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
-         return loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
-      } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
-        return loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
-      } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
-        return loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
-      }
-    })
-
-    const data: any[] = await Promise.all(promises)
-    const [step1Info, step2Info] = data 
-
-    await onesolProtocol.createSwapTwoStepsInstruction({
-      fromTokenAccountKey: fromAccount, 
-      toTokenAccountKey: toAccount,
-      fromMintKey,
-      toMintKey,
-      userTransferAuthority: wallet.publicKey, 
-      amountIn: new Numberu64(distribution.amount_in),
-      expectAmountOut: new Numberu64(distribution.amount_out),
-      minimumAmountOut: new Numberu64(distribution.amount_out * (1 - slippage)),
-      step1: {
+      await oneStepSwap({
+        onesolProtocol,
+        connection,
+        wallet,
+        A: {mintAddress: A.mintAddress, account: A.account},
+        B: {mintAddress: one.destination_token_mint.pubkey, account: undefined},
         ammInfo: ammInfos[0],
-        stepInfo: step1Info
-      },
-      step2: {
-        ammInfo: ammInfos[1],
-        stepInfo: step2Info
+        component: components[0],
+        route: one,
+        slippage
+      })
+      
+      const tokenAccountC = getCachedAccount(
+        (acc) =>
+          acc.info.mint.toBase58() === one.destination_token_mint.pubkey &&
+          acc.info.owner.toBase58() === wallet.publicKey.toBase58()
+      )
+
+      if (tokenAccountC) {
+        const balance = tokenAccountC.info.amount
+        const amountIn = balance.sub(balancePrev).toNumber()
+
+        await oneStepSwap({
+          onesolProtocol,
+          connection,
+          wallet,
+          A: {mintAddress: one.destination_token_mint.pubkey, account: tokenAccountC},
+          B: {mintAddress: B.mintAddress, account: B.account},
+          ammInfo: ammInfos[1],
+          component: {mintAddress: one.destination_token_mint.pubkey, amount: amountIn},
+          route: {...two, amount_in: amountIn },
+          slippage
+        })
       }
-    }, instructions, signers)
-  } 
+  } else {
+    const fromMintKey = new PublicKey(A.mintAddress)
+    const toMintKey = new PublicKey(B.mintAddress)
 
-  let tx = await sendTransaction(
-    connection,
-    wallet,
-    instructions.concat(cleanupInstructions),
-    signers
-  );
+    const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+      AccountLayout.span
+    );
 
-  notify({
-    message: "Trade executed.",
-    type: "success",
-    description: `Transaction - ${tx}`,
-  });
+    const instructions: TransactionInstruction[] = [];
+    const cleanupInstructions: TransactionInstruction[] = [];
+    const signers: Signer[] = [];
+
+    const fromAccount = getWrappedAccount(
+      instructions,
+      cleanupInstructions,
+      A.account,
+      wallet.publicKey,
+      components[0].amount + accountRentExempt,
+      signers
+    );
+
+    const toAccount = findOrCreateAccountByMint(
+      wallet.publicKey,
+      wallet.publicKey,
+      instructions,
+      cleanupInstructions,
+      accountRentExempt,
+      toMintKey,
+      signers
+    );
+
+    // direct exchange(SOL -> USDC)
+    if (ammInfos.length === 1) {
+      const [routes] = distribution.routes
+
+      const promises = routes.map(async (route: any) => {
+        if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
+          const splTokenSwapInfo = await loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
+
+          return onesolProtocol.createSwapByTokenSwapInstruction({
+            fromTokenAccountKey: fromAccount, 
+            toTokenAccountKey: toAccount,
+            fromMintKey,
+            toMintKey,
+            userTransferAuthority: wallet.publicKey, 
+            ammInfo: ammInfos[0],
+            amountIn: new Numberu64(route.amount_in),
+            expectAmountOut: new Numberu64(route.amount_out),
+            minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+            splTokenSwapInfo
+          }, instructions ,signers)
+        } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
+          const dexMarketInfo = await loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
+
+          return onesolProtocol.createSwapBySerumDexInstruction({
+            fromTokenAccountKey: fromAccount, 
+            toTokenAccountKey: toAccount,
+            fromMintKey,
+            toMintKey,
+            userTransferAuthority: wallet.publicKey, 
+            ammInfo: ammInfos[0],
+            amountIn: new Numberu64(route.amount_in),
+            expectAmountOut: new Numberu64(route.amount_out),
+            minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+            dexMarketInfo,
+          }, instructions, signers)
+        } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
+          const stableSwapInfo = await loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
+
+          return onesolProtocol.createSwapBySaberStableSwapInstruction({
+            fromTokenAccountKey: fromAccount, 
+            toTokenAccountKey: toAccount,
+            fromMintKey,
+            toMintKey,
+            userTransferAuthority: wallet.publicKey, 
+            ammInfo: ammInfos[0],
+            amountIn: new Numberu64(route.amount_in),
+            expectAmountOut: new Numberu64(route.amount_out),
+            minimumAmountOut: new Numberu64(route.amount_out * (1 - slippage)),
+            stableSwapInfo,
+          }, instructions, signers)
+        }
+      })
+
+      await Promise.all(promises)
+    } else if (ammInfos.length === 2) {
+      // indirect exchange(SOL -> USDC -> ETH)
+        const promises = distribution.routes.map((routes: any[]) => {
+          const [route] = routes
+
+          if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(route.exchanger_flag)) {
+            return loadTokenSwapInfo(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), null)
+          } else if (route.exchanger_flag === EXCHANGER_SERUM_DEX) {
+            return loadSerumDexMarket(connection, new PublicKey(route.pubkey), new PublicKey(route.program_id), new PublicKey(route.ext_pubkey), new PublicKey(route.ext_program_id))
+          } else if (route.exchanger_flag === EXCHANGER_SABER_STABLE_SWAP) {
+            return loadSaberStableSwap({connection, address: new PublicKey(route.pubkey), programId: new PublicKey(route.program_id)})
+          }
+        })
+
+        const data: any[] = await Promise.all(promises)
+        const [step1Info, step2Info] = data 
+
+        await onesolProtocol.createSwapTwoStepsInstruction({
+          fromTokenAccountKey: fromAccount, 
+          toTokenAccountKey: toAccount,
+          fromMintKey,
+          toMintKey,
+          userTransferAuthority: wallet.publicKey, 
+          amountIn: new Numberu64(distribution.amount_in),
+          expectAmountOut: new Numberu64(distribution.amount_out),
+          minimumAmountOut: new Numberu64(distribution.amount_out * (1 - slippage)),
+          step1: {
+            ammInfo: ammInfos[0],
+            stepInfo: step1Info
+          },
+          step2: {
+            ammInfo: ammInfos[1],
+            stepInfo: step2Info
+          }
+        }, instructions, signers)
+    } 
+
+    const tx = await sendTransaction(
+      connection,
+      wallet,
+      instructions.concat(cleanupInstructions),
+      signers
+    );
+
+    notify({
+      message: "Trade executed.",
+      type: "success",
+      description: `Transaction - ${tx}`,
+    });
+  }
+
+  
 }

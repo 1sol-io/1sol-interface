@@ -54,6 +54,7 @@ interface Distribution {
   output: number, 
   routes: any[],
   provider: string,
+  split_tx: boolean,
   offset?: number,
 }
 
@@ -103,7 +104,19 @@ export const TradeEntry = () => {
 
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
+  const [showSplitTip, setShowSplitTip] = useState(false)
+
   const { userAccounts } = useUserAccounts();
+
+  useEffect(()  => {
+    const distribution = distributions.find(d => d.id === choice.current)
+
+    if (distribution) {
+      setShowSplitTip(!distribution.split_tx)
+    } else {
+      setShowSplitTip(false)
+    }
+  }, [distributions, choice])
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
@@ -177,7 +190,8 @@ export const TradeEntry = () => {
           best: {
             amount_out: number, 
             exchanger_flag: string, 
-            routes: any[]
+            routes: any[],
+            split_tx: boolean,
           } | undefined, 
           distributions: any
         }
@@ -631,7 +645,23 @@ export const TradeEntry = () => {
           </Tooltip>
         </div>
         : null
-       }
+      }
+
+      {
+        showSplitTip ?
+          <div className="sol-tip split-tip">
+            Caution: Your SOL balance is low
+            <Tooltip title={(
+              <>
+                SOL is needed for Solana network fees.<br/>
+                A minimum balance of 0.05 SOL is recommended to avoid failed transactions.
+              </>
+            )}>
+              <InfoCircleOutlined style={{marginLeft: '5px'}} />
+            </Tooltip>
+          </div>
+        :null
+      }
 
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}
