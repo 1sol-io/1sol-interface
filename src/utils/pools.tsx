@@ -724,7 +724,9 @@ async function oneStepSwap(
     ammInfo,
     component,
     route,
-    slippage
+    slippage,
+    step,
+    steps
   }:
   {
     onesolProtocol: any,
@@ -735,7 +737,9 @@ async function oneStepSwap(
     ammInfo: AmmInfo,
     component: LiquidityComponent,
     route: DistributionRoute,
-    slippage: number
+    slippage: number,
+    step: number,
+    steps: number
   }
 ): Promise<PublicKey> {
   const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
@@ -825,7 +829,7 @@ async function oneStepSwap(
   )
 
   notify({
-    message: "Trade executed.",
+    message: `${step} of ${steps} transaction succeed${step === steps ? '.' : ', waiting for the next one...' }`,
     type: "success",
     description: `Transaction - ${tx}`,
   });
@@ -876,7 +880,9 @@ export async function onesolProtocolSwap (
         ammInfo: ammInfos[0],
         component: components[0],
         route: one,
-        slippage
+        slippage,
+        step: 1,
+        steps: 2
       })
       
       const tokenAccountC = getCachedAccount(
@@ -898,7 +904,9 @@ export async function onesolProtocolSwap (
           ammInfo: ammInfos[1],
           component: {mintAddress: one.destination_token_mint.pubkey, amount: amountIn},
           route: {...two, amount_in: amountIn },
-          slippage
+          slippage,
+          step: 2,
+          steps: 2
         })
       }
   } else {

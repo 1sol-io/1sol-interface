@@ -112,7 +112,7 @@ export const TradeEntry = () => {
     const distribution = distributions.find(d => d.id === choice.current)
 
     if (distribution) {
-      setShowSplitTip(!distribution.split_tx)
+      setShowSplitTip(distribution.split_tx)
     } else {
       setShowSplitTip(false)
     }
@@ -650,15 +650,15 @@ export const TradeEntry = () => {
       {
         showSplitTip ?
           <div className="sol-tip split-tip">
-            Caution: Your SOL balance is low
-            <Tooltip title={(
+            There will be several wallet popups and transactions to be approved.
+            {/* <Tooltip title={(
               <>
                 SOL is needed for Solana network fees.<br/>
                 A minimum balance of 0.05 SOL is recommended to avoid failed transactions.
               </>
             )}>
               <InfoCircleOutlined style={{marginLeft: '5px'}} />
-            </Tooltip>
+            </Tooltip> */}
           </div>
         :null
       }
