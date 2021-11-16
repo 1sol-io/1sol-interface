@@ -228,7 +228,11 @@ export const Beach = () => {
                 </div>
                 <div className="ft">
                   of {numeral(supply / 10 ** 9).format('0.0a')}:{' '}
-                  <strong>{(circulating / supply * 100).toFixed(1)}%</strong>
+                  <strong>
+                    {(circulating / supply
+                      ? circulating / supply * 100
+                      : 0).toFixed(1)}%
+                  </strong>
                 </div>
               </div>
 
@@ -239,7 +243,9 @@ export const Beach = () => {
                 </div>
                 <div className="ft">
                   of {numeral(supply / 10 ** 9).format('0.0a')}:{' '}
-                  <strong>{(stake / supply * 100).toFixed(1)}%</strong>
+                  <strong>
+                    {(stake / supply ? stake / supply * 100 : 0).toFixed(1)}%
+                  </strong>
                 </div>
               </div>
 

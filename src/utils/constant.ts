@@ -71,5 +71,5 @@ export const DEXS: DEX_INFO[] = [
 export const getDex = (envName: string) => {
   const dex = DEXS.find(({ name }) => name === envName)
 
-  return dex || DEXS[1]
+  return dex || DEXS[0]
 }

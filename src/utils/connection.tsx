@@ -32,20 +32,20 @@ export const ENDPOINTS = [
     chainID: ChainID.MainnetBeta,
   },
   {
-    name: "testnet" as ENV,
-    endpoint: clusterApiUrl("testnet"),
-    chainID: ChainID.Testnet,
-  },
-  {
     name: "devnet" as ENV,
     endpoint: clusterApiUrl("devnet"),
     chainID: ChainID.Devnet,
   },
-  {
-    name: "localnet" as ENV,
-    endpoint: "http://127.0.0.1:8899",
-    chainID: ChainID.Devnet,
-  },
+  // {
+  //   name: "testnet" as ENV,
+  //   endpoint: clusterApiUrl("testnet"),
+  //   chainID: ChainID.Testnet,
+  // },
+  // {
+  //   name: "localnet" as ENV,
+  //   endpoint: "http://127.0.0.1:8899",
+  //   chainID: ChainID.Devnet,
+  // },
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;
@@ -90,15 +90,15 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   tokenMap: new Map<string, TokenInfo>(),
   // tokenSwapPools: [],
   // serumMarkets: [],
-  chainId: 103,
+  chainId: 101,
   ammInfos: [],
-  dex: DEXS[1]
+  dex: DEXS[0]
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
   const [endpoint, setEndpoint] = useLocalStorageState(
     "connectionEndpts",
-    ENDPOINTS[2].endpoint
+    ENDPOINTS[0].endpoint
   );
 
   const [slippage, setSlippage] = useLocalStorageState(
@@ -114,7 +114,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   // ]);
 
   const chain =
-    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[2];
+    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[0];
 
   const env = chain.name;
   const chainId = chain.chainID
@@ -126,13 +126,13 @@ export function ConnectionProvider({ children = undefined as any }) {
   // const [serumMarkets, setSerumMarkets] = useState([])
   const [ammInfos, setAmmInfos] = useState<AmmInfo[]>([])
 
-  const [dex, setDex] = useState<DEX_INFO>(DEXS[1])
+  const [dex, setDex] = useState<DEX_INFO>(DEXS[0])
 
   useEffect(() => {
-    if ([ENDPOINTS[0].endpoint, ENDPOINTS[2].endpoint].includes(chain.endpoint)) {
+    if (![ENDPOINTS[0].endpoint, ENDPOINTS[1].endpoint].includes(chain.endpoint)) {
       notify({
         message: 'Wrong Network',
-        description: `${ENDPOINTS[0].name} and ${ENDPOINTS[2].name} is avaliable for now.` 
+        description: `${ENDPOINTS[0].name} is avaliable for now.` 
       })
     }
 
