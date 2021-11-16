@@ -25,7 +25,8 @@ const useChainlink = () => {
         data: {
           program_id: '2yqG9bzKHD59MxD9q7ExLvnDhNycB3wkvKXFQSpBoiaE',
           accounts: SYMBOL_PAIRS.map(({ key }: { key: string }) => key),
-          chain_id: connection.chainId
+          // chain_id: connection.chainId
+          chain_id: 103
         }
       })
 

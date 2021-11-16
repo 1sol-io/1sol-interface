@@ -8,7 +8,7 @@ import { CurrencyPairProvider } from "./utils/currencyPair";
 
 import { ExchangeView } from "./components/exchange";
 import { Dashboard } from './components/dashboard'
-import { CrossChain } from './components/crosschain'
+// import { CrossChain } from './components/crosschain'
 
 export function Routes() {
   return (
@@ -21,9 +21,9 @@ export function Routes() {
                 <Route exact path="/">
                   <Redirect to="/trade/" />
                 </Route>
-                <Route exact path="/trade/:pair" component={ExchangeView} />
+                <Route path="/trade/:pair" component={ExchangeView} />
                 <Route exact path="/dashboard" component={() => <Dashboard />} />
-                <Route exact path="/crosschain" component={() => <CrossChain />} />
+                {/* <Route exact path="/crosschain" component={() => <CrossChain />} /> */}
               </CurrencyPairProvider>
             </AccountsProvider>
           </WalletProvider>
