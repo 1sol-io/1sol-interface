@@ -494,7 +494,7 @@ export const TradeEntry = () => {
   return (
     <>
       <div className="trade-header">
-        <div className="hd">Trade(Devnet)</div>
+        <div className="hd">Trade</div>
         <div className="bd">
           <Button
             ref={refreshBtnRef}

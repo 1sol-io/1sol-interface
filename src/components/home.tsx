@@ -90,7 +90,7 @@ export const HomePage = () => {
                   type="text"
                   size="large"
                 >
-                  Trade(Devnet)
+                  Trade
                 </Button>
               </Link>
             </div>
