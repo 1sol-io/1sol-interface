@@ -21,6 +21,7 @@ import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, queryJSONFile } from './utils'
 
 import {OneSolProtocol, AmmInfo} from '../utils/onesol-protocol'
+import { DEX_INFO, getDex, DEXS } from "./constant";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -73,7 +74,8 @@ interface ConnectionConfig {
   // tokenSwapPools: TokenSwapPool[],
   // serumMarkets: TokenSwapPool[],
   chainId: number,
-  ammInfos: AmmInfo[]
+  ammInfos: AmmInfo[],
+  dex: DEX_INFO,
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -89,7 +91,8 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   // tokenSwapPools: [],
   // serumMarkets: [],
   chainId: 103,
-  ammInfos: []
+  ammInfos: [],
+  dex: DEXS[1]
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -123,13 +126,17 @@ export function ConnectionProvider({ children = undefined as any }) {
   // const [serumMarkets, setSerumMarkets] = useState([])
   const [ammInfos, setAmmInfos] = useState<AmmInfo[]>([])
 
+  const [dex, setDex] = useState<DEX_INFO>(DEXS[1])
+
   useEffect(() => {
-    if (chain.endpoint !== ENDPOINTS[2].endpoint) {
+    if ([ENDPOINTS[0].endpoint, ENDPOINTS[2].endpoint].includes(chain.endpoint)) {
       notify({
         message: 'Wrong Network',
-        description: `${ENDPOINTS[2].name} is avaliable for now.` 
+        description: `${ENDPOINTS[0].name} and ${ENDPOINTS[2].name} is avaliable for now.` 
       })
     }
+
+    setDex(getDex(chain.name))
   }, [chain])
 
   useEffect(() => {
@@ -254,7 +261,8 @@ export function ConnectionProvider({ children = undefined as any }) {
         // tokenSwapPools,
         // serumMarkets,
         chainId,
-        ammInfos
+        ammInfos,
+        dex,
       }}
     >
       {children}
@@ -281,7 +289,8 @@ export function useConnectionConfig() {
     // tokenSwapPools: context.tokenSwapPools,
     // serumMarkets: context.serumMarkets,
     chainId: context.chainId,
-    ammInfos: context.ammInfos
+    ammInfos: context.ammInfos,
+    dex: context.dex,
   };
 }
 

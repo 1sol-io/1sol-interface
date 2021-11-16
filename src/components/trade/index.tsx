@@ -93,7 +93,7 @@ export const TradeEntry = () => {
   const [routeLabel, setRouteLable] = useState<string[]>([])
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap, chainId, ammInfos } = useConnectionConfig();
+  const { tokenMap, chainId, ammInfos, dex } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () {})
@@ -168,11 +168,10 @@ export const TradeEntry = () => {
           source_token_mint_key: A.mintAddress,
           destination_token_mint_key: B.mintAddress, 
           programs: [
-            TOKEN_SWAP_PROGRAM_ID.toBase58(), 
-            "DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY", // SERUM
-            STABLE_SWAP_PROGRAM_ID.toBase58(),
-            '554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3', // orca devnet
-            // '9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP' // orca mainnet
+            dex.TOKEN_SWAP.toBase58(),
+            dex.SERUM.toBase58(),
+            dex.SABER.toBase58(),
+            dex.ORCA.toBase58()
           ],
           support_single_route_per_tx: true
         }, 

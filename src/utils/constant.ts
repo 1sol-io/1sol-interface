@@ -1,16 +1,13 @@
 import { PublicKey } from "@solana/web3.js"
+import { SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID } from '@saberhq/stableswap-sdk'
+import { TOKEN_SWAP_PROGRAM_ID } from '@solana/spl-token-swap'
+
 import btc from '../assets/token/btc.png'
 import usdt from '../assets/token/usdt.png'
 import usdc from '../assets/token/usdc.png'
 import srm from '../assets/token/srm.png'
 import sol from '../assets/token/sol.png'
 import eth from '../assets/token/eth.png'
-
-// TODO
-// prograim id is different in different net
-export const TOKENSWAP_PROGRAM_ID = new PublicKey('SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8')
-export const SERUM_PROGRAM_ID = new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY')
-export const ONESOL_PROGRAM_ID = new PublicKey('HEQQHE6U6xp4aurpZFoBNguusLWs3cyyxV9A2qUA9cQo')
 
 export const SYMBOL_PAIRS = [
   // { name: 'AVAX/USD', key: 'DinfGKkKxJsU3kFnj173zSRdXNhZxxgZY8YC5GCQYhsi' },
@@ -41,4 +38,38 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_SERUM_DEX]: SERUM_DEX_MARKET_NAME,
   [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
   [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
+}
+
+export interface DEX_INFO {
+  name: string,
+  TOKEN_SWAP: PublicKey,
+  SERUM: PublicKey,
+  SABER: PublicKey,
+  ORCA: PublicKey,
+  ONESOL: PublicKey,
+}
+
+export const DEXS: DEX_INFO[] = [
+  {
+    name: 'mainnet-beta',
+    TOKEN_SWAP: new PublicKey(TOKEN_SWAP_PROGRAM_ID),
+    SERUM: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'),
+    SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
+    ORCA: new PublicKey('9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP'),
+    ONESOL: new PublicKey('1SoLTvbiicqXZ3MJmnTL2WYXKLYpuxwHpa4yYrVQaMZ'),
+  },
+  {
+    name: 'devnet',
+    TOKEN_SWAP: new PublicKey(TOKEN_SWAP_PROGRAM_ID),
+    SERUM: new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY'),
+    SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
+    ORCA: new PublicKey('554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3'),
+    ONESOL: new PublicKey('HEQQHE6U6xp4aurpZFoBNguusLWs3cyyxV9A2qUA9cQo'),
+  }
+]
+
+export const getDex = (envName: string) => {
+  const dex = DEXS.find(({ name }) => name === envName)
+
+  return dex || DEXS[1]
 }
