@@ -13,8 +13,6 @@ import {
 } from "@ant-design/icons";
 import axios, {AxiosRequestConfig} from 'axios'
 import { PublicKey } from "@solana/web3.js";
-import { SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID} from '@saberhq/stableswap-sdk'
-import { TOKEN_SWAP_PROGRAM_ID } from '@solana/spl-token-swap'
 
 import {
   useConnection,
@@ -161,7 +159,8 @@ export const TradeEntry = () => {
 
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig  = {
-        url: `https://api.1sol.io/1/swap/1/${chainId}`,
+        // url: `https://api.1sol.io/1/swap/1/${chainId}`,
+        url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
         method: 'post', 
         data: {
           amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),

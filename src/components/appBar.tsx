@@ -2,36 +2,45 @@ import React from 'react'
 import { Menu } from 'antd'
 import { AccountInfo } from './accountInfo'
 import { WalletConnect } from './walletConnect'
-import { Link, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
   const location = useLocation()
+
+  let current = location.pathname
+
+  if (location.pathname.includes('/trade')) {
+    current = '/trade'
+  }
 
   const TopBar = (
     <div className="App-Bar">
       <div className="App-Bar-left">
         <div className="App-logo" />
-        <Menu mode="horizontal" selectedKeys={[location.pathname]}>
+        <Menu mode="horizontal" selectedKeys={[current]}>
           <Menu.Item key="/home">
             <a href="https://1sol.io">Home</a>
           </Menu.Item>
           <Menu.Item key="/dashboard">
-            <Link
+            <NavLink
               to={{
                 pathname: '/dashboard'
               }}
             >
               Dashboard
-            </Link>
+            </NavLink>
           </Menu.Item>
-          <Menu.Item key="/trade/SOL-AJN">
-            <Link
+          <Menu.Item key="/trade">
+            <NavLink
               to={{
-                pathname: '/trade/SOL-AJN'
+                pathname: '/trade/SOL-USDC'
+              }}
+              isActive={(match, location) => {
+                return location.pathname.includes('/trade')
               }}
             >
               Trade
-            </Link>
+            </NavLink>
           </Menu.Item>
           <Menu.Item disabled key="lending">
             Lending
