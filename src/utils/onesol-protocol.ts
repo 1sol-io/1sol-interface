@@ -29,12 +29,14 @@ import {
 } from "@solana/spl-token";
 import {
   StableSwapLayout,
-  StableSwap,
   SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID,
 } from "@saberhq/stableswap-sdk";
 
 export const ONESOL_PROTOCOL_PROGRAM_ID: PublicKey = new PublicKey(
-  "9Bj8zgNWT6UaNcXMgzMFrnH5Z13nQ6vFkRNxP743zZyr"
+  "1SoLTvbiicqXZ3MJmnTL2WYXKLYpuxwHpa4yYrVQaMZ"
+);
+export const RAYDIUM_PROGRAM_ID: PublicKey = new PublicKey(
+  '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'
 );
 
 /**
@@ -102,7 +104,7 @@ export async function loadAccount(
   }
 
   if (!accountInfo.owner.equals(programId)) {
-    throw new Error(`Invalid owner: ${JSON.stringify(accountInfo.owner)}`);
+    throw new Error(`Invalid owner: ${JSON.stringify(accountInfo.owner.toBase58())}`);
   }
 
   return Buffer.from(accountInfo.data);
@@ -117,17 +119,13 @@ export const AmmInfoLayout = BufferLayout.struct([
   publicKeyLayout("tokenMintA"),
   publicKeyLayout("tokenAccountB"),
   publicKeyLayout("tokenMintB"),
-  BufferLayout.struct(
-    [
-      BufferLayout.blob(128, "TokenAInAmount"),
-      BufferLayout.blob(128, "TokenBOutAmount"),
-      uint64("tokenA2BFee"),
-      BufferLayout.blob(128, "TokenAInAmount"),
-      BufferLayout.blob(128, "TokenBOutAmount"),
-      uint64("tokenB2AFee"),
-    ],
-    "outputData"
-  ),
+  BufferLayout.blob(16, "TokenAInAmount"),
+  BufferLayout.blob(16, "TokenBOutAmount"),
+  uint64("tokenA2BFee"),
+  BufferLayout.blob(16, "TokenBInAmount"),
+  BufferLayout.blob(16, "TokenAOutAmount"),
+  uint64("tokenB2AFee"),
+  BufferLayout.blob(5),
 ]);
 
 export const DexMarketInfoLayout = BufferLayout.struct([
@@ -138,6 +136,61 @@ export const DexMarketInfoLayout = BufferLayout.struct([
   publicKeyLayout("coinMint"),
   publicKeyLayout("openOrders"),
   publicKeyLayout("dexProgramId"),
+]);
+
+export const RaydiumLiquidityStateLayout = BufferLayout.struct([
+  uint64("status"),
+  uint64("nonce"),
+  uint64("maxOrder"),
+  uint64("depth"),
+  uint64("baseDecimal"),
+  uint64("quoteDecimal"),
+  uint64("state"),
+  uint64("resetFlag"),
+  uint64("minSize"),
+  uint64("volMaxCutRatio"),
+  uint64("amountWaveRatio"),
+  uint64("baseLotSize"),
+  uint64("quoteLotSize"),
+  uint64("minPriceMultiplier"),
+  uint64("maxPriceMultiplier"),
+  uint64("systemDecimalValue"),
+  uint64("minSeparateNumerator"),
+  uint64("minSeparateDenominator"),
+  uint64("tradeFeeNumerator"),
+  uint64("tradeFeeDenominator"),
+  uint64("pnlNumerator"),
+  uint64("pnlDenominator"),
+  uint64("swapFeeNumerator"),
+  uint64("swapFeeDenominator"),
+  uint64("baseNeedTakePnl"),
+  uint64("quoteNeedTakePnl"),
+  uint64("quoteTotalPnl"),
+  uint64("baseTotalPnl"),
+  BufferLayout.blob(16, "quoteTotalDeposited"),
+  BufferLayout.blob(16, "baseTotalDeposited"),
+  BufferLayout.blob(16, "swapBaseInAmount"),
+  BufferLayout.blob(16, "swapQuoteOutAmount"),
+  uint64("swapBase2QuoteFee"),
+  BufferLayout.blob(16, "swapQuoteInAmount"),
+  BufferLayout.blob(16, "swapBaseOutAmount"),
+  uint64("swapQuote2BaseFee"),
+  // amm vault
+  publicKeyLayout("baseVault"),
+  publicKeyLayout("quoteVault"),
+  // mint
+  publicKeyLayout("baseMint"),
+  publicKeyLayout("quoteMint"),
+  publicKeyLayout("lpMint"),
+  // market
+  publicKeyLayout("openOrders"),
+  publicKeyLayout("marketId"),
+  publicKeyLayout("marketProgramId"),
+  publicKeyLayout("targetOrders"),
+  publicKeyLayout("withdrawQueue"),
+  publicKeyLayout("tempLpVault"),
+  publicKeyLayout("owner"),
+  publicKeyLayout("pnlOwner"),
 ]);
 
 export class TokenSwapInfo {
@@ -300,6 +353,63 @@ export class SaberStableSwapInfo {
   }
 }
 
+export class RaydiumAmmInfo {
+  constructor(
+    private programId: PublicKey,
+    private ammInfo: PublicKey,
+    private authority: PublicKey,
+    private ammOpenOrders: PublicKey,
+    private ammTargetOrders: PublicKey,
+    private poolCoinTokenAccount: PublicKey,
+    private poolPcTokenAccount: PublicKey,
+    private serumProgramId: PublicKey,
+    private serumMarket: PublicKey,
+    private serumBids: PublicKey,
+    private serumAsks: PublicKey,
+    private serumEventQueue: PublicKey,
+    private serumCoinVaultAccount: PublicKey,
+    private serumPcVaultAccount: PublicKey,
+    private serumVaultSigner: PublicKey,
+  ) {
+    this.programId = programId;
+    this.ammInfo = ammInfo;
+    this.authority = authority;
+    this.ammOpenOrders = ammOpenOrders;
+    this.ammTargetOrders = ammTargetOrders;
+    this.poolCoinTokenAccount = poolCoinTokenAccount;
+    this.poolPcTokenAccount = poolPcTokenAccount;
+    this.serumProgramId = serumProgramId;
+    this.serumMarket = serumMarket;
+    this.serumBids = serumBids;
+    this.serumAsks = serumAsks;
+    this.serumEventQueue = serumEventQueue;
+    this.serumCoinVaultAccount = serumCoinVaultAccount;
+    this.serumPcVaultAccount = serumPcVaultAccount;
+    this.serumVaultSigner = serumVaultSigner;
+  }
+
+  toKeys(): Array<AccountMeta> {
+    const keys = [
+      { pubkey: this.ammInfo, isSigner: false, isWritable: true },
+      { pubkey: this.authority, isSigner: false, isWritable: false },
+      { pubkey: this.ammOpenOrders, isSigner: false, isWritable: true },
+      { pubkey: this.ammTargetOrders, isSigner: false, isWritable: true },
+      { pubkey: this.poolCoinTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: this.poolPcTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: this.serumProgramId, isSigner: false, isWritable: false },
+      { pubkey: this.serumMarket, isSigner: false, isWritable: true },
+      { pubkey: this.serumBids, isSigner: false, isWritable: true },
+      { pubkey: this.serumAsks, isSigner: false, isWritable: true },
+      { pubkey: this.serumEventQueue, isSigner: false, isWritable: true },
+      { pubkey: this.serumCoinVaultAccount, isSigner: false, isWritable: true },
+      { pubkey: this.serumPcVaultAccount, isSigner: false, isWritable: true },
+      { pubkey: this.serumVaultSigner, isSigner: false, isWritable: false },
+      { pubkey: this.programId, isSigner: false, isWritable: false },
+    ];
+    return keys;
+  }
+}
+
 export class AmmInfo {
   constructor(
     public pubkey: PublicKey,
@@ -397,7 +507,6 @@ export class OneSolProtocol {
     programId = programId ? programId : ONESOL_PROTOCOL_PROGRAM_ID;
 
     let programAccounts = await connection.getProgramAccounts(programId, {
-      encoding: "base64",
       filters: [
         {
           memcmp: {
@@ -405,12 +514,15 @@ export class OneSolProtocol {
             bytes: bs58.encode(Buffer.from(Uint8Array.of(18))),
           },
         },
+        {
+          dataSize: AmmInfoLayout.span
+        },
       ],
     });
     const ammInfoArray = new Array<AmmInfo>();
-    programAccounts.forEach(async ({ pubkey, account }) => {
+    for (const { pubkey, account } of programAccounts) {
       ammInfoArray.push(await AmmInfo.from({ pubkey, account }));
-    });
+    }
     return ammInfoArray;
   }
 
@@ -474,6 +586,7 @@ export class OneSolProtocol {
       expectAmountOut,
       minimumAmountOut,
       splTokenSwapInfo,
+      useFull = false,
     }: {
       fromTokenAccountKey: PublicKey;
       toTokenAccountKey: PublicKey;
@@ -485,6 +598,7 @@ export class OneSolProtocol {
       expectAmountOut: Numberu64;
       minimumAmountOut: Numberu64;
       splTokenSwapInfo: TokenSwapInfo;
+      useFull?: boolean;
     },
     instructions: Array<TransactionInstruction>,
     signers: Array<Signer>
@@ -502,6 +616,7 @@ export class OneSolProtocol {
         amountIn: amountIn,
         expectAmountOut: expectAmountOut,
         minimumAmountOut: minimumAmountOut,
+        useFull,
       })
     );
   }
@@ -518,6 +633,7 @@ export class OneSolProtocol {
     amountIn,
     expectAmountOut,
     minimumAmountOut,
+    useFull = false,
   }: {
     ammInfo: AmmInfo;
     sourceTokenKey: PublicKey;
@@ -530,6 +646,7 @@ export class OneSolProtocol {
     amountIn: Numberu64;
     expectAmountOut: Numberu64;
     minimumAmountOut: Numberu64;
+    useFull?: boolean;
   }): Promise<TransactionInstruction> {
     if (
       !(
@@ -546,6 +663,7 @@ export class OneSolProtocol {
       uint64("amountIn"),
       uint64("expectAmountOut"),
       uint64("minimumAmountOut"),
+      BufferLayout.u8("useFull"),
     ]);
 
     let dataMap: any = {
@@ -553,6 +671,7 @@ export class OneSolProtocol {
       amountIn: amountIn.toBuffer(),
       expectAmountOut: expectAmountOut.toBuffer(),
       minimumAmountOut: minimumAmountOut.toBuffer(),
+      useFull: useFull ? 1 : 0,
     };
 
     const keys = [
@@ -587,6 +706,7 @@ export class OneSolProtocol {
       expectAmountOut,
       minimumAmountOut,
       stableSwapInfo,
+      useFull = false,
     }: {
       fromTokenAccountKey: PublicKey;
       toTokenAccountKey: PublicKey;
@@ -598,6 +718,7 @@ export class OneSolProtocol {
       expectAmountOut: Numberu64;
       minimumAmountOut: Numberu64;
       stableSwapInfo: SaberStableSwapInfo;
+      useFull?: boolean;
     },
     instructions: Array<TransactionInstruction>,
     signers: Array<Signer>
@@ -615,6 +736,7 @@ export class OneSolProtocol {
         amountIn: amountIn,
         expectAmountOut: expectAmountOut,
         minimumAmountOut: minimumAmountOut,
+        useFull
       })
     );
   }
@@ -631,6 +753,7 @@ export class OneSolProtocol {
     amountIn,
     expectAmountOut,
     minimumAmountOut,
+    useFull = false,
   }: {
     ammInfo: AmmInfo;
     sourceTokenKey: PublicKey;
@@ -643,6 +766,7 @@ export class OneSolProtocol {
     amountIn: Numberu64;
     expectAmountOut: Numberu64;
     minimumAmountOut: Numberu64;
+    useFull?: boolean;
   }): Promise<TransactionInstruction> {
     if (
       !(
@@ -659,6 +783,7 @@ export class OneSolProtocol {
       uint64("amountIn"),
       uint64("expectAmountOut"),
       uint64("minimumAmountOut"),
+      BufferLayout.u8("useFull"),
     ]);
 
     let dataMap: any = {
@@ -666,6 +791,7 @@ export class OneSolProtocol {
       amountIn: amountIn.toBuffer(),
       expectAmountOut: expectAmountOut.toBuffer(),
       minimumAmountOut: minimumAmountOut.toBuffer(),
+      useFull: useFull ? 1 : 0,
     };
 
     const keys = [
@@ -688,6 +814,125 @@ export class OneSolProtocol {
     });
   }
 
+  async createSwapByRaydiumSwapInstruction(
+    {
+      fromTokenAccountKey,
+      toTokenAccountKey,
+      fromMintKey,
+      toMintKey,
+      userTransferAuthority,
+      ammInfo,
+      amountIn,
+      expectAmountOut,
+      minimumAmountOut,
+      raydiumInfo,
+      useFull = false,
+    }: {
+      fromTokenAccountKey: PublicKey;
+      toTokenAccountKey: PublicKey;
+      fromMintKey: PublicKey;
+      toMintKey: PublicKey;
+      userTransferAuthority: PublicKey;
+      ammInfo: AmmInfo;
+      amountIn: Numberu64;
+      expectAmountOut: Numberu64;
+      minimumAmountOut: Numberu64;
+      raydiumInfo: RaydiumAmmInfo;
+      useFull?: boolean;
+    },
+    instructions: Array<TransactionInstruction>,
+    signers: Array<Signer>
+  ): Promise<void> {
+    instructions.push(
+      await OneSolProtocol.makeSwapByRaydiumSwapInstruction({
+        ammInfo: ammInfo,
+        sourceTokenKey: fromTokenAccountKey,
+        sourceMint: fromMintKey,
+        destinationTokenKey: toTokenAccountKey,
+        destinationMint: toMintKey,
+        transferAuthority: userTransferAuthority,
+        tokenProgramId: this.tokenProgramId,
+        raydiumInfo: raydiumInfo,
+        amountIn: amountIn,
+        expectAmountOut: expectAmountOut,
+        minimumAmountOut: minimumAmountOut,
+        useFull
+      })
+    );
+  }
+
+  static async makeSwapByRaydiumSwapInstruction({
+    ammInfo,
+    sourceTokenKey,
+    sourceMint,
+    destinationTokenKey,
+    destinationMint,
+    transferAuthority,
+    tokenProgramId,
+    raydiumInfo,
+    amountIn,
+    expectAmountOut,
+    minimumAmountOut,
+    useFull = false,
+  }: {
+    ammInfo: AmmInfo;
+    sourceTokenKey: PublicKey;
+    sourceMint: PublicKey;
+    destinationTokenKey: PublicKey;
+    destinationMint: PublicKey;
+    transferAuthority: PublicKey;
+    tokenProgramId: PublicKey;
+    raydiumInfo: RaydiumAmmInfo;
+    amountIn: Numberu64;
+    expectAmountOut: Numberu64;
+    minimumAmountOut: Numberu64;
+    useFull?: boolean;
+  }): Promise<TransactionInstruction> {
+    if (
+      !(
+        (sourceMint.equals(ammInfo.tokenMintA()) &&
+          destinationMint.equals(ammInfo.tokenMintB())) ||
+        (sourceMint.equals(ammInfo.tokenMintB()) &&
+          destinationMint.equals(ammInfo.tokenMintA()))
+      )
+    ) {
+      throw new Error(`ammInfo(${ammInfo.pubkey}) error`);
+    }
+    const dataLayout = BufferLayout.struct([
+      BufferLayout.u8("instruction"),
+      uint64("amountIn"),
+      uint64("expectAmountOut"),
+      uint64("minimumAmountOut"),
+      BufferLayout.u8("useFull"),
+    ]);
+
+    let dataMap: any = {
+      instruction: 9, // Swap instruction
+      amountIn: amountIn.toBuffer(),
+      expectAmountOut: expectAmountOut.toBuffer(),
+      minimumAmountOut: minimumAmountOut.toBuffer(),
+      useFull: useFull ? 1 : 0,
+    };
+
+    const keys = [
+      { pubkey: sourceTokenKey, isSigner: false, isWritable: true },
+      { pubkey: destinationTokenKey, isSigner: false, isWritable: true },
+      { pubkey: transferAuthority, isSigner: true, isWritable: false },
+      { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+    ];
+    keys.push(...ammInfo.toKeys());
+    const swapKeys = raydiumInfo.toKeys();
+    keys.push(...swapKeys);
+
+    const data = Buffer.alloc(dataLayout.span);
+    dataLayout.encode(dataMap, data);
+
+    return new TransactionInstruction({
+      keys,
+      programId: ammInfo.programId,
+      data,
+    });
+  }
 
   async createSwapBySerumDexInstruction(
     {
@@ -701,6 +946,7 @@ export class OneSolProtocol {
       expectAmountOut,
       minimumAmountOut,
       dexMarketInfo,
+      useFull = false,
     }: {
       fromTokenAccountKey: PublicKey;
       toTokenAccountKey: PublicKey;
@@ -712,6 +958,7 @@ export class OneSolProtocol {
       expectAmountOut: Numberu64;
       minimumAmountOut: Numberu64;
       dexMarketInfo: SerumDexMarketInfo;
+      useFull?: boolean;
     },
     instructions: Array<TransactionInstruction>,
     signers: Array<Signer>
@@ -729,6 +976,7 @@ export class OneSolProtocol {
         amountIn: amountIn,
         expectAmountOut,
         minimumAmountOut,
+        useFull
       })
     );
   }
@@ -745,6 +993,7 @@ export class OneSolProtocol {
     amountIn,
     expectAmountOut,
     minimumAmountOut,
+    useFull = false,
   }: {
     ammInfo: AmmInfo;
     sourceTokenKey: PublicKey;
@@ -757,6 +1006,7 @@ export class OneSolProtocol {
     amountIn: Numberu64;
     expectAmountOut: Numberu64;
     minimumAmountOut: Numberu64;
+    useFull?: boolean,
   }): Promise<TransactionInstruction> {
     if (
       !(
@@ -773,6 +1023,7 @@ export class OneSolProtocol {
       uint64("amountIn"),
       uint64("expectAmountOut"),
       uint64("minimumAmountOut"),
+      BufferLayout.u8("useFull"),
     ];
     // console.log("side: " + side + ", exchangeRate: " + exchangeRate);
     let dataMap: any = {
@@ -780,6 +1031,7 @@ export class OneSolProtocol {
       amountIn: amountIn.toBuffer(),
       expectAmountOut: expectAmountOut.toBuffer(),
       minimumAmountOut: minimumAmountOut.toBuffer(),
+      useFull: useFull ? 1 : 0,
     };
 
     const keys = [
@@ -1114,5 +1366,57 @@ export async function loadSaberStableSwap(
     tokenAccountB,
     mintB,
     adminFeeAccountB
+  );
+}
+
+
+
+export async function loadRaydiumAmmInfo(
+  {
+    connection,
+    address,
+    programId = RAYDIUM_PROGRAM_ID,
+  }: {
+    connection: Connection;
+    address: PublicKey,
+    programId?: PublicKey,
+  }
+): Promise<RaydiumAmmInfo> {
+  const data = await loadAccount(connection, address, programId);
+  const raydiumDecoded = RaydiumLiquidityStateLayout.decode(data);
+
+  // this from raydium-sdk src/liquidity/liquidity.ts:getAuthority()
+  const [authority, _] = await PublicKey.findProgramAddress(
+    [Buffer.from([97, 109, 109, 32, 97, 117, 116, 104, 111, 114, 105, 116, 121])],
+    programId
+  );
+
+  const serumMarketProgramId = new PublicKey(raydiumDecoded.marketProgramId);
+  const serumMarket = new PublicKey(raydiumDecoded.marketId);
+  const marketDecoded = Market.getLayout(serumMarketProgramId).decode(await loadAccount(connection, serumMarket, serumMarketProgramId));
+
+  const vaultSignerNonce = marketDecoded.vaultSignerNonce;
+
+  const vaultSigner = await PublicKey.createProgramAddress(
+    [serumMarket.toBuffer()].concat(vaultSignerNonce.toArrayLike(Buffer, "le", 8)),
+    serumMarketProgramId
+  );
+
+  return new RaydiumAmmInfo(
+    programId,
+    address,
+    authority,
+    new PublicKey(raydiumDecoded.openOrders),
+    new PublicKey(raydiumDecoded.targetOrders),
+    new PublicKey(raydiumDecoded.baseVault),
+    new PublicKey(raydiumDecoded.quoteVault),
+    serumMarketProgramId,
+    serumMarket,
+    new PublicKey(marketDecoded.bids),
+    new PublicKey(marketDecoded.asks),
+    new PublicKey(marketDecoded.eventQueue),
+    new PublicKey(marketDecoded.baseVault),
+    new PublicKey(marketDecoded.quoteVault),
+    vaultSigner
   );
 }
