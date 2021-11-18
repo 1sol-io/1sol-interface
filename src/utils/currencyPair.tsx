@@ -174,7 +174,7 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   // Updates tokens on location change
   useEffect(() => {
-    if (!location.pathname.includes('/trade/')) {
+    if (!location.pathname.includes('/trade/') || (mintAddressA && mintAddressB)) {
       return
     }
 

@@ -15,20 +15,20 @@ export const Settings = () => {
           <Slippage />
         </div>
       </div>
-      {/* <div style={{ display: "grid" }}>
-        Network:{" "}
-        <Select
-          onSelect={setEndpoint}
-          value={endpoint}
-          style={{ marginRight: 8 }}
-        >
-          {ENDPOINTS.map(({ name, endpoint }) => (
-            <Select.Option value={endpoint} key={endpoint}>
-              {name}
-            </Select.Option>
-          ))}
-        </Select>
-      </div> */}
+        {/* <div style={{ display: "grid" }}>
+          Network:{" "}
+          <Select
+            onSelect={setEndpoint}
+            value={endpoint}
+            style={{ marginRight: 8 }}
+          >
+            {ENDPOINTS.map(({ name, endpoint }) => (
+              <Select.Option value={endpoint} key={endpoint}>
+                {name}
+              </Select.Option>
+            ))}
+          </Select>
+        </div> */}
     </>
   );
 };

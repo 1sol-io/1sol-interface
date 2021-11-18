@@ -26,11 +26,13 @@ export const SERUM_DEX_MARKET_NAME = 'Serum'
 export const ONESOL_NAME = '1Sol'
 export const SABER_STABLE_SWAP_NAME = 'Saber'
 export const ORCA_SWAP_NAME = 'Orca'
+export const RAYDIUM_NAME = 'Raydium'
 
 export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
 export const EXCHANGER_SERUM_DEX = 'SerumDex'
 export const EXCHANGER_SABER_STABLE_SWAP = 'SaberStableSwap'
 export const EXCHANGER_ORCA_SWAP = 'OrcaSwap'
+export const EXCHANGER_RAYDIUM = 'Raydium'
 
 export const PROVIDER_MAP: { [key: string]: string } = {
   best_route: ONESOL_NAME,
@@ -38,6 +40,7 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_SERUM_DEX]: SERUM_DEX_MARKET_NAME,
   [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
   [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
+  [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
 }
 
 export interface DEX_INFO {
@@ -47,6 +50,7 @@ export interface DEX_INFO {
   SABER: PublicKey,
   ORCA: PublicKey,
   ONESOL: PublicKey,
+  RAYDIUM: PublicKey,
 }
 
 export const DEXS: DEX_INFO[] = [
@@ -57,6 +61,7 @@ export const DEXS: DEX_INFO[] = [
     SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
     ORCA: new PublicKey('9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP'),
     ONESOL: new PublicKey('1SoLTvbiicqXZ3MJmnTL2WYXKLYpuxwHpa4yYrVQaMZ'),
+    RAYDIUM: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
   },
   {
     name: 'devnet',
@@ -64,7 +69,8 @@ export const DEXS: DEX_INFO[] = [
     SERUM: new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY'),
     SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
     ORCA: new PublicKey('554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3'),
-    ONESOL: new PublicKey('HEQQHE6U6xp4aurpZFoBNguusLWs3cyyxV9A2qUA9cQo'),
+    ONESOL: new PublicKey('9Bj8zgNWT6UaNcXMgzMFrnH5Z13nQ6vFkRNxP743zZyr'),
+    RAYDIUM: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
   }
 ]
 

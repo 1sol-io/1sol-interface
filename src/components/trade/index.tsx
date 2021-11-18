@@ -159,8 +159,8 @@ export const TradeEntry = () => {
 
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig  = {
-        // url: `https://api.1sol.io/1/swap/1/${chainId}`,
-        url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
+        url: `https://api.1sol.io/1/swap/1/${chainId}`,
+        // url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
         method: 'post', 
         data: {
           amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
@@ -274,20 +274,15 @@ export const TradeEntry = () => {
     } catch(e) {
       if (axios.isAxiosError(e)) {
         console.error(e)
-        // if (!e.response) {
-        //   notify({
-        //     message: 'Network Error',
-        //     type: 'error'
-        //   })
-        // } else 
+
         if (!axios.isCancel(e) && e.response) {
           loading.current = false
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
-        }
-      } 
 
-      setAmounts([])
-      setDistributions([])
+          setAmounts([])
+          setDistributions([])
+        } 
+      } 
     }
 
     refreshBtnRef.current.classList.remove('refresh-btn')
@@ -659,7 +654,7 @@ export const TradeEntry = () => {
             </Tooltip> */}
           </div>
         :null
-      }
+      } 
 
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}

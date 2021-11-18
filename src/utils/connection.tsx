@@ -141,11 +141,11 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const infos = await OneSolProtocol.loadAllAmmInfos(connection)
+      const infos = await OneSolProtocol.loadAllAmmInfos(connection, dex.ONESOL)
 
       setAmmInfos(infos)
     })()
-  }, [connection])
+  }, [connection, dex])
 
   // useEffect(() => {
   //   (async () => {
