@@ -15,7 +15,7 @@ export const Settings = () => {
           <Slippage />
         </div>
       </div>
-        {/* <div style={{ display: "grid" }}>
+        <div style={{ display: "grid" }}>
           Network:{" "}
           <Select
             onSelect={setEndpoint}
@@ -28,7 +28,7 @@ export const Settings = () => {
               </Select.Option>
             ))}
           </Select>
-        </div> */}
+        </div>
     </>
   );
 };

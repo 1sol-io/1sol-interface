@@ -871,10 +871,6 @@ async function oneStepSwap(
   const expectAmountOut = new Numberu64(amount_out)
   const minimumAmountOut = new Numberu64(amount_out * (1 - slippage))
 
-  console.log(`amountIn: ${amountIn.toString()}`)
-  console.log(`expectAmountOut: ${expectAmountOut.toString()}`)
-  console.log(`minimumAmountOut: ${minimumAmountOut.toString()}`)
-
   const fromAccount = getWrappedAccount(
     instructions,
     cleanupInstructions,
@@ -998,7 +994,7 @@ export async function onesolProtocolSwap(
     const [one] = oneRoutes
     const [two] = twoRoutes
 
-    const isNew = await oneStepSwap({
+    await oneStepSwap({
       onesolProtocol,
       connection,
       wallet,
@@ -1011,7 +1007,6 @@ export async function onesolProtocolSwap(
       step: 1,
       steps: 2,
     })
-    console.log(`isNew: ${isNew}`)
 
     const tokenAccountC = getCachedAccount(
       (acc) =>
@@ -1020,6 +1015,9 @@ export async function onesolProtocolSwap(
     )
 
     if (tokenAccountC) {
+      const balance = tokenAccountC.info.amount
+      const amount = balance.gt(two.amount_in) ? two.amount_in : balance.toNumber()
+
       await oneStepSwap({
         onesolProtocol,
         connection,
@@ -1027,12 +1025,11 @@ export async function onesolProtocolSwap(
         A: { mintAddress: one.destination_token_mint.pubkey, account: tokenAccountC },
         B: { mintAddress: B.mintAddress, account: B.account },
         ammInfo: ammInfos[1],
-        component: { mintAddress: one.destination_token_mint.pubkey, amount: two.amount_in },
-        route: two,
+        component: { mintAddress: one.destination_token_mint.pubkey, amount },
+        route: { ...two, amount_in: amount },
         slippage,
         step: 2,
         steps: 2,
-        useFull: isNew
       })
     }
   } else {
