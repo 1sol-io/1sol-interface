@@ -160,7 +160,6 @@ export const TradeEntry = () => {
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig  = {
         url: `https://api.1sol.io/1/swap/1/${chainId}`,
-        // url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
         method: 'post', 
         data: {
           amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
@@ -763,7 +762,7 @@ export const TradeRoute = (props: { amounts: Route[][] }) => {
                         <span>{route.from}</span>
                         <ArrowRightOutlined />
                         <span>{route.to}</span>
-                        <span>{route.ratio}%</span>
+                        <span>{route.ratio.toFixed(2)}%</span>
                       </div>
                     </div>
                   </div>

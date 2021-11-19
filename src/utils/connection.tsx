@@ -20,7 +20,7 @@ import {
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, queryJSONFile } from './utils'
 
-import {OneSolProtocol, AmmInfo} from '../utils/onesol-protocol'
+import { OneSolProtocol, AmmInfo } from '../utils/onesol-protocol'
 import { DEX_INFO, getDex, DEXS } from "./constant";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
@@ -80,9 +80,9 @@ interface ConnectionConfig {
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
   endpoint: DEFAULT,
-  setEndpoint: () => {},
+  setEndpoint: () => { },
   slippage: DEFAULT_SLIPPAGE,
-  setSlippage: (val: number) => {},
+  setSlippage: (val: number) => { },
   connection: new Connection(DEFAULT, "recent"),
   // sendConnection: new Connection(DEFAULT, "recent"),
   env: ENDPOINTS[0].name,
@@ -132,7 +132,7 @@ export function ConnectionProvider({ children = undefined as any }) {
     if (![ENDPOINTS[0].endpoint, ENDPOINTS[1].endpoint].includes(chain.endpoint)) {
       notify({
         message: 'Wrong Network',
-        description: `${ENDPOINTS[0].name} is avaliable for now.` 
+        description: `${ENDPOINTS[0].name} is avaliable for now.`
       })
     }
 
@@ -186,11 +186,11 @@ export function ConnectionProvider({ children = undefined as any }) {
       }, new Map<string, TokenInfo>());
 
       const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
-      
+
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
 
-        if(!account) {
+        if (!account) {
           knownMints.delete(accounts.keys[index]);
 
           return;
@@ -214,7 +214,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
   // This is a hack to prevent the list from every getting empty
   useEffect(() => {
-    const id = connection.onAccountChange(new Account().publicKey, () => {});
+    const id = connection.onAccountChange(new Account().publicKey, () => { });
 
     return () => {
       connection.removeAccountChangeListener(id);
@@ -334,7 +334,9 @@ export const sendTransaction = async (
   awaitConfirmation = true
 ) => {
   let transaction = new Transaction();
+
   instructions.forEach((instruction) => transaction.add(instruction));
+
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
@@ -350,8 +352,11 @@ export const sendTransaction = async (
   if (signers.length > 0) {
     transaction.partialSign(...signers);
   }
+
   transaction = await wallet.signTransaction(transaction);
+
   const rawTransaction = transaction.serialize();
+
   let options = {
     skipPreflight: true,
     commitment: "confirmed",
@@ -369,6 +374,7 @@ export const sendTransaction = async (
 
     if (status?.err) {
       const errors = await getErrorForTransaction(connection, txid);
+
       notify({
         message: "Transaction failed...",
         description: (
