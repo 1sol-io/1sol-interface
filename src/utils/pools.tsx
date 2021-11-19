@@ -971,9 +971,10 @@ export async function onesolProtocolSwap(
   ammInfos: AmmInfo[],
   distribution: any,
   components: LiquidityComponent[],
-  slippage: number
+  slippage: number,
+  oneSolProgramId: PublicKey
 ) {
-  const onesolProtocol: OneSolProtocol = await OneSolProtocol.createOneSolProtocol({ connection, wallet: wallet.publicKey })
+  const onesolProtocol: OneSolProtocol = await OneSolProtocol.createOneSolProtocol({ connection, wallet: wallet.publicKey, programId: oneSolProgramId })
 
   if (!onesolProtocol) {
     return
@@ -1158,7 +1159,6 @@ export async function onesolProtocolSwap(
         return
       }
 
-      console.log(instructions)
       const tx = await sendTransaction(
         connection,
         wallet,
