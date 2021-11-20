@@ -20,7 +20,6 @@ import {
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, queryJSONFile } from './utils'
 
-import { OneSolProtocol, AmmInfo } from '../utils/onesol-protocol'
 import { DEX_INFO, getDex, DEXS } from "./constant";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
@@ -49,7 +48,7 @@ export const ENDPOINTS = [
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;
-const DEFAULT_SLIPPAGE = 0.05;
+const DEFAULT_SLIPPAGE = 0.005;
 
 export interface TokenSwapPool {
   address: string,
@@ -71,10 +70,7 @@ interface ConnectionConfig {
   setEndpoint: (val: string) => void;
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
-  // tokenSwapPools: TokenSwapPool[],
-  // serumMarkets: TokenSwapPool[],
   chainId: number,
-  ammInfos: AmmInfo[],
   dex: DEX_INFO,
 }
 
@@ -88,10 +84,7 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   env: ENDPOINTS[0].name,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
-  // tokenSwapPools: [],
-  // serumMarkets: [],
   chainId: 101,
-  ammInfos: [],
   dex: DEXS[0]
 });
 
@@ -122,9 +115,6 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
 
-  // const [tokenSwapPools, setTokenSwapPools] = useState([])
-  // const [serumMarkets, setSerumMarkets] = useState([])
-  const [ammInfos, setAmmInfos] = useState<AmmInfo[]>([])
 
   const [dex, setDex] = useState<DEX_INFO>(DEXS[0])
 
@@ -138,34 +128,6 @@ export function ConnectionProvider({ children = undefined as any }) {
 
     setDex(getDex(chain.name))
   }, [chain])
-
-  useEffect(() => {
-    (async () => {
-      const infos = await OneSolProtocol.loadAllAmmInfos(connection, dex.ONESOL)
-
-      setAmmInfos(infos)
-    })()
-  }, [connection, dex])
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const json = await queryJSONFile(
-  //       "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/pools/1sol.pools.json",
-  //     );
-
-  //     setTokenSwapPools(json)
-  //   })();
-  // }, [chain, connection])
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const json = await queryJSONFile(
-  //       "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/markets/1sol.markets.json",
-  //     );
-
-  //     setSerumMarkets(json)
-  //   })();
-  // }, [chain, connection])
 
   useEffect(() => {
     (async () => {
@@ -258,10 +220,7 @@ export function ConnectionProvider({ children = undefined as any }) {
         tokens,
         tokenMap,
         env,
-        // tokenSwapPools,
-        // serumMarkets,
         chainId,
-        ammInfos,
         dex,
       }}
     >
@@ -286,10 +245,7 @@ export function useConnectionConfig() {
     env: context.env,
     tokens: context.tokens,
     tokenMap: context.tokenMap,
-    // tokenSwapPools: context.tokenSwapPools,
-    // serumMarkets: context.serumMarkets,
     chainId: context.chainId,
-    ammInfos: context.ammInfos,
     dex: context.dex,
   };
 }
@@ -326,6 +282,44 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
   return errors;
 };
 
+export interface Transactions {
+  instructions: TransactionInstruction[],
+  signers: Signer[],
+  cleanInstructions?: TransactionInstruction[],
+}
+
+export const signAllTransactions = async (
+  connection: Connection,
+  wallet: any,
+  transactions: {
+    instructions: TransactionInstruction[],
+    signers: Signer[],
+  }[]
+) => {
+  const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
+
+  const _transactions = transactions.map(({ instructions, signers }) => {
+    let transaction = new Transaction();
+
+    instructions.forEach((instruction) => transaction.add(instruction));
+
+    transaction.recentBlockhash = blockhash;
+
+    transaction.feePayer = wallet.publicKey
+
+    if (signers.length > 0) {
+      transaction.partialSign(...signers);
+    }
+
+    return transaction;
+  })
+
+  const signedTransactions = await wallet.signAllTransactions(_transactions);
+
+  return signedTransactions
+
+}
+
 export const sendTransaction = async (
   connection: Connection,
   wallet: any,
@@ -340,12 +334,6 @@ export const sendTransaction = async (
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
   ).blockhash;
-
-  // transaction.setSigners(
-  //   // fee payied by the wallet owner
-  //   wallet.publicKey,
-  //   ...signers.map((s) => s.publicKey)
-  // );
 
   transaction.feePayer = wallet.publicKey
 
@@ -396,3 +384,49 @@ export const sendTransaction = async (
 
   return txid;
 };
+
+export const sendSignedTransaction = async (
+  connection: Connection,
+  wallet: any,
+  transaction: Transaction,
+  awaitConfirmation = true
+) => {
+  let options = {
+    skipPreflight: true,
+    commitment: "confirmed",
+  };
+
+  const txid = await connection.sendRawTransaction(transaction.serialize(), options);
+
+  if (awaitConfirmation) {
+    const status = (
+      await connection.confirmTransaction(
+        txid,
+        options && (options.commitment as any)
+      )
+    ).value;
+
+    if (status?.err) {
+      const errors = await getErrorForTransaction(connection, txid);
+
+      notify({
+        message: "Transaction failed...",
+        description: (
+          <>
+            {errors.map((err, i) => (
+              <div key={i}>{err}</div>
+            ))}
+            <ExplorerLink address={txid} type="transaction" />
+          </>
+        ),
+        type: "error",
+      });
+
+      throw new Error(
+        `Raw transaction ${txid} failed (${JSON.stringify(status)})`
+      );
+    }
+  }
+
+  return txid;
+}

@@ -38,7 +38,6 @@ import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
 import { PROVIDER_MAP } from "../../utils/constant";
-import { AmmInfo } from "../../utils/onesol-protocol";
 import { WRAPPED_SOL_MINT } from "../../utils/ids";
 
 import timeoutIcon from '../../assets/4.gif'
@@ -54,6 +53,10 @@ interface Distribution {
   provider: string,
   split_tx: boolean,
   offset?: number,
+  destination_token_mint: {
+    decimals: number,
+    pubkey: string
+  }
 }
 
 interface Route {
@@ -91,7 +94,7 @@ export const TradeEntry = () => {
   const [routeLabel, setRouteLable] = useState<string[]>([])
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap, chainId, ammInfos, dex } = useConnectionConfig();
+  const { tokenMap, chainId, dex } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () { })
@@ -167,7 +170,7 @@ export const TradeEntry = () => {
         destination_token_mint_key: B.mintAddress,
         programs: [
           dex.TOKEN_SWAP.toBase58(),
-          dex.SERUM.toBase58(),
+          // dex.SERUM.toBase58(),
           dex.SABER.toBase58(),
           dex.ORCA.toBase58()
         ],
@@ -189,6 +192,10 @@ export const TradeEntry = () => {
             exchanger_flag: string,
             routes: any[],
             split_tx: boolean,
+            destination_token_mint: {
+              decimals: number,
+              pubkey: string
+            }
           } | undefined,
           distributions: any
         }
@@ -288,7 +295,7 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
 
-  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap, dex])
 
   useEffect(() => {
     setAmounts([])
@@ -374,43 +381,23 @@ export const TradeEntry = () => {
     try {
       setPendingTx(true);
 
-      const components = [
-        {
-          account: A.account,
-          mintAddress: A.mintAddress,
-          amount: A.convertAmount(),
-        },
-        {
-          mintAddress: B.mintAddress,
-          amount: B.convertAmount(),
-        },
-      ];
-
       const distribution = distributions.find(({ id }: { id: string }) => id === choice.current)
 
       if (!distribution || !distribution.routes.length) {
         return
       }
 
-      let amms: AmmInfo[] = []
-
-      distribution.routes.forEach((route: any[]) => {
-        const [first] = route
-
-        if (first) {
-          const ammInfo: AmmInfo | undefined = ammInfos.find((pool: AmmInfo) => {
-            const mints: string[] = [pool.tokenMintA().toBase58(), pool.tokenMintB().toBase58()]
-
-            return mints.includes(first.source_token_mint.pubkey) && mints.includes(first.destination_token_mint.pubkey)
-          })
-
-          if (ammInfo) {
-            amms.push(ammInfo)
-          }
-        }
-      })
-
-      await onesolProtocolSwap(connection, wallet, A, B, amms, distribution, components, slippage, dex.ONESOL);
+      await onesolProtocolSwap(
+        connection, 
+        wallet, 
+        A, 
+        B, 
+        distribution, 
+        slippage, 
+        dex.ONESOL, 
+        // @ts-ignore
+        new PublicKey(tokenMap.get(distribution.destination_token_mint.pubkey).feeAccount)
+      );
 
       A.setAmount('')
     } catch (e) {
