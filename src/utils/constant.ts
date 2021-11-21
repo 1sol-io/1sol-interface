@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { PublicKey } from "@solana/web3.js"
-import { SWAP_PROGRAM_ID as SABER__SWAP_PROGRAM_ID } from '@saberhq/stableswap-sdk'
-import { TOKEN_SWAP_PROGRAM_ID as TOKENSWAP_PROGRAM_ID } from '@solana/spl-token-swap'
+import { TOKEN_PROGRAM_ID as TOKENPROGRAMID } from '@solana/spl-token'
 
 import btc from '../assets/token/btc.png'
 import usdt from '../assets/token/usdt.png'
@@ -46,6 +45,8 @@ export const PROVIDER_MAP: { [key: string]: string } = {
 
 const {
   REACT_APP_ONESOL,
+  REACT_APP_TOKEN_SWAP,
+  REACT_APP_SABER,
   REACT_APP_ORCA,
   REACT_APP_RAYDIUM,
   REACT_APP_SERUM,
@@ -53,11 +54,13 @@ const {
 
 export const ONESOL_PROGRAM_ID = new PublicKey(REACT_APP_ONESOL)
 
-export const TOKEN_SWAP_PROGRAM_ID = TOKENSWAP_PROGRAM_ID
-export const SABER_PROGRAM_ID = SABER__SWAP_PROGRAM_ID
+export const TOKEN_SWAP_PROGRAM_ID = new PublicKey(REACT_APP_TOKEN_SWAP)
+export const SABER_PROGRAM_ID = new PublicKey(REACT_APP_SABER)
 
 export const SERUM_PROGRAM_ID = new PublicKey(REACT_APP_SERUM)
 export const ORCA_PROGRAM_ID = new PublicKey(REACT_APP_ORCA)
 export const RAYDIUM_PROGRAM_ID = new PublicKey(REACT_APP_RAYDIUM)
 
 export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
+
+export const TOKEN_PROGRAM_ID = TOKENPROGRAMID

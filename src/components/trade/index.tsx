@@ -170,6 +170,7 @@ export const TradeEntry = () => {
 
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig = {
+      // url: `https://api.1sol.io/1/swap/1/${chainId}`,
       url: `https://api.1sol.io/1/swap/1/${chainId}`,
       method: 'post',
       data: {

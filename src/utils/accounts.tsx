@@ -4,11 +4,12 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { AccountLayout, u64, MintInfo, MintLayout, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+
 import { useConnection } from "./connection";
 import { useWallet } from "../context/wallet";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { WRAPPED_SOL_MINT } from "./constant";
-import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
 import { TokenAccount } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
@@ -369,7 +370,7 @@ const precacheUserTokenAccounts = async (
 
   // user accounts are update via ws subscription
   const accounts = await connection.getTokenAccountsByOwner(owner, {
-    programId: programIds().token,
+    programId: TOKEN_PROGRAM_ID,
   });
 
   accounts.value
