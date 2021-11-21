@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { PublicKey } from "@solana/web3.js"
-import { SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID } from '@saberhq/stableswap-sdk'
-import { TOKEN_SWAP_PROGRAM_ID } from '@solana/spl-token-swap'
+import { SWAP_PROGRAM_ID as SABER__SWAP_PROGRAM_ID } from '@saberhq/stableswap-sdk'
+import { TOKEN_SWAP_PROGRAM_ID as TOKENSWAP_PROGRAM_ID } from '@solana/spl-token-swap'
 
 import btc from '../assets/token/btc.png'
 import usdt from '../assets/token/usdt.png'
@@ -43,39 +44,20 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
 }
 
-export interface DEX_INFO {
-  name: string,
-  TOKEN_SWAP: PublicKey,
-  SERUM: PublicKey,
-  SABER: PublicKey,
-  ORCA: PublicKey,
-  ONESOL: PublicKey,
-  RAYDIUM: PublicKey,
-}
+const {
+  REACT_APP_ONESOL,
+  REACT_APP_ORCA,
+  REACT_APP_RAYDIUM,
+  REACT_APP_SERUM,
+} = process.env
 
-export const DEXS: DEX_INFO[] = [
-  {
-    name: 'mainnet-beta',
-    TOKEN_SWAP: new PublicKey(TOKEN_SWAP_PROGRAM_ID),
-    SERUM: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'),
-    SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
-    ORCA: new PublicKey('9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP'),
-    ONESOL: new PublicKey('1SoLTvbiicqXZ3MJmnTL2WYXKLYpuxwHpa4yYrVQaMZ'),
-    RAYDIUM: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
-  },
-  {
-    name: 'devnet',
-    TOKEN_SWAP: new PublicKey(TOKEN_SWAP_PROGRAM_ID),
-    SERUM: new PublicKey('DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY'),
-    SABER: new PublicKey(STABLE_SWAP_PROGRAM_ID),
-    ORCA: new PublicKey('554sF8DLPVoUrLyjKqjKzPEksz7VtzurThPjFuVAoge3'),
-    ONESOL: new PublicKey('9Bj8zgNWT6UaNcXMgzMFrnH5Z13nQ6vFkRNxP743zZyr'),
-    RAYDIUM: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
-  }
-]
+export const ONESOL_PROGRAM_ID = new PublicKey(REACT_APP_ONESOL)
 
-export const getDex = (envName: string) => {
-  const dex = DEXS.find(({ name }) => name === envName)
+export const TOKEN_SWAP_PROGRAM_ID = TOKENSWAP_PROGRAM_ID
+export const SABER_PROGRAM_ID = SABER__SWAP_PROGRAM_ID
 
-  return dex || DEXS[0]
-}
+export const SERUM_PROGRAM_ID = new PublicKey(REACT_APP_SERUM)
+export const ORCA_PROGRAM_ID = new PublicKey(REACT_APP_ORCA)
+export const RAYDIUM_PROGRAM_ID = new PublicKey(REACT_APP_RAYDIUM)
+
+export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')

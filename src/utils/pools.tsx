@@ -19,7 +19,6 @@ import {
 } from "./accounts";
 import {
   programIds,
-  WRAPPED_SOL_MINT,
 } from "./ids";
 import {
   PoolInfo,
@@ -42,7 +41,8 @@ import {
   EXCHANGER_SPL_TOKEN_SWAP,
   EXCHANGER_SABER_STABLE_SWAP,
   EXCHANGER_ORCA_SWAP,
-  EXCHANGER_RAYDIUM
+  EXCHANGER_RAYDIUM,
+  ONESOL_PROGRAM_ID,WRAPPED_SOL_MINT
 } from "./constant";
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
@@ -1345,13 +1345,12 @@ export async function onesolProtocolSwap(
   B: CurrencyContextState,
   distribution: any,
   slippage: number,
-  oneSolProgramId: PublicKey,
   feeTokenAccount: PublicKey,
 ) {
   const onesolProtocol: OneSolProtocol = await OneSolProtocol.createOneSolProtocol({
     connection,
     wallet: wallet.publicKey,
-    programId: oneSolProgramId
+    programId: ONESOL_PROGRAM_ID
   })
 
   if (!onesolProtocol) {
@@ -1430,6 +1429,7 @@ export async function onesolProtocolSwap(
       notify({
         message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
         description: `Transaction - ${tx}`,
+        type: 'success',
         duration: 6
       });
     }

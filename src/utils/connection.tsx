@@ -1,4 +1,5 @@
-import { useLocalStorageState } from "./utils";
+
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Account,
   clusterApiUrl,
@@ -8,19 +9,19 @@ import {
   Signer,
   TransactionInstruction,
 } from "@solana/web3.js";
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { setProgramIds } from "./ids";
-import { notify } from "./notifications";
-import { ExplorerLink } from "../components/explorerLink";
 import {
   ENV as ChainID,
   TokenInfo,
   TokenListContainer
 } from "@solana/spl-token-registry";
+
+import { useLocalStorageState } from "./utils";
+import { notify } from "./notifications";
+import { ExplorerLink } from "../components/explorerLink";
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, queryJSONFile } from './utils'
 
-import { DEX_INFO, getDex, DEXS } from "./constant";
+import { setProgramIds } from "./ids";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -71,7 +72,6 @@ interface ConnectionConfig {
   tokens: TokenInfo[];
   tokenMap: Map<string, TokenInfo>;
   chainId: number,
-  dex: DEX_INFO,
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
@@ -85,7 +85,6 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
   chainId: 101,
-  dex: DEXS[0]
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
@@ -115,9 +114,6 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
 
-
-  const [dex, setDex] = useState<DEX_INFO>(DEXS[0])
-
   useEffect(() => {
     if (![ENDPOINTS[0].endpoint, ENDPOINTS[1].endpoint].includes(chain.endpoint)) {
       notify({
@@ -125,8 +121,6 @@ export function ConnectionProvider({ children = undefined as any }) {
         description: `${ENDPOINTS[0].name} is avaliable for now.`
       })
     }
-
-    setDex(getDex(chain.name))
   }, [chain])
 
   useEffect(() => {
@@ -221,7 +215,6 @@ export function ConnectionProvider({ children = undefined as any }) {
         tokenMap,
         env,
         chainId,
-        dex,
       }}
     >
       {children}
@@ -246,7 +239,6 @@ export function useConnectionConfig() {
     tokens: context.tokens,
     tokenMap: context.tokenMap,
     chainId: context.chainId,
-    dex: context.dex,
   };
 }
 

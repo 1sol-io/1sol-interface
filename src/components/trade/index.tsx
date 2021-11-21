@@ -37,8 +37,16 @@ import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { cache, useUserAccounts } from "../../utils/accounts";
-import { PROVIDER_MAP } from "../../utils/constant";
-import { WRAPPED_SOL_MINT } from "../../utils/ids";
+import { 
+  PROVIDER_MAP, 
+  ONESOL_PROGRAM_ID, 
+  TOKEN_SWAP_PROGRAM_ID, 
+  ORCA_PROGRAM_ID, 
+  SERUM_PROGRAM_ID, 
+  RAYDIUM_PROGRAM_ID, 
+  SABER_PROGRAM_ID,
+  WRAPPED_SOL_MINT 
+} from "../../utils/constant";
 
 import timeoutIcon from '../../assets/4.gif'
 
@@ -94,7 +102,7 @@ export const TradeEntry = () => {
   const [routeLabel, setRouteLable] = useState<string[]>([])
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap, chainId, dex } = useConnectionConfig();
+  const { tokenMap, chainId } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () { })
@@ -169,10 +177,11 @@ export const TradeEntry = () => {
         source_token_mint_key: A.mintAddress,
         destination_token_mint_key: B.mintAddress,
         programs: [
-          dex.TOKEN_SWAP.toBase58(),
-          // dex.SERUM.toBase58(),
-          dex.SABER.toBase58(),
-          dex.ORCA.toBase58()
+          TOKEN_SWAP_PROGRAM_ID.toBase58(),
+          SERUM_PROGRAM_ID.toBase58(),
+          SABER_PROGRAM_ID.toBase58(),
+          ORCA_PROGRAM_ID.toBase58(),
+          // RAYDIUM_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true
       },
@@ -295,7 +304,7 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
 
-  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap, dex])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
 
   useEffect(() => {
     setAmounts([])
@@ -394,7 +403,6 @@ export const TradeEntry = () => {
         B, 
         distribution, 
         slippage, 
-        dex.ONESOL, 
         // @ts-ignore
         new PublicKey(tokenMap.get(distribution.destination_token_mint.pubkey).feeAccount)
       );
@@ -624,21 +632,21 @@ export const TradeEntry = () => {
           : null
       }
 
-      {
+      {/*{ 
         showSplitTip ?
           <div className="sol-tip split-tip">
             There will be several wallet popups and transactions to be approved.
-            {/* <Tooltip title={(
+            <Tooltip title={(
               <>
                 SOL is needed for Solana network fees.<br/>
                 A minimum balance of 0.05 SOL is recommended to avoid failed transactions.
               </>
             )}>
               <InfoCircleOutlined style={{marginLeft: '5px'}} />
-            </Tooltip> */}
+            </Tooltip> 
           </div>
           : null
-      }
+      }*/}
 
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {amounts.length ? <TradeRoute amounts={amounts} /> : null}

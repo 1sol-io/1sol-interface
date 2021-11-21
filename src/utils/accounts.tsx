@@ -2,18 +2,18 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { useConnection } from "./connection";
 import { useWallet } from "../context/wallet";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { programIds, SWAP_HOST_FEE_ADDRESS, WRAPPED_SOL_MINT } from "./ids";
+import { WRAPPED_SOL_MINT } from "./constant";
 import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
-import { TokenAccount, PoolInfo } from "./../models";
+import { TokenAccount } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
 import { EventEmitter } from "./eventEmitter";
+import { programIds } from "./ids";
 
 const AccountsContext = React.createContext<any>(null);
 
@@ -423,7 +423,7 @@ export function AccountsProvider({ children = null as any }) {
       setTokenAccounts([]);
     } else {
       // cache host accounts to avoid query during swap
-      precacheUserTokenAccounts(connection, SWAP_HOST_FEE_ADDRESS);
+      precacheUserTokenAccounts(connection);
 
       precacheUserTokenAccounts(connection, publicKey).then(async () => {
         const accounts = selectUserAccounts();
