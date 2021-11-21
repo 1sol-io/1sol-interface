@@ -26,7 +26,7 @@ import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import {
   PoolOperation,
   onesolProtocolSwap,
-  createTokenAccount,
+  // createTokenAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -36,7 +36,7 @@ import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
 
-import { cache, useUserAccounts } from "../../utils/accounts";
+// import { cache, useUserAccounts } from "../../utils/accounts";
 import { 
   PROVIDER_MAP, 
   ONESOL_PROGRAM_ID, 
@@ -54,20 +54,30 @@ import "./trade.less";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
-interface Distribution {
+interface RawDistribution {
   id: string,
-  output: number,
   routes: any[],
-  provider: string,
   split_tx: boolean,
-  offset?: number,
   destination_token_mint: {
     decimals: number,
     pubkey: string
-  }
+  },
+  source_token_mint: {
+    decimals: number,
+    pubkey: string
+  },
+  amount_in: number,
+  amount_out: number,
+  exchanger_flag: string,
 }
 
-interface Route {
+interface Distribution extends RawDistribution {
+  provider: string,
+  output: number,
+  offset?: number,
+}
+
+interface SwapRoute {
   from: string,
   to: string,
   in: number,
@@ -89,17 +99,16 @@ export const TradeEntry = () => {
 
   const refreshBtnRef: { current: any } = useRef()
 
-  // const [loading, setLoading] = useState(false)
   const loading: { current: boolean } = useRef(false)
   const [timeoutLoading, setTimeoutLoading] = useState(false)
 
-  // const [choice, setChoice] = useState('')
   // best swap routes
-  const [amounts, setAmounts] = useState<Route[][]>([])
+  const [swapRoutes, setSwapRoutes] = useState<SwapRoute[][]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [routeLabel, setRouteLable] = useState<string[]>([])
+  const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
   const { tokenMap, chainId } = useConnectionConfig();
@@ -111,49 +120,49 @@ export const TradeEntry = () => {
   const choice: { current: string } = useRef('')
   const errorMessage: { current: string } = useRef('')
 
-  const [hasTokenAccount, setHasTokenAccount] = useState(false)
+  // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
-  const [showSplitTip, setShowSplitTip] = useState(false)
+  // const [showSplitTip, setShowSplitTip] = useState(false)
 
-  const { userAccounts } = useUserAccounts();
+  // const { userAccounts } = useUserAccounts();
 
-  useEffect(() => {
-    const distribution = distributions.find(d => d.id === choice.current)
+  // useEffect(() => {
+  //   const distribution = distributions.find(d => d.id === choice.current)
 
-    if (distribution) {
-      setShowSplitTip(distribution.split_tx)
-    } else {
-      setShowSplitTip(false)
-    }
-  }, [distributions, choice])
+  //   if (distribution) {
+  //     setShowSplitTip(distribution.split_tx)
+  //   } else {
+  //     setShowSplitTip(false)
+  //   }
+  // }, [distributions, choice])
 
-  useEffect(() => {
-    const getTokenAccount = (mint: string) => {
-      // if B is SOL, 
-      if (mint === WRAPPED_SOL_MINT.toBase58()) {
-        return true
-      }
+  // useEffect(() => {
+  //   const getTokenAccount = (mint: string) => {
+  //     // if B is SOL, 
+  //     if (mint === WRAPPED_SOL_MINT.toBase58()) {
+  //       return true
+  //     }
 
-      const index = userAccounts.findIndex(
-        (acc: any) => acc.info.mint.toBase58() === mint
-      );
+  //     const index = userAccounts.findIndex(
+  //       (acc: any) => acc.info.mint.toBase58() === mint
+  //     );
 
-      if (index !== -1) {
-        return userAccounts[index];
-      }
+  //     if (index !== -1) {
+  //       return userAccounts[index];
+  //     }
 
-      return;
-    }
+  //     return;
+  //   }
 
-    setHasTokenAccount(false)
+  //   setHasTokenAccount(false)
 
-    const tokenMint = cache.getMint(B.mintAddress);
-    const tokenAccount = getTokenAccount(B.mintAddress);
+  //   const tokenMint = cache.getMint(B.mintAddress);
+  //   const tokenAccount = getTokenAccount(B.mintAddress);
 
-    if (connected && tokenAccount && tokenMint) {
-      setHasTokenAccount(true)
-    }
-  }, [connected, B.mintAddress, userAccounts])
+  //   if (connected && tokenAccount && tokenMint) {
+  //     setHasTokenAccount(true)
+  //   }
+  // }, [connected, B.mintAddress, userAccounts])
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
@@ -171,7 +180,7 @@ export const TradeEntry = () => {
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig = {
       // url: `https://api.1sol.io/1/swap/1/${chainId}`,
-      url: `https://api.1sol.io/1/swap/1/${chainId}`,
+      url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
       method: 'post',
       data: {
         amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
@@ -182,7 +191,7 @@ export const TradeEntry = () => {
           SERUM_PROGRAM_ID.toBase58(),
           SABER_PROGRAM_ID.toBase58(),
           ORCA_PROGRAM_ID.toBase58(),
-          // RAYDIUM_PROGRAM_ID.toBase58()
+          RAYDIUM_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true
       },
@@ -192,22 +201,11 @@ export const TradeEntry = () => {
     try {
       const {
         data: {
-          best,
           distributions
         }
       }: {
         data: {
-          best: {
-            amount_out: number,
-            exchanger_flag: string,
-            routes: any[],
-            split_tx: boolean,
-            destination_token_mint: {
-              decimals: number,
-              pubkey: string
-            }
-          } | undefined,
-          distributions: any
+          distributions: RawDistribution[]
         }
       } = await axios({
         ...axiosOption
@@ -221,8 +219,10 @@ export const TradeEntry = () => {
         time: endTime - startTime,
       })
 
-      let amounts: Route[][] = []
+      let swapRoutes: SwapRoute[][] = []
       let result: Distribution[] = []
+
+      const [best, ...others] = distributions 
 
       if (best) {
         const id = best.routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, best.exchanger_flag)
@@ -230,25 +230,18 @@ export const TradeEntry = () => {
         result.push({
           ...best,
           output: best.amount_out / 10 ** decimals[1],
-          provider: PROVIDER_MAP[best.exchanger_flag],
+          provider: '1Sol',
           offset: 0,
           id
         })
 
-        // swap routes
-        amounts = best.routes.map((routes: any) => routes.map(({
+        swapRoutes = best.routes.map((routes: any) => routes.map(({
           amount_in,
           amount_out,
           exchanger_flag,
           source_token_mint,
           destination_token_mint
-        }: {
-          amount_in: number,
-          amount_out: number,
-          exchanger_flag: string,
-          source_token_mint: { pubkey: string, decimals: number }
-          destination_token_mint: { pubkey: string, decimals: number }
-        }) => ({
+        }: RawDistribution) => ({
           from: tokenMap.get(source_token_mint.pubkey)?.symbol,
           to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
           in: amount_in / 10 ** source_token_mint.decimals,
@@ -257,13 +250,16 @@ export const TradeEntry = () => {
           ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
         }
         )))
+
+        setSwapRoutes(swapRoutes)
       }
 
       result = [...result,
-      ...distributions
-        .sort((a: any, b: any) => b.amount_out - a.amount_out)
-        .map(({ amount_out, exchanger_flag, routes, ...rest }: { amount_out: number, exchanger_flag: string, routes: any[] }) => ({
+        ...others.sort((a: RawDistribution, b: RawDistribution) => b.amount_out - a.amount_out)
+        .map(({ amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => ({
           ...rest,
+          amount_out,
+          exchanger_flag,
           routes,
           output: amount_out / 10 ** decimals[1],
           provider: PROVIDER_MAP[exchanger_flag],
@@ -280,7 +276,6 @@ export const TradeEntry = () => {
         choice.current = result[0].id
       }
 
-      setAmounts(amounts)
       loading.current = false
 
       setTimeoutLoading(true)
@@ -295,7 +290,7 @@ export const TradeEntry = () => {
           loading.current = false
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
 
-          setAmounts([])
+          setSwapRoutes([])
           setDistributions([])
         }
       }
@@ -308,7 +303,7 @@ export const TradeEntry = () => {
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
 
   useEffect(() => {
-    setAmounts([])
+    setSwapRoutes([])
     setDistributions([])
     choice.current = ''
     errorMessage.current = ''
@@ -344,7 +339,7 @@ export const TradeEntry = () => {
         clearTimeout(timer.current)
       }
     }
-  }, [A.amount, A.mintAddress, B.mintAddress, fetchDistrubition])
+  }, [A.amount, A.mintAddress, B.mintAddress, fetchDistrubition, refresh])
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
@@ -423,14 +418,11 @@ export const TradeEntry = () => {
   };
 
   const handleSwitchChoice = (s: string) => {
-    // setChoice(choice) 
     choice.current = s
   }
 
   const handleRefresh = () => {
-    setDistributions([])
-    setAmounts([])
-    choice.current = ''
+    setRefresh(refresh + 1)
 
     if (A.amount) {
       loading.current = true
@@ -444,7 +436,7 @@ export const TradeEntry = () => {
   useEffect(() => {
     let label: string[] = []
 
-    amounts.forEach(routes => {
+    swapRoutes.forEach(routes => {
       const [first] = routes
 
       if (first) {
@@ -454,31 +446,31 @@ export const TradeEntry = () => {
     })
 
     setRouteLable([...new Set(label)])
-  }, [amounts])
+  }, [swapRoutes])
 
 
-  const handleCreateTokenAccount = async () => {
-    if (B.mintAddress) {
-      try {
-        setPendingTx(true);
+  // const handleCreateTokenAccount = async () => {
+  //   if (B.mintAddress) {
+  //     try {
+  //       setPendingTx(true);
 
-        await createTokenAccount(connection, wallet, new PublicKey(B.mintAddress));
+  //       await createTokenAccount(connection, wallet, new PublicKey(B.mintAddress));
 
-        setHasTokenAccount(true)
-      } catch (e) {
-        console.error(e)
+  //       setHasTokenAccount(true)
+  //     } catch (e) {
+  //       console.error(e)
 
-        notify({
-          description:
-            "Please try again",
-          message: "Create account cancelled.",
-          type: "error",
-        });
-      } finally {
-        setPendingTx(false);
-      }
-    }
-  }
+  //       notify({
+  //         description:
+  //           "Please try again",
+  //         message: "Create account cancelled.",
+  //         type: "error",
+  //       });
+  //     } finally {
+  //       setPendingTx(false);
+  //     }
+  //   }
+  // }
 
   return (
     <>
@@ -541,7 +533,7 @@ export const TradeEntry = () => {
         <Button
           type="primary"
           className="swap-button"
-          style={{ display: 'flex', justifyContent: 'space-around', margin: '-10px auto' }}
+          style={{ display: 'flex', justifyContent: 'space-around', margin: '-10px auto', fontSize: '20px', alignItems: 'center' }}
           onClick={swapAccounts}
         >
           &#10607;
@@ -650,7 +642,7 @@ export const TradeEntry = () => {
       }*/}
 
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
-        {amounts.length ? <TradeRoute amounts={amounts} /> : null}
+        {swapRoutes.length ? <TradeRoute swapRoutes={swapRoutes} /> : null}
       </Modal>
 
       <Modal width={590} visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
@@ -735,16 +727,16 @@ export const Result = (props: {
   )
 }
 
-export const TradeRoute = (props: { amounts: Route[][] }) => {
+export const TradeRoute = (props: { swapRoutes: SwapRoute[][] }) => {
   const { A, B } = useCurrencyPairState();
-  const { amounts } = props
+  const { swapRoutes } = props
 
   return (
     <div className="trade-route">
       <div className="hd"><TokenIcon mintAddress={A.mintAddress} style={{ width: '30px', height: '30px' }} /></div>
       <RightOutlined style={{ margin: '0 5px' }} />
       <div className="bd">
-        {amounts.map((routes, i: number) => (
+        {swapRoutes.map((routes, i: number) => (
           <>
             <div className="token-route" key={i}>
               {routes.map((route, j: number) => (
@@ -769,7 +761,7 @@ export const TradeRoute = (props: { amounts: Route[][] }) => {
               ))}
             </div>
             {
-              i !== amounts.length - 1 ?
+              i !== swapRoutes.length - 1 ?
                 <RightOutlined style={{ margin: '0 10px' }} />
                 : null
             }

@@ -41,6 +41,7 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
   [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
   [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
+  'TwoStep': 'Multi'
 }
 
 const {

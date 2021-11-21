@@ -1,12 +1,12 @@
 
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  Account,
   clusterApiUrl,
   Connection,
   PublicKey,
   Transaction,
   Signer,
+  Keypair,
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
@@ -170,7 +170,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
   // This is a hack to prevent the list from every getting empty
   useEffect(() => {
-    const id = connection.onAccountChange(new Account().publicKey, () => { });
+    const id = connection.onAccountChange(Keypair.generate().publicKey, () => { });
 
     return () => {
       connection.removeAccountChangeListener(id);
