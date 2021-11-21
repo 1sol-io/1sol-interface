@@ -19,9 +19,7 @@ export const generateActionLabel = (
   connected: boolean,
   tokenMap: KnownTokenMap,
   A: CurrencyContextState,
-  B: CurrencyContextState,
-  ignoreToBalance: boolean = false,
-  hasTokenAccount: boolean = false
+  B: CurrencyContextState
 ) => {
   return !connected
     ? CONNECT_LABEL
@@ -33,13 +31,7 @@ export const generateActionLabel = (
           ? SELECT_TOKEN_LABEL
           : !A.sufficientBalance()
             ? INSUFFICIENT_FUNDS_LABEL(getTokenName(tokenMap, A.mintAddress))
-            : !hasTokenAccount
-              ? `Create ${B.name} Account`
-              : // : ignoreToBalance || B.sufficientBalance()
-                action
-  // : INSUFFICIENT_FUNDS_LABEL(
-  //     getTokenName(tokenMap, B.mintAddress)
-  //   )
+            : action
 }
 
 export const generateRemoveLabel = (

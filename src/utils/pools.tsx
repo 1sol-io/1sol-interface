@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   AccountInfo,
@@ -23,7 +22,6 @@ import {
   WRAPPED_SOL_MINT,
 } from "./ids";
 import {
-  LiquidityComponent,
   PoolInfo,
   TokenAccount,
   TokenSwapLayout,
@@ -46,7 +44,6 @@ import {
   EXCHANGER_ORCA_SWAP,
   EXCHANGER_RAYDIUM
 } from "./constant";
-import Wallet from "@project-serum/sol-wallet-adapter";
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
   return swap.data.length === TokenSwapLayout.span;
@@ -1361,209 +1358,146 @@ export async function onesolProtocolSwap(
     return
   }
 
-  console.log('distribution:', distribution)
-  const { routes, split_tx } = distribution
+  const { routes } = distribution
 
-  // indirect exchange(SOL -> USDC -> ETH) and need to split transactions
-  if (routes.length === 2 && split_tx) {
-    const [oneRoutes, twoRoutes] = routes
+  // indirect exchange(SOL -> USDC -> ETH)
+  if (routes.length === 2) {
+    const [oneRoutes] = routes
     const [one] = oneRoutes
-    const [two] = twoRoutes
 
     const transactions: Transactions[] = []
 
-    const transactionOne = await stepSwap({
+    const {
+      swapInfo,
+      fromAccount,
+      toAccount,
+      fromMintKey,
+      toMintKey,
+      middleAccount,
+      middleMintKey,
+      transaction: createAccountsTransactions,
+      cleanupTransaction
+    } = await createAccountsTransaction(
       onesolProtocol,
       connection,
       wallet,
-      A: { mintAddress: A.mintAddress, account: A.account },
-      B: { mintAddress: one.destination_token_mint.pubkey, account: undefined },
-      route: one,
-      slippage,
-    })
-
-    transactions.push(transactionOne)
-
-    const tokenAccountC = getCachedAccount(
-      (acc) =>
-        acc.info.mint.toBase58() === one.destination_token_mint.pubkey &&
-        acc.info.owner.toBase58() === wallet.publicKey.toBase58()
+      {
+        mintAddress: A.mintAddress,
+        account: A.account
+      },
+      B,
+      {
+        mintAddress: one.destination_token_mint.pubkey
+      },
+      distribution.amount_in
     )
 
-    if (tokenAccountC) {
-      const balance = tokenAccountC.info.amount
-      const amount = balance.gt(two.amount_in) ? two.amount_in : balance.toNumber()
+    transactions.push(createAccountsTransactions)
 
-      const transactionTwo = await stepSwap({
-        onesolProtocol,
-        connection,
-        wallet,
-        A: { mintAddress: one.destination_token_mint.pubkey, account: tokenAccountC },
-        B: { mintAddress: B.mintAddress, account: B.account },
-        route: { ...two, amount_in: amount },
-        slippage,
-      })
+    // create swap transactions
+    const swapTransactions = await createSwapTransactions({
+      onesolProtocol,
+      connection,
+      wallet,
+      swapInfo,
+      routes: distribution.routes,
+      fromAccount,
+      toAccount,
+      middleAccount,
+      fromMintKey,
+      toMintKey,
+      middleMintKey,
+      amountOut: distribution.amount_out,
+      feeTokenAccount,
+      slippage
+    })
 
-      transactions.push(transactionTwo)
+    transactions.push(swapTransactions)
+
+    if (cleanupTransaction) {
+      transactions.push(cleanupTransaction)
     }
 
     const signedTransactions = await signAllTransactions(connection, wallet, transactions)
 
     for (let i = 0; i < signedTransactions.length; i++) {
-      const signedTransaction = signedTransactions[i]
-
       const tx = await sendSignedTransaction(
         connection,
         wallet,
-        signedTransaction
+        signedTransactions[i]
       )
 
       notify({
-        message: `${i} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length ? '.' : ', waiting for the next one...'}`,
-        type: "success",
+        message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
         description: `Transaction - ${tx}`,
+        duration: 6
       });
     }
+  } else if (routes.length === 1) {
+    // direct exchange(SOL -> USDC)
+    const [routes] = distribution.routes
+
+    const instructions: TransactionInstruction[] = [];
+    const cleanupInstructions: TransactionInstruction[] = [];
+    const signers: Signer[] = [];
+
+    const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
+      AccountLayout.span
+    );
+
+    const fromMintKey = new PublicKey(A.mintAddress)
+    const toMintKey = new PublicKey(B.mintAddress)
+
+    const fromAccount = getWrappedAccount(
+      instructions,
+      cleanupInstructions,
+      A.account,
+      wallet.publicKey,
+      distribution.amount_in + accountRentExempt,
+      signers
+    );
+
+    const toAccount = findOrCreateAccountByMint(
+      wallet.publicKey,
+      wallet.publicKey,
+      instructions,
+      cleanupInstructions,
+      accountRentExempt,
+      toMintKey,
+      signers
+    )
+
+    const promises = routes.map(async (route: any) => swap({
+      onesolProtocol,
+      connection,
+      wallet,
+      fromMintKey,
+      toMintKey,
+      fromAccount,
+      toAccount,
+      route,
+      slippage,
+      instructions,
+      signers,
+      userTransferAuthority: wallet.publicKey,
+      feeTokenAccount
+    }))
+
+    await Promise.all(promises)
+
+    const tx = await sendTransaction(
+      connection,
+      wallet,
+      instructions.concat(cleanupInstructions),
+      signers
+    );
+
+    notify({
+      message: "Trade executed.",
+      type: "success",
+      description: `Transaction - ${tx}`,
+    });
   } else {
-    // indirect exchange(SOL -> USDC -> ETH)
-    if (routes.length === 2) {
-      const [oneRoutes] = routes
-      const [one] = oneRoutes
-
-      const transactions: Transactions[] = []
-
-      const {
-        swapInfo,
-        fromAccount,
-        toAccount,
-        fromMintKey,
-        toMintKey,
-        middleAccount,
-        middleMintKey,
-        transaction: createAccountsTransactions,
-        cleanupTransaction
-      } = await createAccountsTransaction(
-        onesolProtocol,
-        connection,
-        wallet,
-        {
-          mintAddress: A.mintAddress,
-          account: A.account
-        },
-        B,
-        {
-          mintAddress: one.destination_token_mint.pubkey
-        },
-        distribution.amount_in
-      )
-
-      transactions.push(createAccountsTransactions)
-
-      // create swap transactions
-      const swapTransactions = await createSwapTransactions({
-        onesolProtocol,
-        connection,
-        wallet,
-        swapInfo,
-        routes: distribution.routes,
-        fromAccount,
-        toAccount,
-        middleAccount,
-        fromMintKey,
-        toMintKey,
-        middleMintKey,
-        amountOut: distribution.amount_out,
-        feeTokenAccount,
-        slippage
-      })
-
-      transactions.push(swapTransactions)
-
-      if (cleanupTransaction) {
-        transactions.push(cleanupTransaction)
-      }
-
-      const signedTransactions = await signAllTransactions(connection, wallet, transactions)
-
-      for (let i = 0; i < signedTransactions.length; i++) {
-        const tx = await sendSignedTransaction(
-          connection,
-          wallet,
-          signedTransactions[i]
-        )
-
-        notify({
-          message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
-          type: "success",
-          description: `Transaction - ${tx}`,
-        });
-      }
-    } else if (routes.length === 1) {
-      // direct exchange(SOL -> USDC)
-      const [routes] = distribution.routes
-
-      const instructions: TransactionInstruction[] = [];
-      const cleanupInstructions: TransactionInstruction[] = [];
-      const signers: Signer[] = [];
-
-      const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-        AccountLayout.span
-      );
-
-      const fromMintKey = new PublicKey(A.mintAddress)
-      const toMintKey = new PublicKey(B.mintAddress)
-
-      const fromAccount = getWrappedAccount(
-        instructions,
-        cleanupInstructions,
-        A.account,
-        wallet.publicKey,
-        distribution.amount_in + accountRentExempt,
-        signers
-      );
-
-      const toAccount = findOrCreateAccountByMint(
-        wallet.publicKey,
-        wallet.publicKey,
-        instructions,
-        cleanupInstructions,
-        accountRentExempt,
-        toMintKey,
-        signers
-      )
-
-      const promises = routes.map(async (route: any) => swap({
-        onesolProtocol,
-        connection,
-        wallet,
-        fromMintKey,
-        toMintKey,
-        fromAccount,
-        toAccount,
-        route,
-        slippage,
-        instructions,
-        signers,
-        userTransferAuthority: wallet.publicKey,
-        feeTokenAccount
-      }))
-
-      await Promise.all(promises)
-
-      const tx = await sendTransaction(
-        connection,
-        wallet,
-        instructions.concat(cleanupInstructions),
-        signers
-      );
-
-      notify({
-        message: "Trade executed.",
-        type: "success",
-        description: `Transaction - ${tx}`,
-      });
-    } else {
-      return
-    }
+    return
   }
 }

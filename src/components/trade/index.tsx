@@ -576,7 +576,7 @@ export const TradeEntry = () => {
         size="large"
         shape="round"
         block
-        onClick={connected ? hasTokenAccount ? handleSwap : handleCreateTokenAccount : connect}
+        onClick={connected ? handleSwap : connect}
         style={{ marginTop: '20px' }}
         disabled={
           connected &&
@@ -602,8 +602,6 @@ export const TradeEntry = () => {
           tokenMap,
           A,
           B,
-          true,
-          hasTokenAccount
         )}
         {pendingTx && <Spin indicator={antIcon} className="trade-spinner" />}
       </Button>
