@@ -458,6 +458,16 @@ export const TradeEntry = () => {
   };
 
   const handleSwitchChoice = (s: string) => {
+    if (cancel.current) {
+      cancel.current()
+    }
+
+    if (timer.current) {
+      clearTimeout(timer.current)
+    }
+
+    loading.current = false
+    setTimeoutLoading(false)
     setActive(s)
   }
 
