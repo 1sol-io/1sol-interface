@@ -724,7 +724,6 @@ export const Result = (props: {
   active?: string,
 }) => {
   const { data, loading, handleSwitchChoice, active, handleShowRoute, error } = props
-  console.log(data)
 
   return (
     <div className="mod-results">
