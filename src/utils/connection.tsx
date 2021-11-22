@@ -125,7 +125,6 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-
       const customTokenJSON = await queryJsonFiles([
         "https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/tokens/solana.tokenlist.json",
       ]);
