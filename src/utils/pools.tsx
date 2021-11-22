@@ -925,7 +925,7 @@ async function swapIn(
       programId: new PublicKey(program_id)
     })
 
-    await onesolProtocol.createSwapInByRaydiumSwapInstruction({
+    await onesolProtocol.createSwapInByRaydiumSwap2Instruction({
       ...data,
       raydiumInfo,
     }, instructions, signers)
@@ -1037,7 +1037,7 @@ async function swapOut(
       programId: new PublicKey(program_id)
     })
 
-    await onesolProtocol.createSwapOutByRaydiumSwapInstruction({
+    await onesolProtocol.createSwapOutByRaydiumSwap2Instruction({
       ...data,
       raydiumInfo,
     }, instructions, signers)

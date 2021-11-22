@@ -73,11 +73,7 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
@@ -102,7 +98,6 @@
     "@types/react-router-dom": "^5.1.6",
     "babel-register": "^6.26.0",
     "prettier": "^2.1.2",
-    "react-router-sitemap": "^1.2.0",
     "sitemap": "^7.0.0"
   }
 }
