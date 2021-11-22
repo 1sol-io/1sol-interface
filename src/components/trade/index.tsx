@@ -123,6 +123,8 @@ export const TradeEntry = () => {
   const choice: { current: string } = useRef('')
   const errorMessage: { current: string } = useRef('')
 
+  const [active, setActive] = useState('')
+
   // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
   // const [showSplitTip, setShowSplitTip] = useState(false)
@@ -195,7 +197,8 @@ export const TradeEntry = () => {
           ORCA_PROGRAM_ID.toBase58(),
           RAYDIUM_PROGRAM_ID.toBase58()
         ],
-        support_single_route_per_tx: true
+        support_single_route_per_tx: true,
+        distribution_max_len: 10
       },
       cancelToken: new CancelToken((c) => cancel.current = c)
     }
@@ -313,6 +316,7 @@ export const TradeEntry = () => {
 
       if (!choice.current && result.length) {
         choice.current = result[0].id
+        setActive(result[0].id)
       }
 
       loading.current = false
@@ -320,7 +324,7 @@ export const TradeEntry = () => {
       setTimeoutLoading(true)
       timer.current = setTimeout(() => {
         fetchDistrubition()
-      }, 10 * 1000)
+      }, 60 * 1000)
     } catch (e) {
       console.error(e)
 
@@ -328,9 +332,8 @@ export const TradeEntry = () => {
         if (!axios.isCancel(e) && e.response) {
           loading.current = false
           errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
-
-          setSwapRoutes([])
-          setDistributions([])
+          // setSwapRoutes([])
+          // setDistributions([])
         }
       }
     }
@@ -345,6 +348,7 @@ export const TradeEntry = () => {
     setSwapRoutes([])
     setDistributions([])
     choice.current = ''
+    setActive('')
     errorMessage.current = ''
 
     if (!A.amount) {
@@ -422,7 +426,7 @@ export const TradeEntry = () => {
     try {
       setPendingTx(true);
 
-      const distribution = distributions.find(({ id }: { id: string }) => id === choice.current)
+      const distribution = distributions.find(({ id }: { id: string }) => id === active)
 
       if (!distribution || !distribution.routes.length) {
         return
@@ -454,7 +458,7 @@ export const TradeEntry = () => {
   };
 
   const handleSwitchChoice = (s: string) => {
-    choice.current = s
+    setActive(s)
   }
 
   const handleRefresh = () => {
@@ -602,7 +606,7 @@ export const TradeEntry = () => {
           <Result
             loading={loading.current && !distributions.length}
             data={distributions}
-            active={choice.current}
+            active={active}
             handleSwitchChoice={handleSwitchChoice}
             handleShowRoute={handleShowRoute}
             error={errorMessage.current}
