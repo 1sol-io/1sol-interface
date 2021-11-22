@@ -59,7 +59,7 @@
   },
   "scripts": {
     "start": "CI= craco start",
-    "build": "craco build",
+    "build": "NODE_ENV=production craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "localnet:update": "solana-localnet update",

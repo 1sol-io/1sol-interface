@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { PublicKey } from "@solana/web3.js"
-import { TOKEN_PROGRAM_ID as TOKENPROGRAMID } from '@solana/spl-token'
 
 import btc from '../assets/token/btc.png'
 import usdt from '../assets/token/usdt.png'
@@ -41,7 +40,6 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
   [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
   [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
-  'TwoStep': 'Multi'
 }
 
 const {
@@ -63,5 +61,3 @@ export const ORCA_PROGRAM_ID = new PublicKey(REACT_APP_ORCA)
 export const RAYDIUM_PROGRAM_ID = new PublicKey(REACT_APP_RAYDIUM)
 
 export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
-
-export const TOKEN_PROGRAM_ID = TOKENPROGRAMID
