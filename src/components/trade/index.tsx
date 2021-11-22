@@ -243,11 +243,9 @@ export const TradeEntry = () => {
       return length
     }
 
-    const setMaxPrecision = (num: number, max = 2): number => {
-      const len = getDecimalLength(num)
-
-      if (len > max) {
-        return +num.toFixed(max)
+    const setMaxPrecision = (num: number, max = 10): number => {
+      if (`${num}`.length > max) {
+        return +num.toPrecision(max)
       }
 
       return num
@@ -283,7 +281,7 @@ export const TradeEntry = () => {
 
         result.push({
           ...best,
-          output: setMaxPrecision(best.amount_out / 10 ** decimals[1], 8),
+          output: setMaxPrecision(best.amount_out / 10 ** decimals[1]),
           providers: ['1Sol'],
           offset: 0,
           id,
@@ -301,7 +299,7 @@ export const TradeEntry = () => {
               amount_out,
               exchanger_flag,
               routes,
-              output: setMaxPrecision(amount_out / 10 ** decimals[1], 8),
+              output: setMaxPrecision(amount_out / 10 ** decimals[1]),
               providers: [...new Set(providers)],
               offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
               id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, exchanger_flag)}`,
