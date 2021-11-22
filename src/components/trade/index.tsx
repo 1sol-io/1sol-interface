@@ -750,14 +750,14 @@ export const Result = (props: {
                 className={id === active ? "mod-result active" : 'mod-result'}
                 onClick={() => handleSwitchChoice(id)}
               >
-                <div className="hd" style={{lineHeight: 1.2, fontSize: providers.length > 1 ? '12px' : '14px'}}>
+                <div className="hd" style={{lineHeight: 1.2, fontSize: providers.length > 1 ? '12px' : '14px', textAlign: 'left'}}>
                   {
                     providers.map((provider: string, i: number) => {
                       return (
                         <>
                           <div>{provider}</div>
                           {
-                            i < providers.length - 1 ? <div>+</div> : ''
+                            i < providers.length - 1 ? <div>×</div> : ''
                           }
                         </>
                       )
