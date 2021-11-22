@@ -72,8 +72,12 @@ interface RawDistribution {
 }
 
 interface Distribution extends RawDistribution {
-  provider: string,
+  providers: string[],
   output: number,
+  swapRoute: {
+    routes: SwapRoute[][],
+    labels: string[]
+  },
   offset?: number,
 }
 
@@ -107,7 +111,6 @@ export const TradeEntry = () => {
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
   const [showShare, setShowShare] = useState(false)
-  const [routeLabel, setRouteLable] = useState<string[]>([])
   const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
@@ -179,8 +182,7 @@ export const TradeEntry = () => {
 
     const startTime = Date.now()
     const axiosOption: AxiosRequestConfig = {
-      // url: `https://api.1sol.io/1/swap/1/${chainId}`,
-      url: `http://192.168.4.205:8080/1/swap/1/${chainId}`,
+      url: `https://api.1sol.io/1/swap/1/${chainId}`,
       method: 'post',
       data: {
         amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
@@ -196,6 +198,59 @@ export const TradeEntry = () => {
         support_single_route_per_tx: true
       },
       cancelToken: new CancelToken((c) => cancel.current = c)
+    }
+
+    const getSwapRoute = (routes: any) => {
+      const swapRoutes: SwapRoute[][] = routes.map((routes: any) => routes.map(({
+          amount_in,
+          amount_out,
+          exchanger_flag,
+          source_token_mint,
+          destination_token_mint
+        }: RawDistribution) => ({
+          from: tokenMap.get(source_token_mint.pubkey)?.symbol,
+          to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
+          in: amount_in / 10 ** source_token_mint.decimals,
+          out: amount_out / 10 ** destination_token_mint.decimals,
+          provider: PROVIDER_MAP[exchanger_flag],
+          ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
+        }
+      )))
+
+      let labels: string[] = []
+
+      swapRoutes.forEach(routes => {
+        const [first] = routes
+
+        if (first) {
+          labels.push(first.from)
+          labels.push(first.to)
+        }
+      })
+
+      labels = [...new Set(labels)]
+
+      return {routes: swapRoutes, labels}
+    }
+
+    const getDecimalLength = (num: number) => {
+      let length = 0
+
+      if (`${num}`.includes('.')) {
+        length = `${num}`.split('.')[1].length
+      }
+
+      return length
+    }
+
+    const setMaxPrecision = (num: number, max = 2): number => {
+      const len = getDecimalLength(num)
+
+      if (len > max) {
+        return +num.toFixed(max)
+      }
+
+      return num
     }
 
     try {
@@ -219,7 +274,6 @@ export const TradeEntry = () => {
         time: endTime - startTime,
       })
 
-      let swapRoutes: SwapRoute[][] = []
       let result: Distribution[] = []
 
       const [best, ...others] = distributions 
@@ -229,50 +283,37 @@ export const TradeEntry = () => {
 
         result.push({
           ...best,
-          output: best.amount_out / 10 ** decimals[1],
-          provider: '1Sol',
+          output: setMaxPrecision(best.amount_out / 10 ** decimals[1], 8),
+          providers: ['1Sol'],
           offset: 0,
-          id
+          id,
+          swapRoute: getSwapRoute(best.routes),
         })
-
-        swapRoutes = best.routes.map((routes: any) => routes.map(({
-          amount_in,
-          amount_out,
-          exchanger_flag,
-          source_token_mint,
-          destination_token_mint
-        }: RawDistribution) => ({
-          from: tokenMap.get(source_token_mint.pubkey)?.symbol,
-          to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
-          in: amount_in / 10 ** source_token_mint.decimals,
-          out: amount_out / 10 ** destination_token_mint.decimals,
-          provider: PROVIDER_MAP[exchanger_flag],
-          ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
-        }
-        )))
-
-        setSwapRoutes(swapRoutes)
       }
 
       result = [...result,
         ...others.sort((a: RawDistribution, b: RawDistribution) => b.amount_out - a.amount_out)
-        .map(({ amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => ({
-          ...rest,
-          amount_out,
-          exchanger_flag,
-          routes,
-          output: amount_out / 10 ** decimals[1],
-          provider: PROVIDER_MAP[exchanger_flag],
-          offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
-          id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, exchanger_flag)}`
-        }))
+        .map(({ amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => {
+            const providers = routes.flat(2).map(route => PROVIDER_MAP[route.exchanger_flag])
+
+            return {
+              ...rest,
+              amount_out,
+              exchanger_flag,
+              routes,
+              output: setMaxPrecision(amount_out / 10 ** decimals[1], 8),
+              providers: [...new Set(providers)],
+              offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
+              id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, exchanger_flag)}`,
+              swapRoute: getSwapRoute(routes),
+            }
+        })
       ]
 
       // result list
       setDistributions(result)
 
       if (!choice.current && result.length) {
-        // setChoice(result[0].id)
         choice.current = result[0].id
       }
 
@@ -343,12 +384,9 @@ export const TradeEntry = () => {
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
-    // const tempAmount = A.amount;
 
     A.setMint(B.mintAddress);
-    // A.setAmount(B.amount);
     B.setMint(tempMint);
-    // B.setAmount(tempAmount);
 
     if (A.amount) {
       loading.current = true
@@ -431,22 +469,25 @@ export const TradeEntry = () => {
     setTimeoutLoading(false)
   }
 
-  const handleShowRoute = () => setShowRoute(true)
+  const handleShowRoute = (routes: SwapRoute[][]) => {
+    setShowRoute(true)
+    setSwapRoutes(routes)
+  }
 
-  useEffect(() => {
-    let label: string[] = []
+  // useEffect(() => {
+  //   let label: string[] = []
 
-    swapRoutes.forEach(routes => {
-      const [first] = routes
+  //   swapRoutes.forEach(routes => {
+  //     const [[first]] = routes
 
-      if (first) {
-        label.push(first.from)
-        label.push(first.to)
-      }
-    })
+  //     if (first) {
+  //       label.push(first.from)
+  //       label.push(first.to)
+  //     }
+  //   })
 
-    setRouteLable([...new Set(label)])
-  }, [swapRoutes])
+  //   setRouteLable([...new Set(label)])
+  // }, [swapRoutes])
 
 
   // const handleCreateTokenAccount = async () => {
@@ -566,7 +607,6 @@ export const TradeEntry = () => {
             active={choice.current}
             handleSwitchChoice={handleSwitchChoice}
             handleShowRoute={handleShowRoute}
-            routes={routeLabel}
             error={errorMessage.current}
           />
         </Card>
@@ -679,12 +719,12 @@ export const Result = (props: {
   data: Distribution[],
   loading: boolean,
   handleSwitchChoice: (a: string) => void,
-  handleShowRoute: () => void,
+  handleShowRoute: (routes: SwapRoute[][]) => void,
   error: string,
   active?: string,
-  routes?: string[],
 }) => {
-  const { data, loading, handleSwitchChoice, active, handleShowRoute, routes, error } = props
+  const { data, loading, handleSwitchChoice, active, handleShowRoute, error } = props
+  console.log(data)
 
   return (
     <div className="mod-results">
@@ -693,30 +733,40 @@ export const Result = (props: {
           <LoadingOutlined style={{ fontSize: 24 }} spin /> :
           !data.length && error ?
             <div>{error}</div> :
-            data.map(({ provider, output, offset, id }, i) => (
+            data.map(({ providers, output, offset, id, swapRoute: {routes, labels} }, i) => (
               <div
                 key={id}
                 className={id === active ? "mod-result active" : 'mod-result'}
                 onClick={() => handleSwitchChoice(id)}
               >
-                <div className="hd">{provider}</div>
+                <div className="hd" style={{lineHeight: 1.2, fontSize: providers.length > 1 ? '12px' : '14px'}}>
+                  {
+                    providers.map((provider: string, i: number) => {
+                      return (
+                        <>
+                          <div>{provider}</div>
+                          {
+                            i < providers.length - 1 ? <div>+</div> : ''
+                          }
+                        </>
+                      )
+                    })
+                  }
+                </div>
                 <div className="bd">
                   <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)` : ''}</div>
                   {
-                    i === 0 ?
-                      <div onClick={handleShowRoute} className="route">
-                        {routes ? routes.map((label: string, i: number) => (
-                          <span key={i}>
-                            {label}
-                            {
-                              i !== routes.length - 1 ? <RightOutlined style={{ margin: '0 2px' }} /> : null
-                            }
-                          </span>
-                        )) : null}
-                        {/* {A.name} &#10148; {B.name} */}
-                        <ExpandOutlined style={{ marginLeft: '5px' }} />
-                      </div> :
-                      null
+                    <div onClick={() => handleShowRoute(routes)} className="route">
+                      {labels ? labels.map((label: string, i: number) => (
+                        <span key={i}>
+                          {label}
+                          {
+                            i !== labels.length - 1 ? <RightOutlined style={{ margin: '0 2px' }} /> : null
+                          }
+                        </span>
+                      )) : null}
+                      <ExpandOutlined style={{ marginLeft: '5px' }} />
+                    </div>
                   }
                 </div>
                 {i === 0 ? <div className="ft">Best</div> : null}
