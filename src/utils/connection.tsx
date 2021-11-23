@@ -361,7 +361,7 @@ export const sendTransaction = async (
             {errors.map((err, i) => (
               <div key={i}>{err}</div>
             ))}
-            <ExplorerLink address={txid} type="transaction" />
+            <ExplorerLink address={txid} type="tx" />
           </>
         ),
         type: "error",
@@ -407,7 +407,7 @@ export const sendSignedTransaction = async (
             {errors.map((err, i) => (
               <div key={i}>{err}</div>
             ))}
-            <ExplorerLink address={txid} type="transaction" />
+            <ExplorerLink address={txid} type="tx" />
           </>
         ),
         type: "error",

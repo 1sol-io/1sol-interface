@@ -15,7 +15,7 @@ const Address = (props: {
     <Row style={{ width: "100%", ...props.style }}>
       {props.label && <Col span={4}>{props.label}:</Col>}
       <Col span={17}>
-        <ExplorerLink address={props.address} code={true} type="address" />
+        <ExplorerLink address={props.address} code={true} type="account" />
       </Col>
       <Col span={3} style={{ display: "flex" }}>
         <Button

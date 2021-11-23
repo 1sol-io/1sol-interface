@@ -21,11 +21,11 @@ export const ExplorerLink = (props: {
     return null;
   }
 
-  const length = props.length ?? 9;
+  const length = props.length ?? 12;
 
   return (
     <a
-      href={`https://explorer.solana.com/${type}/${address}`}
+      href={`https://solscan.io/${type}/${address}`}
       // eslint-disable-next-line react/jsx-no-target-blank
       target="_blank"
       title={address}

@@ -1357,7 +1357,7 @@ export async function onesolProtocolSwap(
     const signedTransactions = await signAllTransactions(connection, wallet, transactions)
 
     for (let i = 0; i < signedTransactions.length; i++) {
-      const tx = await sendSignedTransaction(
+      const txid = await sendSignedTransaction(
         connection,
         wallet,
         signedTransactions[i]
@@ -1365,9 +1365,10 @@ export async function onesolProtocolSwap(
 
       notify({
         message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
-        description: `Transaction - ${tx}`,
+        description: `Transaction - ${txid}`,
         type: 'success',
-        duration: 6
+        duration: 6,
+        txid
       });
     }
   } else if (routes.length === 1) {
@@ -1437,7 +1438,7 @@ export async function onesolProtocolSwap(
 
     await Promise.all(promises)
 
-    const tx = await sendTransaction(
+    const txid = await sendTransaction(
       connection,
       wallet,
       instructions.concat(cleanupInstructions),
@@ -1447,7 +1448,8 @@ export async function onesolProtocolSwap(
     notify({
       message: "Trade executed.",
       type: "success",
-      description: `Transaction - ${tx}`,
+      description: `Transaction - ${txid}`,
+      txid
     });
   } else {
     return

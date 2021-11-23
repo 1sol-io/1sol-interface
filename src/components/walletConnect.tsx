@@ -12,7 +12,7 @@ export const WalletConnect: FunctionComponent = ({ children }) => {
     <Menu style={{ textAlign: "right" }}>
       {connected && (
         <ExplorerLink
-          type="address"
+          type="account"
           address={publicKey}
           style={{ padding: 12 }}
         />

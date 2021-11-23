@@ -1,6 +1,6 @@
 import React from 'react'
 import { notification } from 'antd'
-// import Link from '../components/Link';
+import { ExplorerLink } from '../components/explorerLink';
 
 export function notify({
   message = '',
@@ -8,19 +8,18 @@ export function notify({
   txid = '',
   type = 'info',
   placement = 'bottomLeft',
-  duration = 4.5
+  duration = 4.5,
 }){
-  // if (txid) {
-  //     <Link
-  //       external
-  //       to={'https://explorer.solana.com/tx/' + txid}
-  //       style={{ color: '#0000ff' }}
-  //     >
-  //       View transaction {txid.slice(0, 8)}...{txid.slice(txid.length - 8)}
-  //     </Link>
-
-  //   description = <></>;
-  // }
+  if (txid) {
+    description = <>
+      <ExplorerLink
+        address={txid}
+        type="tx"
+        code={!!txid}
+        style={{ color: '#0000ff' }}
+      />
+    </>;
+  }
 
   const config = {
     message: <span style={{ color: 'black' }}>{message}</span>,
