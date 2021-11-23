@@ -372,6 +372,7 @@ export const TradeEntry = () => {
     choice.current = ''
     setActive('')
     setPriceExchange(undefined)
+    setHasPriceSwapped(true)
 
     errorMessage.current = ''
 
@@ -667,11 +668,11 @@ export const TradeEntry = () => {
             {
               hasPriceSwapped ?
               <>
-                1 <span>{priceExchange.from}</span> <span>≈</span> { getDecimalLength(priceExchange.output / priceExchange.input) > 6 ? (priceExchange.output / priceExchange.input).toFixed(6): priceExchange.output / priceExchange.input } <span>{priceExchange.to}</span>
+                1 <span>{priceExchange.from}</span> <span>≈</span> { getDecimalLength(priceExchange.output / priceExchange.input) > 7 ? (priceExchange.output / priceExchange.input).toFixed(6): priceExchange.output / priceExchange.input } <span>{priceExchange.to}</span>
               </>
               : 
               <>
-                1 <span>{priceExchange.to}</span> <span>≈</span> { getDecimalLength(priceExchange.input / priceExchange.output) > 6 ? (priceExchange.input / priceExchange.output).toFixed(6): priceExchange.input / priceExchange.output } <span>{priceExchange.from}</span>
+                1 <span>{priceExchange.to}</span> <span>≈</span> { getDecimalLength(priceExchange.input / priceExchange.output) > 7 ? (priceExchange.input / priceExchange.output).toFixed(6): priceExchange.input / priceExchange.output } <span>{priceExchange.from}</span>
               </>
             }
             <SwapOutlined style={{marginLeft: '10px', fontSize: '10px'}} onClick={() => setHasPriceSwapped(!hasPriceSwapped)} />
