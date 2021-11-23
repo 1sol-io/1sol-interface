@@ -198,7 +198,7 @@ export const TradeEntry = () => {
           RAYDIUM_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true,
-        distribution_max_len: 10
+        distribution_max_len: 4
       },
       cancelToken: new CancelToken((c) => cancel.current = c)
     }
@@ -544,7 +544,7 @@ export const TradeEntry = () => {
           >
             {
               timeoutLoading ?
-                <img style={{ display: 'block', width: '24px', margin: '0' }} src={timeoutIcon} alt="" /> :
+                <img style={{ display: 'block', width: '24px', margin: '-3px 0 0' }} src={timeoutIcon} alt="" /> :
                 loading.current ?
                   <LoadingOutlined style={{ fontSize: '19px', marginTop: '-2px' }} /> :
                   <ReloadOutlined style={{ fontSize: '19px', marginTop: '-2px' }} />

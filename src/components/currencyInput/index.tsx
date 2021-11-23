@@ -174,7 +174,7 @@ export const CurrencyInput = (props: {
   return (
     <Card
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0 }}
+      style={{ borderRadius: 20, margin: 0, width: "100%" }}
       bodyStyle={{ padding: 0 }}
     >
       <div className="ccy-input-header">
