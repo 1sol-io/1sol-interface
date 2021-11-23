@@ -9,7 +9,8 @@ import {
   ExpandOutlined,
   TwitterOutlined,
   ReloadOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  SwapOutlined
 } from "@ant-design/icons";
 import axios, { AxiosRequestConfig } from 'axios'
 import { PublicKey } from "@solana/web3.js";
@@ -39,7 +40,6 @@ import { TokenIcon } from "../tokenIcon";
 // import { cache, useUserAccounts } from "../../utils/accounts";
 import { 
   PROVIDER_MAP, 
-  ONESOL_PROGRAM_ID, 
   TOKEN_SWAP_PROGRAM_ID, 
   ORCA_PROGRAM_ID, 
   SERUM_PROGRAM_ID, 
@@ -54,6 +54,15 @@ import "./trade.less";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
+const getDecimalLength = (num: number) => {
+  let length = 0
+
+  if (`${num}`.includes('.')) {
+    length = `${num}`.split('.')[1].length
+  }
+
+  return length
+}
 interface RawDistribution {
   id: string,
   routes: any[],
@@ -73,6 +82,7 @@ interface RawDistribution {
 
 interface Distribution extends RawDistribution {
   providers: string[],
+  input: number,
   output: number,
   swapRoute: {
     routes: SwapRoute[][],
@@ -88,6 +98,13 @@ interface SwapRoute {
   out: number,
   provider: string,
   ratio: number
+}
+
+interface PriceExchange {
+  from: string,
+  to: string,
+  input: number,
+  output: number
 }
 
 export const TradeEntry = () => {
@@ -124,6 +141,8 @@ export const TradeEntry = () => {
   const errorMessage: { current: string } = useRef('')
 
   const [active, setActive] = useState('')
+  const [priceExchange, setPriceExchange] = useState<PriceExchange | undefined>()
+  const [hasPriceSwapped, setHasPriceSwapped] = useState(true)
 
   // const [hasTokenAccount, setHasTokenAccount] = useState(false)
 
@@ -236,16 +255,7 @@ export const TradeEntry = () => {
       return {routes: swapRoutes, labels}
     }
 
-    const getDecimalLength = (num: number) => {
-      let length = 0
-
-      if (`${num}`.includes('.')) {
-        length = `${num}`.split('.')[1].length
-      }
-
-      return length
-    }
-
+    
     const setMaxPrecision = (num: number, max = 10): number => {
       if (`${num}`.length > max) {
         return +num.toPrecision(max)
@@ -284,6 +294,7 @@ export const TradeEntry = () => {
 
         result.push({
           ...best,
+          input: setMaxPrecision(best.amount_in / 10 ** decimals[0]),
           output: setMaxPrecision(best.amount_out / 10 ** decimals[1]),
           providers: ['1Sol'],
           offset: 0,
@@ -294,14 +305,16 @@ export const TradeEntry = () => {
 
       result = [...result,
         ...others.sort((a: RawDistribution, b: RawDistribution) => b.amount_out - a.amount_out)
-        .map(({ amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => {
+        .map(({ amount_in, amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => {
             const providers = routes.flat(2).map(route => PROVIDER_MAP[route.exchanger_flag])
 
             return {
               ...rest,
+              amount_in,
               amount_out,
               exchanger_flag,
               routes,
+              input: setMaxPrecision(amount_in / 10 ** decimals[0]),
               output: setMaxPrecision(amount_out / 10 ** decimals[1]),
               providers: [...new Set(providers)],
               offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
@@ -317,6 +330,15 @@ export const TradeEntry = () => {
       if (!choice.current && result.length) {
         choice.current = result[0].id
         setActive(result[0].id)
+
+        const [{ input, output, swapRoute: {labels} }] = result
+
+        setPriceExchange({
+          input,
+          output,
+          from: labels[0],
+          to: labels[labels.length - 1],
+        })
       }
 
       loading.current = false
@@ -349,6 +371,8 @@ export const TradeEntry = () => {
     setDistributions([])
     choice.current = ''
     setActive('')
+    setPriceExchange(undefined)
+
     errorMessage.current = ''
 
     if (!A.amount) {
@@ -469,6 +493,19 @@ export const TradeEntry = () => {
     loading.current = false
     setTimeoutLoading(false)
     setActive(s)
+
+    const distribution = distributions.find(({ id }: { id: string }) => id === s)
+
+    if (distribution) {
+      const { input, output, swapRoute: {labels} } = distribution
+
+      setPriceExchange({
+        input,
+        output,
+        from: labels[0],
+        to: labels[labels.length - 1],
+      })
+    }
   }
 
   const handleRefresh = () => {
@@ -623,6 +660,25 @@ export const TradeEntry = () => {
           />
         </Card>
       </div>
+      {
+        priceExchange ?
+        (
+          <div style={{fontSize: '12px', color: '#777'}}>
+            {
+              hasPriceSwapped ?
+              <>
+                1 <span>{priceExchange.from}</span> <span>≈</span> { getDecimalLength(priceExchange.output / priceExchange.input) > 6 ? (priceExchange.output / priceExchange.input).toFixed(6): priceExchange.output / priceExchange.input } <span>{priceExchange.to}</span>
+              </>
+              : 
+              <>
+                1 <span>{priceExchange.to}</span> <span>≈</span> { getDecimalLength(priceExchange.input / priceExchange.output) > 6 ? (priceExchange.input / priceExchange.output).toFixed(6): priceExchange.input / priceExchange.output } <span>{priceExchange.from}</span>
+              </>
+            }
+            <SwapOutlined style={{marginLeft: '10px', fontSize: '10px'}} onClick={() => setHasPriceSwapped(!hasPriceSwapped)} />
+          </div>
+        )
+        : null
+      }
       <Button
         className="trade-button"
         type="primary"
@@ -630,7 +686,7 @@ export const TradeEntry = () => {
         shape="round"
         block
         onClick={connected ? handleSwap : connect}
-        style={{ marginTop: '20px' }}
+        style={{ marginTop: '10px' }}
         disabled={
           connected &&
           (
