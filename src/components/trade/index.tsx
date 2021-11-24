@@ -661,10 +661,14 @@ export const TradeEntry = () => {
           />
         </Card>
       </div>
+      <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+        <div>Slippage Tolerance</div>
+        <div>{slippage * 100}%</div>
+      </div>
       {
         priceExchange ?
-        (
-          <div style={{fontSize: '12px', color: '#777'}}>
+        <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+          <div>
             {
               hasPriceSwapped ?
               <>
@@ -675,9 +679,9 @@ export const TradeEntry = () => {
                 1 <span>{priceExchange.to}</span> <span>≈</span> { getDecimalLength(priceExchange.input / priceExchange.output) > 7 ? (priceExchange.input / priceExchange.output).toFixed(6): priceExchange.input / priceExchange.output } <span>{priceExchange.from}</span>
               </>
             }
-            <SwapOutlined style={{marginLeft: '10px', fontSize: '10px'}} onClick={() => setHasPriceSwapped(!hasPriceSwapped)} />
           </div>
-        )
+          <SwapOutlined style={{marginLeft: '10px', fontSize: '10px'}} onClick={() => setHasPriceSwapped(!hasPriceSwapped)} />
+        </div>
         : null
       }
       <Button
