@@ -9,7 +9,7 @@ import { PublicKey } from '@solana/web3.js'
 import { useConnection } from '../utils/connection'
 import pythLogo from '../assets/pyth.svg'
 
-const publicKey = new PublicKey('BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2')
+const publicKey = process.env.NODE_ENV === 'development' ? new PublicKey('BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2') : new PublicKey('AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J0')
 
 const usePyth = () => {
   const connection = useConnection()
