@@ -315,7 +315,7 @@ export async function findOrCreateTokenAssociatedAccountByMint(
   return toAccount;
 }
 
-function findOrCreateAccountByMint(
+async function findOrCreateAccountByMint(
   payer: PublicKey,
   owner: PublicKey,
   instructions: TransactionInstruction[],
@@ -324,7 +324,7 @@ function findOrCreateAccountByMint(
   mint: PublicKey, // use to identify same type
   signers: Signer[],
   excluded?: Set<string>
-): PublicKey {
+): Promise<PublicKey> {
   const accountToFind = mint.toBase58();
   const account = getCachedAccount(
     (acc) =>
@@ -335,25 +335,22 @@ function findOrCreateAccountByMint(
   const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58();
 
   let toAccount: PublicKey;
-
   if (account && !isWrappedSol) {
     toAccount = account.pubkey;
   } else {
-    // creating depositor pool account
-    const newToAccount = createSplAccount(
-      instructions,
-      payer,
-      accountRentExempt,
-      mint,
-      owner,
-      AccountLayout.span
-    );
-
-    toAccount = newToAccount.publicKey;
-
-    signers.push(newToAccount);
-
     if (isWrappedSol) {
+      // creating depositor pool account
+      const newToAccount = createSplAccount(
+        instructions,
+        payer,
+        accountRentExempt,
+        mint,
+        owner,
+        AccountLayout.span
+      );
+
+      toAccount = newToAccount.publicKey;
+      signers.push(newToAccount);
       cleanupInstructions.push(
         Token.createCloseAccountInstruction(
           programIds().token,
@@ -363,6 +360,14 @@ function findOrCreateAccountByMint(
           []
         )
       );
+    } else {
+      const newToAccount = await createSplAssociatedTokenAccount(
+        instructions,
+        payer,
+        mint,
+        owner
+      )
+      toAccount = newToAccount;
     }
   }
 
@@ -1105,7 +1110,7 @@ export async function createAccountsTransaction(
     signers
   );
 
-  const toAccount = findOrCreateAccountByMint(
+  const toAccount = await findOrCreateAccountByMint(
     wallet.publicKey,
     wallet.publicKey,
     instructions,
@@ -1117,7 +1122,7 @@ export async function createAccountsTransaction(
 
   middleMintKey = new PublicKey(C.mintAddress)
 
-  middleAccount = findOrCreateAccountByMint(
+  middleAccount = await findOrCreateAccountByMint(
     wallet.publicKey,
     wallet.publicKey,
     instructions,
@@ -1409,7 +1414,7 @@ export async function onesolProtocolSwap(
       signers
     );
 
-    const toAccount = findOrCreateAccountByMint(
+    const toAccount = await findOrCreateAccountByMint(
       wallet.publicKey,
       wallet.publicKey,
       instructions,
