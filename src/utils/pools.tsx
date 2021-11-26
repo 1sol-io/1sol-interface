@@ -1354,7 +1354,7 @@ export async function onesolProtocolSwap(
       swapInOpenOrders,
       swapOutOpenOrders
     })
-    if (swapTransactions.instructions.length < 0) {
+    if (swapTransactions.instructions.length <= 0) {
       // TODO notify error message
       return
     }
