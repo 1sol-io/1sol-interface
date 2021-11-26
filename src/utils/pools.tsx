@@ -8,7 +8,7 @@ import {
   Keypair,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { Token, MintLayout, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Token, MintLayout, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 import { sendTransaction, useConnection, Transactions, signAllTransactions, sendSignedTransaction } from "./connection";
 import { notify } from "./notifications";
@@ -326,52 +326,51 @@ async function findOrCreateAccountByMint(
   excluded?: Set<string>
 ): Promise<PublicKey> {
   const accountToFind = mint.toBase58();
-  const account = getCachedAccount(
-    (acc) =>
-      acc.info.mint.toBase58() === accountToFind &&
-      acc.info.owner.toBase58() === owner.toBase58() &&
-      (excluded === undefined || !excluded.has(acc.pubkey.toBase58()))
-  );
   const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58();
 
-  let toAccount: PublicKey;
-  if (account && !isWrappedSol) {
-    toAccount = account.pubkey;
-  } else {
-    if (isWrappedSol) {
-      // creating depositor pool account
-      const newToAccount = createSplAccount(
-        instructions,
-        payer,
-        accountRentExempt,
-        mint,
-        owner,
-        AccountLayout.span
-      );
+  if (isWrappedSol) {
+    // creating depositor pool account
+    const newToAccount = createSplAccount(
+      instructions,
+      payer,
+      accountRentExempt,
+      mint,
+      owner,
+      AccountLayout.span
+    );
 
-      toAccount = newToAccount.publicKey;
-      signers.push(newToAccount);
-      cleanupInstructions.push(
-        Token.createCloseAccountInstruction(
-          programIds().token,
-          toAccount,
-          payer,
-          payer,
-          []
-        )
-      );
-    } else {
-      const newToAccount = await createSplAssociatedTokenAccount(
-        instructions,
+    const toAccount = newToAccount.publicKey;
+    signers.push(newToAccount);
+    cleanupInstructions.push(
+      Token.createCloseAccountInstruction(
+        programIds().token,
+        toAccount,
         payer,
-        mint,
-        owner
+        payer,
+        []
       )
-      toAccount = newToAccount;
-    }
-  }
+    );
+    return toAccount
+  } else {
+    const associateTokenAddress = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner)
+    const account = getCachedAccount(
+      (acc) =>
+        acc.pubkey.equals(associateTokenAddress) &&
+        acc.info.mint.toBase58() === accountToFind &&
+        acc.info.owner.toBase58() === owner.toBase58() &&
+        (excluded === undefined || !excluded.has(acc.pubkey.toBase58()))
+    );
 
-  return toAccount
+    if (account) {
+      return account.pubkey;
+    }
+    return await createSplAssociatedTokenAccount(
+      instructions,
+      payer,
+      mint,
+      owner
+    )
+  }
 }
 
 function estimateProceedsFromInput(
