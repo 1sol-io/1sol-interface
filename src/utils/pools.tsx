@@ -1331,7 +1331,7 @@ export async function onesolProtocolSwap(
       routes
     )
 
-    if (createAccountsTransaction.length > 0) {
+    if (createAccountsTransactions.instructions.length > 0) {
       transactions.push(createAccountsTransactions)
     }
 
