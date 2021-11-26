@@ -1,9 +1,10 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
+import { TokenInfo } from "@solana/spl-token-registry";
 
 import { PoolInfo, TokenAccount } from "./../models";
-import { TokenInfo } from "@solana/spl-token-registry";
+import axios from 'axios';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -251,4 +252,12 @@ export const getClientId = () => {
   }
 
   return Number(clientId)
+}
+
+export const getFastestEndpoint = async (endpoints: string[]) => {
+  if (endpoints.length === 1) {
+    return endpoints[0]
+  }
+
+  return await Promise.any(endpoints.map((endpoint) => axios.post(endpoint, { jsonrpc: '2.0', id: 1, method: 'getEpochInfo' }).then(() => endpoint)))
 }

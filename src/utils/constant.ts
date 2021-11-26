@@ -49,6 +49,9 @@ const {
   REACT_APP_ORCA,
   REACT_APP_RAYDIUM,
   REACT_APP_SERUM,
+  REACT_APP_ENDPOINTS,
+  REACT_APP_CHAIN_ID,
+  REACT_APP_CHAIN_NAME,
 } = process.env
 
 export const ONESOL_PROGRAM_ID = new PublicKey(REACT_APP_ONESOL)
@@ -61,3 +64,7 @@ export const ORCA_PROGRAM_ID = new PublicKey(REACT_APP_ORCA)
 export const RAYDIUM_PROGRAM_ID = new PublicKey(REACT_APP_RAYDIUM)
 
 export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
+
+export const ENDPOINTS: string[] = REACT_APP_ENDPOINTS!.split(',')
+export const CHAIN_ID: string = REACT_APP_CHAIN_ID
+export const CHAIN_NAME: "mainnet-beta" | "testnet" | "devnet" | "localnet" = REACT_APP_CHAIN_NAME

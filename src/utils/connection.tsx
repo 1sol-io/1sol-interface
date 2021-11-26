@@ -10,56 +10,22 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
-  ENV as ChainID,
   TokenInfo,
   TokenListContainer
 } from "@solana/spl-token-registry";
 
-import { useLocalStorageState } from "./utils";
+import { cache, getMultipleAccounts } from "./accounts";
+import { queryJsonFiles, useLocalStorageState, getFastestEndpoint } from './utils'
+import { setProgramIds } from "./ids";
+import { ENDPOINTS, CHAIN_ID, CHAIN_NAME} from '../utils/constant'
+
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
-import { cache, getMultipleAccounts } from "./accounts";
-import { queryJsonFiles, queryJSONFile } from './utils'
-
-import { setProgramIds } from "./ids";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
-export const ENDPOINTS = [
-  {
-    name: "mainnet-beta" as ENV,
-    endpoint: "https://solana-api.projectserum.com/",
-    chainID: ChainID.MainnetBeta,
-  },
-  {
-    name: "devnet" as ENV,
-    endpoint: clusterApiUrl("devnet"),
-    chainID: ChainID.Devnet,
-  },
-  // {
-  //   name: "testnet" as ENV,
-  //   endpoint: clusterApiUrl("testnet"),
-  //   chainID: ChainID.Testnet,
-  // },
-  // {
-  //   name: "localnet" as ENV,
-  //   endpoint: "http://127.0.0.1:8899",
-  //   chainID: ChainID.Devnet,
-  // },
-];
-
-const DEFAULT = ENDPOINTS[0].endpoint;
+const DEFAULT = ENDPOINTS[0];
 const DEFAULT_SLIPPAGE = 0.005;
-
-export interface TokenSwapPool {
-  address: string,
-  chainId: number,
-  deprecated: boolean,
-  mintA: string,
-  mintB: string,
-  name: string,
-  programId: string,
-}
 
 interface ConnectionConfig {
   connection: Connection;
@@ -81,17 +47,14 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   setSlippage: (val: number) => { },
   connection: new Connection(DEFAULT, "recent"),
   // sendConnection: new Connection(DEFAULT, "recent"),
-  env: ENDPOINTS[0].name,
+  env: CHAIN_NAME,
   tokens: [],
   tokenMap: new Map<string, TokenInfo>(),
-  chainId: 101,
+  chainId: Number(CHAIN_ID),
 });
 
 export function ConnectionProvider({ children = undefined as any }) {
-  const [endpoint, setEndpoint] = useLocalStorageState(
-    "connectionEndpts",
-    ENDPOINTS[0].endpoint
-  );
+  const [endpoint, setEndpoint] = useState(DEFAULT);
 
   const [slippage, setSlippage] = useLocalStorageState(
     "slippage",
@@ -105,23 +68,28 @@ export function ConnectionProvider({ children = undefined as any }) {
   //   endpoint,
   // ]);
 
-  const chain =
-    ENDPOINTS.find((end) => end.endpoint === endpoint) || ENDPOINTS[0];
-
-  const env = chain.name;
-  const chainId = chain.chainID
+  const env = CHAIN_NAME;
+  const chainId = Number(CHAIN_ID); 
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
 
   useEffect(() => {
-    if (![ENDPOINTS[0].endpoint, ENDPOINTS[1].endpoint].includes(chain.endpoint)) {
+    if (!['mainnet-beta', 'devnet'].includes(env)) {
       notify({
         message: 'Wrong Network',
-        description: `${ENDPOINTS[0].name} is avaliable for now.`
+        description: `${env} is avaliable for now.`
       })
     }
-  }, [chain])
+  }, [env])
+
+  useEffect(() => {
+    (async () => {
+      const endpoint = await getFastestEndpoint(ENDPOINTS);
+
+      setEndpoint(endpoint);
+    })(); 
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -131,7 +99,7 @@ export function ConnectionProvider({ children = undefined as any }) {
       const customTokenList = new TokenListContainer(customTokenJSON);
 
       const customList = customTokenList
-        .filterByChainId(chain.chainID)
+        .filterByChainId(chainId)
         .excludeByTag("nft")
         .getList();
 
@@ -161,7 +129,7 @@ export function ConnectionProvider({ children = undefined as any }) {
       setTokenMap(knownMints);
       setTokens([...knownMints.values()]);
     })();
-  }, [chain, connection]);
+  }, [chainId, connection]);
 
   setProgramIds(env);
 
@@ -253,6 +221,7 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
   const tx = await connection.getParsedConfirmedTransaction(txid, 'confirmed');
 
   const errors: string[] = [];
+
   if (tx?.meta && tx.meta.logMessages) {
     tx.meta.logMessages.forEach((log) => {
       const regex = /Error: (.*)/gm;
