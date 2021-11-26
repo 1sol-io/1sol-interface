@@ -281,7 +281,9 @@ export const TradeEntry = () => {
 
       //@ts-ignore
       window.gtag('event', 'api_request_time', {
-        ...axiosOption,
+        url: axiosOption.url,
+        method: axiosOption.method,
+        data: JSON.stringify(axiosOption.data, null, 2),
         time: endTime - startTime,
       })
 
