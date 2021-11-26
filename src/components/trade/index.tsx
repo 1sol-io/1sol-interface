@@ -293,12 +293,13 @@ export const TradeEntry = () => {
 
       if (best) {
         const id = best.routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, best.exchanger_flag)
+        const providers = best.routes.flat(2).map(route => PROVIDER_MAP[route.exchanger_flag])
 
         result.push({
           ...best,
           input: setMaxPrecision(best.amount_in / 10 ** decimals[0]),
           output: setMaxPrecision(best.amount_out / 10 ** decimals[1]),
-          providers: ['1Sol'],
+          providers: [...new Set(providers)],
           offset: 0,
           id,
           swapRoute: getSwapRoute(best.routes),
