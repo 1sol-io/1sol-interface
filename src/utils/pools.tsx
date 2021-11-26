@@ -1331,7 +1331,9 @@ export async function onesolProtocolSwap(
       routes
     )
 
-    transactions.push(createAccountsTransactions)
+    if (createAccountsTransaction.length > 0) {
+      transactions.push(createAccountsTransactions)
+    }
 
     // create swap transactions
     const swapTransactions = await createSwapTransactions({
@@ -1352,10 +1354,14 @@ export async function onesolProtocolSwap(
       swapInOpenOrders,
       swapOutOpenOrders
     })
+    if (swapTransactions.instructions.length < 0) {
+      // TODO notify error message
+      return
+    }
 
     transactions.push(swapTransactions)
 
-    if (cleanupTransaction) {
+    if (cleanupTransaction.instructions.length > 0) {
       transactions.push(cleanupTransaction)
     }
 
