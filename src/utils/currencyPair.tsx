@@ -98,7 +98,6 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
 };
 
 export function CurrencyPairProvider({ children = null as any }) {
-  const connection = useConnection();
   const { tokens } = useConnectionConfig();
 
   const history = useHistory();
@@ -126,15 +125,10 @@ export function CurrencyPairProvider({ children = null as any }) {
   const base = useCurrencyLeg(options);
   const mintAddressA = base.mintAddress;
   const setMintAddressA = base.setMint;
-  const amountA = base.amount;
-  const setAmountA = base.setAmount;
 
   const quote = useCurrencyLeg(options);
   const mintAddressB = quote.mintAddress;
   const setMintAddressB = quote.setMint;
-  const amountB = quote.amount;
-  const setAmountB = quote.setAmount;
-  const params: {pair: string | undefined} = useParams();
 
   useEffect(() => {
     const base =
@@ -250,16 +244,18 @@ function getDefaultTokens(tokens: TokenInfo[], pair: string) {
   }, new Map<string, any>());
 
   if (pair) {
-    const items = pair.split('-');
+    const [from, to] = pair.split('-');
 
-    if (items.length > 1) {
-      if (nameToToken.has(items[0]) || isValidAddress(items[0])) {
-        defaultBase = items[0];
-      }
+    if (from && (nameToToken.has(from) || isValidAddress(from))) {
+        defaultBase = from;
+    } else {
+      defaultBase = to === "USDC" ? "SOL" : "USDC";; 
+    }
 
-      if (nameToToken.has(items[1]) || isValidAddress(items[1])) {
-        defaultQuote = items[1];
-      }
+    if (to && (nameToToken.has(to) || isValidAddress(to))) {
+      defaultQuote = to;
+    } else {
+      defaultQuote = from === "USDC" ? "SOL": "USDC";
     }
   }
 
