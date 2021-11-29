@@ -1,7 +1,6 @@
 
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  clusterApiUrl,
   Connection,
   PublicKey,
   Transaction,
@@ -144,13 +143,13 @@ export function ConnectionProvider({ children = undefined as any }) {
     };
   }, [connection]);
 
-  useEffect(() => {
-    const id = connection.onSlotChange(() => null);
+  // useEffect(() => {
+  //   const id = connection.onSlotChange(() => null);
 
-    return () => {
-      connection.removeSlotChangeListener(id);
-    };
-  }, [connection]);
+  //   return () => {
+  //     connection.removeSlotChangeListener(id);
+  //   };
+  // }, [connection]);
 
   // useEffect(() => {
   //   const id = sendConnection.onAccountChange(
