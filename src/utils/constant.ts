@@ -7,17 +7,16 @@ import usdc from '../assets/token/usdc.png'
 import srm from '../assets/token/srm.png'
 import sol from '../assets/token/sol.png'
 import eth from '../assets/token/eth.png'
+import ray from '../assets/token/ray.png'
 
 export const SYMBOL_PAIRS = [
-  // { name: 'AVAX/USD', key: 'DinfGKkKxJsU3kFnj173zSRdXNhZxxgZY8YC5GCQYhsi' },
   { name: 'BTC', key: '6dbkV6QCToTk6DRfuJyrGuz18kZ4rPUSHLLLVrryWdUC', token: 'BTC', icon: btc },
   { name: 'ETH', key: '8pcXGi4QoHKytv3issKdFF3XRDeYAGEgy6EEAi1ioLe7', token: 'ETH', icon: eth },
-  // { name: 'LINK/USD', key: 'DKE5VrYbboAteTfzAycvtV7Hah7VwvyXC56hj2hZ8dfS' },
-  // { name: 'MATIC/USD', key: '9Xzp4FjgB9UKF3tDXS1WxHTGauv4dtPmkxxTZdWZsP2x' },
   { name: 'SOL', key: 'FmAmfoyPXiA8Vhhe6MZTr3U6rZfEZ1ctEHay1ysqCqcf', token: 'SOL', icon: sol },
   { name: 'SRM', key: 'ELfANVHk7wYB3ALoxPsiTQgM3t9MXgjbNZQNZyPuBp9C', token: 'SRM', icon: srm },
   { name: 'USDC', key: 'F3Wgm7HqxnxvNznF7MmHMW7566zBQyuwzF5JWRhjhUtc', token: 'USDC', icon: usdc },
   { name: 'USDT', key: 'FG5FPJnT4ubjoNMm9Bh2uAfgbq2bwxP7aY6AKVmYou1p', token: 'USDT', icon: usdt },
+  { name: 'RAY', key: 'HvYREVU9R1MeVp61bJFg39E7qqgnuxKnqxsuYg27T7NE', token: 'RAY', icon: ray },
 ]
 
 export const TOKEN_SWAP_NAME = 'Token Swap'
