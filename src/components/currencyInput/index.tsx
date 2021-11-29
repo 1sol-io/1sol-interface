@@ -191,31 +191,34 @@ export const CurrencyInput = (props: {
       </div>
       <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
         <div className="ccy-input-header-left">
-        <NumericInput
-          disabled={props.disabled}
-          value={props.amount}
-          onChange={(val: any) => {
-            if (props.onInputChange) {
-              props.onInputChange(val);
-            }
-          }}
-          style={{
-            fontSize: 20,
-            boxShadow: "none",
-            borderColor: "transparent",
-            outline: "transpaernt",
-            color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
-          }}
-          placeholder="0.00"
-        />
-        <div 
-          style={{cursor: 'pointer'}}
-          onClick={() => {
-            if (props.onMaxClick) {
-              props.onMaxClick()
-            }
-          }}
-        >Max</div>
+          <NumericInput
+            disabled={props.disabled}
+            value={props.amount}
+            onChange={(val: any) => {
+              if (props.onInputChange) {
+                props.onInputChange(val);
+              }
+            }}
+            style={{
+              width: '120px',
+              fontSize: 20,
+              boxShadow: "none",
+              borderColor: "transparent",
+              outline: "transpaernt",
+              color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
+            }}
+            placeholder="0.00"
+          />
+          <div 
+            style={{cursor: 'pointer'}}
+            onClick={() => {
+              if (props.onMaxClick) {
+                props.onMaxClick()
+              }
+            }}
+          >
+            Max
+          </div>
         </div>
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
           {!props.hideSelect ? (

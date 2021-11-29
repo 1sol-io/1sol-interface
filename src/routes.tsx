@@ -8,7 +8,6 @@ import { CurrencyPairProvider } from "./utils/currencyPair";
 
 import { ExchangeView } from "./components/exchange";
 import { Dashboard } from './components/dashboard'
-// import { CrossChain } from './components/crosschain'
 
 export function Routes() {
   return (
@@ -24,7 +23,6 @@ export function Routes() {
                   </Route>
                   <Route path="/trade/:pair" component={ExchangeView} />
                   <Route exact path="/dashboard" component={() => <Dashboard />} />
-                  {/* <Route exact path="/crosschain" component={() => <CrossChain />} /> */}
                 </Switch>
               </CurrencyPairProvider>
             </AccountsProvider>
