@@ -24,6 +24,7 @@ import Warning from './warning'
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink_footer.svg'
 import onesole_te from '../assets/pro-te.png'
+import SodaLogo from '../assets/token/soda.svg'
 
 import './dashboard.less'
 
@@ -33,7 +34,8 @@ const COINS_MAP: { [key: string]: string } = {
   sol: 'solana',
   srm: 'serum',
   usdc: 'usd-coin',
-  usdt: 'tether'
+  usdt: 'tether',
+  ray: 'raydium'
 }
 
 const { TabPane } = Tabs
@@ -369,7 +371,10 @@ export const Dashboard = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="bd">
+                      <div
+                        className="bd"
+                        style={{ display: 'flex', alignItems: 'center' }}
+                      >
                         <Link
                           to={
                             active.toUpperCase() === 'SOL' ? (
@@ -379,10 +384,35 @@ export const Dashboard = () => {
                             )
                           }
                         >
-                          <Button type="primary" size="small">
+                          <Button type="primary" size="large">
                             Trade
                           </Button>
                         </Link>
+                        <a
+                          href="https://app.sodaprotocol.com/markets"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            style={{
+                              marginLeft: '10px',
+                              fontSize: '12px'
+                            }}
+                            type="primary"
+                            size="large"
+                          >
+                            Borrow
+                            <img
+                              style={{
+                                display: 'block',
+                                height: '12px',
+                                marginTop: '-3px'
+                              }}
+                              src={SodaLogo}
+                              alt="borrow on sodaprotocal"
+                            />
+                          </Button>
+                        </a>
                       </div>
                     </div>
                   </Card>
