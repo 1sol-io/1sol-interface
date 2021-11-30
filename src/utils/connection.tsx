@@ -135,13 +135,13 @@ export function ConnectionProvider({ children = undefined as any }) {
   // The websocket library solana/web3.js uses closes its websocket connection when the subscription list
   // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
   // This is a hack to prevent the list from every getting empty
-  useEffect(() => {
-    const id = connection.onAccountChange(Keypair.generate().publicKey, () => { });
+  // useEffect(() => {
+  //   const id = connection.onAccountChange(Keypair.generate().publicKey, () => { });
 
-    return () => {
-      connection.removeAccountChangeListener(id);
-    };
-  }, [connection]);
+  //   return () => {
+  //     connection.removeAccountChangeListener(id);
+  //   };
+  // }, [connection]);
 
   // useEffect(() => {
   //   const id = connection.onSlotChange(() => null);

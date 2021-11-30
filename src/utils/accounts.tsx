@@ -454,48 +454,48 @@ export function AccountsProvider({ children = null as any }) {
 
       // This can return different types of accounts: token-account, mint, multisig
       // TODO: web3.js expose ability to filter. discuss filter syntax
-      // const tokenSubID = connection.onProgramAccountChange(
-      //   programIds().token,
-      //   (info) => {
-      //     const id = typeof info.accountId === 'string' ? info.accountId as unknown as string : info.accountId.toBase58();
-      //     // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
-      //     if (info.accountInfo.data.length === AccountLayout.span) {
-      //       const data = deserializeAccount(info.accountInfo.data);
-      //       // TODO: move to web3.js for decoding on the client side... maybe with callback
-      //       const details = {
-      //         pubkey: new PublicKey(id),
-      //         account: {
-      //           ...info.accountInfo,
-      //         },
-      //         info: data,
-      //       } as TokenAccount;
+      const tokenSubID = connection.onProgramAccountChange(
+        programIds().token,
+        (info) => {
+          const id = typeof info.accountId === 'string' ? info.accountId as unknown as string : info.accountId.toBase58();
+          // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
+          if (info.accountInfo.data.length === AccountLayout.span) {
+            const data = deserializeAccount(info.accountInfo.data);
+            // TODO: move to web3.js for decoding on the client side... maybe with callback
+            const details = {
+              pubkey: new PublicKey(id),
+              account: {
+                ...info.accountInfo,
+              },
+              info: data,
+            } as TokenAccount;
 
-      //       if (
-      //         PRECACHED_OWNERS.has(details.info.owner.toBase58()) ||
-      //         accountsCache.has(id)
-      //       ) {
-      //         accountsCache.set(id, details);
-      //         accountEmitter.raiseAccountUpdated(id);
-      //       }
-      //     } else if (info.accountInfo.data.length === MintLayout.span) {
-      //       if (mintCache.has(id)) {
-      //         const data = Buffer.from(info.accountInfo.data);
-      //         const mint = deserializeMint(data);
-      //         mintCache.set(id, mint);
-      //       }
+            if (
+              PRECACHED_OWNERS.has(details.info.owner.toBase58()) ||
+              accountsCache.has(id)
+            ) {
+              accountsCache.set(id, details);
+              accountEmitter.raiseAccountUpdated(id);
+            }
+          } else if (info.accountInfo.data.length === MintLayout.span) {
+            if (mintCache.has(id)) {
+              const data = Buffer.from(info.accountInfo.data);
+              const mint = deserializeMint(data);
+              mintCache.set(id, mint);
+            }
 
-      //       accountEmitter.raiseAccountUpdated(id);
-      //     }
+            accountEmitter.raiseAccountUpdated(id);
+          }
 
-      //     if (genericCache.has(id)) {
-      //       cache.add(new PublicKey(id), info.accountInfo);
-      //     }
-      //   },
-      //   "singleGossip"
-      // );
+          if (genericCache.has(id)) {
+            cache.add(new PublicKey(id), info.accountInfo);
+          }
+        },
+        "singleGossip"
+      );
 
       return () => {
-        // connection.removeProgramAccountChangeListener(tokenSubID);
+        connection.removeProgramAccountChangeListener(tokenSubID);
         dispose();
       };
     }
