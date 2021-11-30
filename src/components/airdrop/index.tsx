@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, MutableRefObject } from 'react'
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  MutableRefObject
+} from 'react'
 import { Button } from 'antd'
+import axios from 'axios'
 
 import { useWallet } from '../../context/wallet'
 
@@ -8,12 +15,55 @@ import Social from '../social'
 
 const Airdrop = () => {
   const { connected, connect } = useWallet()
+  const [user, setUser] = useState<any>({
+    id: 145728019,
+    first_name: 'Miko',
+    last_name: 'Gao',
+    username: 'gaowhen',
+    auth_date: '1638255448',
+    hash: 'b49af762fa9c4b091585fb9e28868f21146441ad381532be9ffd98ea9fd9cf41'
+  })
 
   const widget: MutableRefObject<HTMLDivElement | null> = useRef(null)
 
+  const callback = useCallback(
+    async () => {
+      const { data: { token } } = await axios.post(
+        'https://airdrop-api.1sol.io/login/auth/telegram',
+        user
+      )
+
+      const {
+        data
+      } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      console.log(data)
+    },
+    [user]
+  )
+
+  const handleMock = async () => {
+    await callback()
+  }
+
   useEffect(() => {
     const dataOnauth = (user: any) => {
-      console.log(`user: ${JSON.stringify(user, null, 2)}`)
+      // console.log(`user: ${JSON.stringify(user, null, 2)}`)
+      const u = {
+        id: 145728019,
+        first_name: 'Miko',
+        last_name: 'Gao',
+        username: 'gaowhen',
+        auth_date: 1638255448,
+        hash: 'b49af762fa9c4b091585fb9e28868f21146441ad381532be9ffd98ea9fd9cf41'
+      }
+
+      setUser(u)
+
+      if (u) {
+        callback()
+      }
     }
 
     // @ts-ignore
@@ -43,6 +93,7 @@ const Airdrop = () => {
         {!connected ? (
           <div className="airdrop-content">
             <div ref={widget} />
+            <div onClick={handleMock}>Mock</div>
           </div>
         ) : (
           <Button size="large" type="primary" onClick={connect}>
