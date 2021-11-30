@@ -133,7 +133,7 @@ const WalletContext = React.createContext<any>(null);
 export function WalletProvider({ children = null as any }) {
   const { endpoint } = useConnectionConfig();
 
-  const [autoConnect, setAutoConnect] = useState(true);
+  const [autoConnect, setAutoConnect] = useState(false);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
 
   const provider = useMemo(
@@ -208,19 +208,25 @@ export function WalletProvider({ children = null as any }) {
     if (wallet && autoConnect) {
       try {
         wallet.connect();
-        setAutoConnect(true);
+        setAutoConnect(false);
       } catch (e) {
         console.error(e);
       }
     }
 
-    return () => {};
+    return () => {
+    };
   }, [wallet, autoConnect]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const select = useCallback(() => setIsModalVisible(true), []);
-  const close = useCallback(() => setIsModalVisible(false), []);
+  const select = useCallback(() => {
+    setIsModalVisible(true)
+  }, []);
+
+  const close = useCallback(() => { 
+    setIsModalVisible(false) 
+  }, []);
 
   return (
     <WalletContext.Provider
