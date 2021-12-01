@@ -84,9 +84,11 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const endpoint = await getFastestEndpoint(ENDPOINTS);
+      try {
+        const endpoint = await getFastestEndpoint(ENDPOINTS);
 
-      setEndpoint(endpoint);
+        setEndpoint(endpoint);
+      } catch (e) {}
     })(); 
   }, []);
 
