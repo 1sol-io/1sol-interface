@@ -8,7 +8,7 @@ import axios from 'axios';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
-export function useLocalStorageState(key: string, defaultState?: string) {
+export function useLocalStorageState(key: string, defaultState?: string | object) {
   const [state, setState] = useState(() => {
     // NOTE: Not sure if this is ok
     const storedState = localStorage.getItem(key);

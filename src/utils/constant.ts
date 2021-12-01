@@ -72,3 +72,5 @@ export const WRAPPED_SOL_MINT = new PublicKey('So1111111111111111111111111111111
 export const ENDPOINTS: string[] = REACT_APP_ENDPOINTS!.split(',')
 export const CHAIN_ID: string = REACT_APP_CHAIN_ID
 export const CHAIN_NAME: "mainnet-beta" | "testnet" | "devnet" | "localnet" = REACT_APP_CHAIN_NAME
+
+export const ONESOL_MINT_ADDRESS = new PublicKey('4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF')

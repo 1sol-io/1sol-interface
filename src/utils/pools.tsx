@@ -473,14 +473,14 @@ export async function createTokenAccount(
   mint: PublicKey,
 ) {
   const toAccountInstructions: TransactionInstruction[] = [];
-  const cleanupToAccountInstructions: TransactionInstruction[] = [];
   const toAccountigners: Signer[] = [];
 
-  await findOrCreateTokenAssociatedAccountByMint(
+  await findOrCreateAccountByMint(
     wallet.publicKey,
     wallet.publicKey,
     toAccountInstructions,
-    cleanupToAccountInstructions,
+    [],
+    0,
     mint,
     toAccountigners
   )
