@@ -51,6 +51,7 @@ import {
 import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
+import { useUserAccounts } from "../../utils/accounts";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -144,50 +145,8 @@ export const TradeEntry = () => {
   const [priceExchange, setPriceExchange] = useState<PriceExchange | undefined>()
   const [hasPriceSwapped, setHasPriceSwapped] = useState(true)
 
-  // const [hasTokenAccount, setHasTokenAccount] = useState(false)
-
-  // const [showSplitTip, setShowSplitTip] = useState(false)
-
-  // const { userAccounts } = useUserAccounts();
-
-  // useEffect(() => {
-  //   const distribution = distributions.find(d => d.id === choice.current)
-
-  //   if (distribution) {
-  //     setShowSplitTip(distribution.split_tx)
-  //   } else {
-  //     setShowSplitTip(false)
-  //   }
-  // }, [distributions, choice])
-
-  // useEffect(() => {
-  //   const getTokenAccount = (mint: string) => {
-  //     // if B is SOL, 
-  //     if (mint === WRAPPED_SOL_MINT.toBase58()) {
-  //       return true
-  //     }
-
-  //     const index = userAccounts.findIndex(
-  //       (acc: any) => acc.info.mint.toBase58() === mint
-  //     );
-
-  //     if (index !== -1) {
-  //       return userAccounts[index];
-  //     }
-
-  //     return;
-  //   }
-
-  //   setHasTokenAccount(false)
-
-  //   const tokenMint = cache.getMint(B.mintAddress);
-  //   const tokenAccount = getTokenAccount(B.mintAddress);
-
-  //   if (connected && tokenAccount && tokenMint) {
-  //     setHasTokenAccount(true)
-  //   }
-  // }, [connected, B.mintAddress, userAccounts])
-
+  const { fetchUserTokenAccounts } = useUserAccounts();
+  
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
       loading.current = false
@@ -472,6 +431,7 @@ export const TradeEntry = () => {
       );
 
       A.setAmount('')
+      fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
 

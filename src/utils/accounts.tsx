@@ -14,7 +14,7 @@ import { TokenAccount } from "./../models";
 import { notify } from "./notifications";
 import { chunks } from "./utils";
 import { EventEmitter } from "./eventEmitter";
-import { programIds } from "./ids";
+// import { programIds } from "./ids";
 
 const AccountsContext = React.createContext<any>(null);
 
@@ -322,6 +322,7 @@ const UseNativeAccount = () => {
   const { wallet } = useWallet();
 
   const [nativeAccount, setNativeAccount] = useState<AccountInfo<Buffer>>();
+
   useEffect(() => {
     if (!connection || !wallet?.publicKey) {
       return;
@@ -333,11 +334,11 @@ const UseNativeAccount = () => {
       }
     });
 
-    connection.onAccountChange(wallet.publicKey, (acc) => {
-      if (acc) {
-        setNativeAccount(acc);
-      }
-    });
+    // connection.onAccountChange(wallet.publicKey, (acc) => {
+    //   if (acc) {
+    //     setNativeAccount(acc);
+    //   }
+    // });
   }, [setNativeAccount, wallet, wallet?.publicKey, connection]);
 
   useEffect(() => {
@@ -346,6 +347,7 @@ const UseNativeAccount = () => {
     }
 
     const account = wrapNativeAccount(wallet?.publicKey, nativeAccount);
+
     if (!account) {
       return;
     }
@@ -353,10 +355,11 @@ const UseNativeAccount = () => {
     accountsCache.set(account.pubkey.toBase58(), account);
   }, [nativeAccount, wallet]);
 
-  return { nativeAccount };
+  return { nativeAccount, setNativeAccount };
 };
 
 const PRECACHED_OWNERS = new Set<string>();
+
 const precacheUserTokenAccounts = async (
   connection: Connection,
   owner?: PublicKey
@@ -397,109 +400,78 @@ export function AccountsProvider({ children = null as any }) {
   const { wallet, connected } = useWallet();
   const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
-  const { nativeAccount } = UseNativeAccount();
+  const { nativeAccount, setNativeAccount } = UseNativeAccount();
 
-  const publicKey = wallet?.publicKey;
+  const ownerAddress = wallet?.publicKey;
 
   const selectUserAccounts = useCallback(() => {
     return [...accountsCache.values()].filter(
-      (a) => a.info.owner.toBase58() === publicKey?.toBase58()
+      (a) => a.info.owner.toBase58() === ownerAddress?.toBase58()
     );
-  }, [publicKey]);
+  }, [ownerAddress]);
+
+  const fetchUserTokenAccounts = useCallback(async () => {
+    connection.getAccountInfo(ownerAddress).then((acc) => {
+      if (acc) {
+        setNativeAccount(acc);
+      }
+    });
+
+    await precacheUserTokenAccounts(connection, ownerAddress)
+
+    const accounts = selectUserAccounts();
+
+    const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
+      .filter(a => cache.getMint(a) === undefined))]
+      .sort();
+
+    const response = await getMultipleAccounts(connection, mints, 'single');
+
+    response.keys.forEach((key, index) => {
+      if (response.array[index]) {
+        try {
+          cache.addMint(new PublicKey(key), response.array[index]);
+        } catch {
+          debugger;
+        }
+      }
+    });
+
+    setTokenAccounts(accounts);
+  }, [connection, ownerAddress, selectUserAccounts, setNativeAccount]);
 
   useEffect(() => {
     if (!connected) {
       setUserAccounts([])
     } else {
       setUserAccounts(
-        [wrapNativeAccount(publicKey, nativeAccount), ...tokenAccounts].filter(
+        [wrapNativeAccount(ownerAddress, nativeAccount), ...tokenAccounts].filter(
           (a) => a !== undefined
         ) as TokenAccount[]
       );
     }
-  }, [nativeAccount, publicKey, tokenAccounts, connected]);
+  }, [nativeAccount, ownerAddress, tokenAccounts, connected]);
 
   useEffect(() => {
-    if (!connection || !publicKey || !connected) {
+    if (!connection || !ownerAddress || !connected) {
       setTokenAccounts([]);
     } else {
-      // cache host accounts to avoid query during swap
-      precacheUserTokenAccounts(connection);
+      fetchUserTokenAccounts()
 
-      precacheUserTokenAccounts(connection, publicKey).then(async () => {
-        const accounts = selectUserAccounts();
-
-        const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
-          .filter(a => cache.getMint(a) === undefined))]
-          .sort();
-
-        const response = await getMultipleAccounts(connection, mints, 'single');
-
-        response.keys.forEach((key, index) => {
-          if (response.array[index]) {
-            try {
-              cache.addMint(new PublicKey(key), response.array[index]);
-            } catch {
-              debugger;
-            }
-          }
-        });
-
-        setTokenAccounts(accounts);
-      });
+      const timer = setInterval(() => {
+        fetchUserTokenAccounts();
+      }, 10000);
 
       const dispose = accountEmitter.onAccount(() => {
         setTokenAccounts(selectUserAccounts());
       });
 
-      // This can return different types of accounts: token-account, mint, multisig
-      // TODO: web3.js expose ability to filter. discuss filter syntax
-      const tokenSubID = connection.onProgramAccountChange(
-        programIds().token,
-        (info) => {
-          const id = typeof info.accountId === 'string' ? info.accountId as unknown as string : info.accountId.toBase58();
-          // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
-          if (info.accountInfo.data.length === AccountLayout.span) {
-            const data = deserializeAccount(info.accountInfo.data);
-            // TODO: move to web3.js for decoding on the client side... maybe with callback
-            const details = {
-              pubkey: new PublicKey(id),
-              account: {
-                ...info.accountInfo,
-              },
-              info: data,
-            } as TokenAccount;
-
-            if (
-              PRECACHED_OWNERS.has(details.info.owner.toBase58()) ||
-              accountsCache.has(id)
-            ) {
-              accountsCache.set(id, details);
-              accountEmitter.raiseAccountUpdated(id);
-            }
-          } else if (info.accountInfo.data.length === MintLayout.span) {
-            if (mintCache.has(id)) {
-              const data = Buffer.from(info.accountInfo.data);
-              const mint = deserializeMint(data);
-              mintCache.set(id, mint);
-            }
-
-            accountEmitter.raiseAccountUpdated(id);
-          }
-
-          if (genericCache.has(id)) {
-            cache.add(new PublicKey(id), info.accountInfo);
-          }
-        },
-        "singleGossip"
-      );
-
       return () => {
-        connection.removeProgramAccountChangeListener(tokenSubID);
+        clearInterval(timer);
         dispose();
       };
     }
-  }, [connection, publicKey, selectUserAccounts, connected]);
+  }, [connection, ownerAddress, fetchUserTokenAccounts, connected, selectUserAccounts]);
 
   return (
     <AccountsContext.Provider
@@ -507,6 +479,7 @@ export function AccountsProvider({ children = null as any }) {
         tokenAccounts,
         userAccounts,
         nativeAccount,
+        fetchUserTokenAccounts,
       }}
     >
       {children}
@@ -615,6 +588,7 @@ export function useUserAccounts() {
   const context = useContext(AccountsContext);
   return {
     userAccounts: context.userAccounts as TokenAccount[],
+    fetchUserTokenAccounts: context.fetchUserTokenAccounts,
   };
 }
 
