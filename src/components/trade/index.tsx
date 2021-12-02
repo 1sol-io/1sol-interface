@@ -45,7 +45,8 @@ import {
   SERUM_PROGRAM_ID, 
   RAYDIUM_PROGRAM_ID, 
   SABER_PROGRAM_ID,
-  WRAPPED_SOL_MINT 
+  WRAPPED_SOL_MINT, 
+  ONEMOON_PROGRAM_ID
 } from "../../utils/constant";
 
 import timeoutIcon from '../../assets/4.gif'
@@ -169,11 +170,12 @@ export const TradeEntry = () => {
         source_token_mint_key: A.mintAddress,
         destination_token_mint_key: B.mintAddress,
         programs: [
-          TOKEN_SWAP_PROGRAM_ID.toBase58(),
-          SERUM_PROGRAM_ID.toBase58(),
-          SABER_PROGRAM_ID.toBase58(),
-          ORCA_PROGRAM_ID.toBase58(),
-          RAYDIUM_PROGRAM_ID.toBase58()
+          // TOKEN_SWAP_PROGRAM_ID.toBase58(),
+          // SERUM_PROGRAM_ID.toBase58(),
+          // SABER_PROGRAM_ID.toBase58(),
+          // ORCA_PROGRAM_ID.toBase58(),
+          // RAYDIUM_PROGRAM_ID.toBase58(),
+          ONEMOON_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true,
         distribution_max_len: 4
