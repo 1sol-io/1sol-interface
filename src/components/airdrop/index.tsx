@@ -20,15 +20,6 @@ import { ONESOL_MINT_ADDRESS } from '../../utils/constant'
 import { useUserAccounts } from '../../utils/accounts'
 import { useLocalStorageState } from '../../utils/utils'
 
-interface TgUserProps {
-  id: number,
-  first_name: string,
-  last_name: string,
-  username: string,
-  auth_date: string,
-  hash: string,
-}
-
 interface UserProps {
   id: number,
   amount: number,
@@ -49,14 +40,7 @@ const Airdrop = () => {
   const { connected, connect, wallet } = useWallet()
   const { userAccounts } = useUserAccounts();
 
-  const [tgUser, setTgUser] = useLocalStorageState('telegram-user-info', {
-    id: 145728019,
-    first_name: 'Miko',
-    last_name: 'Gao',
-    username: 'gaowhen',
-    auth_date: '1638255448',
-    hash: 'b49af762fa9c4b091585fb9e28868f21146441ad381532be9ffd98ea9fd9cf41'
-  })
+  const [auth, setAuth] = useLocalStorageState('airdrop:auth:info')
 
   const [user, setUser] = useState<UserProps>()
 
@@ -68,10 +52,19 @@ const Airdrop = () => {
 
   const callback = useCallback(
     async () => {
-      const { data: { token } } = await axios.post(
+      const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
         'https://airdrop-api.1sol.io/login/auth/telegram',
-        tgUser
+        {
+          id: 145728019,
+          first_name: 'Miko',
+          last_name: 'Gao',
+          username: 'gaowhen',
+          auth_date: '1638255448',
+          hash: 'b49af762fa9c4b091585fb9e28868f21146441ad381532be9ffd98ea9fd9cf41'
+        }
       )
+
+      setAuth({ token, expireAt, uid })
 
       const {
         data
@@ -81,7 +74,7 @@ const Airdrop = () => {
 
       setUser(data)
     },
-    [tgUser]
+    [setAuth]
   )
 
   useEffect(() => {
@@ -123,9 +116,11 @@ const Airdrop = () => {
 
   useEffect(
     () => {
-      const dataOnauth = (user: any) => {
-        setTgUser(user)
+      if (auth && auth.expireAt > Date.now()) {
+        return
+      }
 
+      const dataOnauth = (user: any) => {
         if (user) {
           callback()
         }
@@ -150,7 +145,7 @@ const Airdrop = () => {
         widget.current.appendChild(script)
       }
     },
-    [callback]
+    [callback, auth]
   )
 
   return (
@@ -174,28 +169,21 @@ const Airdrop = () => {
                 wrapperCol={{ span: 16 }}
                 initialValues={user}
               >
-                <Form.Item label="Amount" name="amount">
-                  <Input disabled value={user?.amount || 0} suffix="1SOL" />
+                <Form.Item label="Amount" name="amount"
+                  rules={[
+                    {required: true},
+                  ]}
+                >
+                  <Input disabled suffix="1SOL" />
                 </Form.Item>
                 <Form.Item
                   label="Wallet"
                   name="wallet"
                   rules={[
                     {required: true},
-                    () => ({
-                      validator(rule, value) {
-                        if (!value) {
-                          return Promise.reject(
-                            'Please input your wallet address'
-                          )
-                        } else if (value !== wallet?.publicKey?.toBase58()) {
-                          return Promise.reject('Invalid wallet address')
-                        }
-                      }
-                    })
                   ]}
                 >
-                  <Input placeholder="wallet address" />
+                  <Input disabled />
                 </Form.Item>
                 <Form.Item
                   label="Email"
