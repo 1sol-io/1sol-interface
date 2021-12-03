@@ -200,8 +200,8 @@ export const CurrencyInput = (props: {
               }
             }}
             style={{
-              width: '120px',
-              fontSize: 20,
+              width: '155px',
+              fontSize: 18,
               boxShadow: "none",
               borderColor: "transparent",
               outline: "transpaernt",
