@@ -127,7 +127,6 @@ export const TradeEntry = () => {
   const [swapRoutes, setSwapRoutes] = useState<SwapRoute[][]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
-  const [showShare, setShowShare] = useState(false)
   const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
@@ -168,11 +167,11 @@ export const TradeEntry = () => {
         source_token_mint_key: A.mintAddress,
         destination_token_mint_key: B.mintAddress,
         programs: [
-          // TOKEN_SWAP_PROGRAM_ID.toBase58(),
-          // SERUM_PROGRAM_ID.toBase58(),
-          // SABER_PROGRAM_ID.toBase58(),
-          // ORCA_PROGRAM_ID.toBase58(),
-          // RAYDIUM_PROGRAM_ID.toBase58(),
+          TOKEN_SWAP_PROGRAM_ID.toBase58(),
+          SERUM_PROGRAM_ID.toBase58(),
+          SABER_PROGRAM_ID.toBase58(),
+          ORCA_PROGRAM_ID.toBase58(),
+          RAYDIUM_PROGRAM_ID.toBase58(),
           ONEMOON_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true,
