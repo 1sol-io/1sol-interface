@@ -460,7 +460,7 @@ export function AccountsProvider({ children = null as any }) {
 
       const timer = setInterval(() => {
         fetchUserTokenAccounts();
-      }, 10000);
+      }, 30000);
 
       const dispose = accountEmitter.onAccount(() => {
         setTokenAccounts(selectUserAccounts());
