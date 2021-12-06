@@ -7,7 +7,6 @@ import {
   ArrowRightOutlined,
   SettingOutlined,
   ExpandOutlined,
-  TwitterOutlined,
   ReloadOutlined,
   InfoCircleOutlined,
   SwapOutlined
@@ -27,12 +26,12 @@ import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import {
   PoolOperation,
   onesolProtocolSwap,
-  // createTokenAccount,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
 import { getTokenName } from "../../utils/utils";
+import { useUserAccounts } from "../../utils/accounts";
 import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
@@ -45,13 +44,13 @@ import {
   SERUM_PROGRAM_ID, 
   RAYDIUM_PROGRAM_ID, 
   SABER_PROGRAM_ID,
-  WRAPPED_SOL_MINT 
+  WRAPPED_SOL_MINT, 
+  ONEMOON_PROGRAM_ID
 } from "../../utils/constant";
 
 import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
-import { useUserAccounts } from "../../utils/accounts";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -128,7 +127,6 @@ export const TradeEntry = () => {
   const [swapRoutes, setSwapRoutes] = useState<SwapRoute[][]>([])
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [showRoute, setShowRoute] = useState(false)
-  const [showShare, setShowShare] = useState(false)
   const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
@@ -173,7 +171,8 @@ export const TradeEntry = () => {
           SERUM_PROGRAM_ID.toBase58(),
           SABER_PROGRAM_ID.toBase58(),
           ORCA_PROGRAM_ID.toBase58(),
-          RAYDIUM_PROGRAM_ID.toBase58()
+          RAYDIUM_PROGRAM_ID.toBase58(),
+          // ONEMOON_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true,
         distribution_max_len: 4
@@ -487,45 +486,6 @@ export const TradeEntry = () => {
     setSwapRoutes(routes)
   }
 
-  // useEffect(() => {
-  //   let label: string[] = []
-
-  //   swapRoutes.forEach(routes => {
-  //     const [[first]] = routes
-
-  //     if (first) {
-  //       label.push(first.from)
-  //       label.push(first.to)
-  //     }
-  //   })
-
-  //   setRouteLable([...new Set(label)])
-  // }, [swapRoutes])
-
-
-  // const handleCreateTokenAccount = async () => {
-  //   if (B.mintAddress) {
-  //     try {
-  //       setPendingTx(true);
-
-  //       await createTokenAccount(connection, wallet, new PublicKey(B.mintAddress));
-
-  //       setHasTokenAccount(true)
-  //     } catch (e) {
-  //       console.error(e)
-
-  //       notify({
-  //         description:
-  //           "Please try again",
-  //         message: "Create account cancelled.",
-  //         type: "error",
-  //       });
-  //     } finally {
-  //       setPendingTx(false);
-  //     }
-  //   }
-  // }
-
   return (
     <>
       <div className="trade-header">
@@ -701,51 +661,8 @@ export const TradeEntry = () => {
           : null
       }
 
-      {/*{ 
-        showSplitTip ?
-          <div className="sol-tip split-tip">
-            There will be several wallet popups and transactions to be approved.
-            <Tooltip title={(
-              <>
-                SOL is needed for Solana network fees.<br/>
-                A minimum balance of 0.05 SOL is recommended to avoid failed transactions.
-              </>
-            )}>
-              <InfoCircleOutlined style={{marginLeft: '5px'}} />
-            </Tooltip> 
-          </div>
-          : null
-      }*/}
-
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {swapRoutes.length ? <TradeRoute swapRoutes={swapRoutes} /> : null}
-      </Modal>
-
-      <Modal width={590} visible={showShare} centered footer={null} onCancel={() => setShowShare(false)}>
-        <div>
-          <div style={{
-            fontSize: '16px',
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
-            <h4 style={{ fontSize: '24px', margin: '0 0 30px', color: '#B73F95' }}>Get 1 & Win 200 1SOL!</h4>
-            <p style={{ margin: '0 0 8px 0' }}>
-              1. Tweet using this link
-            </p>
-            <p>
-              <Button type="primary" size="large">
-                <a className="twitter-share-button"
-                  href={`https://twitter.com/intent/tweet?url=${encodeURI('https://beta-app.1sol.io')}&text=${encodeURIComponent("🚀Have just successfully swapped some tokens via #1Sol the cross-chain DEX aggregator on #Solana Devnet. @1solProtocol @solana Join the test and win a 200 $1SOL daily prize here!🎁")}&via=1solProtocol&hashtags=DeFi,IGNITION,giveaway,Airdrops`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center' }}
-                ><TwitterOutlined /><span style={{ marginLeft: '5px' }}>Tweet</span></a>
-              </Button>
-            </p>
-            <p style={{ margin: '0 0 8px 0' }}>2. Talk to <a href={`https://t.me/OnesolMasterBot?start=${wallet && wallet.publicKey ? wallet.publicKey.toBase58() : ''}`} target="_blank" rel="noopener noreferrer">1Sol’s Telegram Bot</a> to confirm the airdrop</p>
-            <p style={{ margin: '0' }}>3. We’ll announce the daily 200-token winner via <a href="https://discord.com/invite/juvVBKnvkj" target="_blank" rel="noopener noreferrer">Discord</a> <a href="https://t.me/onesolcommunity" target="_blank" rel="noopener noreferrer">Telegram</a> <a href="https://twitter.com/1solprotocol" target="_blank" rel="noopener noreferrer">Twitter</a></p>
-          </div>
-        </div>
       </Modal>
     </>
   );

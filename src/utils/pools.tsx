@@ -43,7 +43,8 @@ import {
   EXCHANGER_ORCA_SWAP,
   EXCHANGER_RAYDIUM,
   ONESOL_PROGRAM_ID, WRAPPED_SOL_MINT,
-  SERUM_PROGRAM_ID
+  SERUM_PROGRAM_ID,
+  EXCHANGER_ONEMOON
 } from "./constant";
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
@@ -575,7 +576,7 @@ async function swap(
   const expectAmountOut = new Numberu64(amount_out)
   const minimumAmountOut = new Numberu64(amount_out * (1 - slippage))
 
-  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(exchanger_flag)) {
+  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP, EXCHANGER_ONEMOON].includes(exchanger_flag)) {
     const splTokenSwapInfo = await loadTokenSwapInfo(
       connection,
       new PublicKey(pubkey),
@@ -710,7 +711,7 @@ async function swapIn(
     swapInfo,
   }
 
-  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(exchanger_flag)) {
+  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP, EXCHANGER_ONEMOON].includes(exchanger_flag)) {
     const splTokenSwapInfo = await loadTokenSwapInfo(
       connection,
       new PublicKey(pubkey),
@@ -822,7 +823,7 @@ async function swapOut(
     feeTokenAccount
   }
 
-  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP].includes(exchanger_flag)) {
+  if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP, EXCHANGER_ONEMOON].includes(exchanger_flag)) {
     const splTokenSwapInfo = await loadTokenSwapInfo(
       connection,
       new PublicKey(pubkey),

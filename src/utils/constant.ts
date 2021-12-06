@@ -25,12 +25,14 @@ export const ONESOL_NAME = '1Sol'
 export const SABER_STABLE_SWAP_NAME = 'Saber'
 export const ORCA_SWAP_NAME = 'Orca'
 export const RAYDIUM_NAME = 'Raydium'
+export const ONEMOON_NAME = '1Moon'
 
 export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
 export const EXCHANGER_SERUM_DEX = 'SerumDex'
 export const EXCHANGER_SABER_STABLE_SWAP = 'SaberStableSwap'
 export const EXCHANGER_ORCA_SWAP = 'OrcaSwap'
 export const EXCHANGER_RAYDIUM = 'Raydium'
+export const EXCHANGER_ONEMOON = 'OneMoon'
 
 export const PROVIDER_MAP: { [key: string]: string } = {
   best_route: ONESOL_NAME,
@@ -39,6 +41,7 @@ export const PROVIDER_MAP: { [key: string]: string } = {
   [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
   [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
   [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
+  [EXCHANGER_ONEMOON]: ONEMOON_NAME,
 }
 
 const {
@@ -48,6 +51,7 @@ const {
   REACT_APP_ORCA,
   REACT_APP_RAYDIUM,
   REACT_APP_SERUM,
+  REACT_APP_ONEMOON,
   REACT_APP_ENDPOINTS,
   REACT_APP_CHAIN_ID,
   REACT_APP_CHAIN_NAME,
@@ -61,6 +65,7 @@ export const SABER_PROGRAM_ID = new PublicKey(REACT_APP_SABER)
 export const SERUM_PROGRAM_ID = new PublicKey(REACT_APP_SERUM)
 export const ORCA_PROGRAM_ID = new PublicKey(REACT_APP_ORCA)
 export const RAYDIUM_PROGRAM_ID = new PublicKey(REACT_APP_RAYDIUM)
+export const ONEMOON_PROGRAM_ID = new PublicKey(REACT_APP_ONEMOON)
 
 export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
 
