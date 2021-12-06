@@ -5,7 +5,7 @@ import React, {
   useCallback,
   MutableRefObject
 } from 'react'
-import { Button, Input, Form, Card } from 'antd'
+import { Button, Input, Form, Card, Modal } from 'antd'
 import axios from 'axios'
 
 
@@ -19,6 +19,8 @@ import { useConnection } from '../../utils/connection'
 import { ONESOL_MINT_ADDRESS } from '../../utils/constant'
 import { useUserAccounts } from '../../utils/accounts'
 import { useLocalStorageState } from '../../utils/utils'
+import { LoadingOutlined } from '@ant-design/icons'
+import { notify } from '../../utils/notifications'
 
 interface UserProps {
   id: number,
@@ -43,6 +45,9 @@ const Airdrop = () => {
   const [auth, setAuth] = useLocalStorageState('airdrop:auth:info')
 
   const [user, setUser] = useState<UserProps>()
+
+  const [modal, setModal] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const [form] = Form.useForm()
 
@@ -77,6 +82,17 @@ const Airdrop = () => {
     [setAuth]
   )
 
+  const fetchUserInfo = useCallback(async () => {
+    const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+
+    setLoading(false)
+    setUser(data)
+    form.setFieldsValue({...data, email: data.email || ''})
+  }, [auth, form])
+
+
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
       const index = userAccounts.findIndex(
@@ -97,6 +113,12 @@ const Airdrop = () => {
     }
   }, [connected, userAccounts])
 
+  useEffect(() => {
+    if (connected && auth) {
+      fetchUserInfo()
+    }
+  }, [connected, auth, fetchUserInfo])
+
 
   const handleMock = async () => {
     await callback()
@@ -106,17 +128,19 @@ const Airdrop = () => {
     try {
       setCreateTokenAccountLoading(true)
 
-      await createTokenAccount(connection, wallet, ONESOL_MINT_ADDRESS)
+      const account = await createTokenAccount(connection, wallet, ONESOL_MINT_ADDRESS)
 
       setCreateTokenAccountLoading(false)
-   } catch (e) {
-      setCreateTokenAccountLoading(false)
-   }
+      form.setFieldsValue({ token_acc_address: account.toBase58() })
+    } catch (e) {
+        setCreateTokenAccountLoading(false)
+    }
   }
 
   useEffect(
     () => {
       if (auth && auth.expireAt > Date.now()) {
+        fetchUserInfo()
         return
       }
 
@@ -145,8 +169,54 @@ const Airdrop = () => {
         widget.current.appendChild(script)
       }
     },
-    [callback, auth]
+    [callback, auth, fetchUserInfo, connected]
   )
+
+  useEffect(() => {
+    if (connected && user && user.wallet !== wallet.publicKey.toBase58()) {
+      setModal(true)
+    }
+  }, [user, wallet, setModal, connected])
+
+  const handleOk = async () => {
+    form.setFieldsValue({ 
+      wallet: wallet.publicKey.toBase58() 
+    })
+
+    setModal(false)
+  } 
+
+  const handleRegister = async () => {
+    form.validateFields().then(async (values: any) => {
+      try {
+        const {wallet, token_acc_address, email} = form.getFieldsValue()
+
+        await axios.post(`https://airdrop-api.1sol.io/api/users/update`, 
+          {
+            wallet,
+            token_acc_address,
+            email
+          }, 
+          {
+            headers: { Authorization: `Bearer ${auth.token}` }
+          }
+        )
+
+        notify({
+          message: `Token account created`,
+          type: "success",
+          description: ``,
+        });
+      } catch (e) {
+        console.error(e)
+        notify({
+          description: "Please try again",
+          message: "Registration failed",
+          type: "error",
+        });
+      }
+    })
+  }
 
   return (
     <div className="page-airdrop">
@@ -154,79 +224,98 @@ const Airdrop = () => {
       <div className="bd">
         <Card
           className="airdrop-card"
-          style={{ width: '400px', borderRadius: 20, margin: '20px auto 0' }}
+          style={{ width: '400px', borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
         >
           {connected ? (
             <>
-            <div className="airdrop-content">
-              <div ref={widget} />
-              <div onClick={handleMock}>Mock</div>
-            </div>
-            <div className="form">
-              <Form
-                form={form}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 16 }}
-                initialValues={user}
-              >
-                <Form.Item label="Amount" name="amount"
-                  rules={[
-                    {required: true},
-                  ]}
-                >
-                  <Input disabled suffix="1SOL" />
-                </Form.Item>
-                <Form.Item
-                  label="Wallet"
-                  name="wallet"
-                  rules={[
-                    {required: true},
-                  ]}
-                >
-                  <Input disabled />
-                </Form.Item>
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    {
-                      type: 'email',
-                      message: 'The input is not valid Email'
-                    },
-                    { required: true, message: 'Please input your Email' }
-                  ]}
-                >
-                  <Input placeholder="email" />
-                </Form.Item>
-
-                {
-                  !hasTokenAccount ? (
-                  <Form.Item label="Account" name="account">
-                    <Button type="primary" size="small" onClick={handleCreateTokenAccount}
-                      loading={createTokenAccountLoading}
+              <div className="airdrop-content">
+                <div ref={widget} />
+                <div onClick={handleMock}>Mock</div>
+              </div>
+              <div className="form">
+                { !loading ? (
+                  <Form
+                    form={form}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 16 }}
+                  >
+                    <Form.Item label="Balance" name="amount"
+                      rules={[
+                        {required: true},
+                      ]}
                     >
-                      Create 1SOL Token Account
-                    </Button>
-                  </Form.Item>
-                  ) : null
+                      <Input disabled suffix="1SOL" />
+                    </Form.Item>
+                    <Form.Item
+                      label="Wallet"
+                      name="wallet"
+                      rules={[
+                        {required: true},
+                      ]}
+                    >
+                      <Input disabled />
+                    </Form.Item>
+                    { !user?.email ? (
+                      <Form.Item
+                        label="Email"
+                        name="email"
+                        rules={[
+                          {
+                            type: 'email',
+                            message: 'The input is not valid Email'
+                          },
+                          { required: true, message: 'Please input your Email' }
+                        ]}
+                      >
+                        <Input placeholder="email" />
+                      </Form.Item>
+                    ) : null }
+
+                    {
+                      !hasTokenAccount ? (
+                      <Form.Item label="Account" name="account"
+                        rules={[
+                          { required: true, message: 'Please input your Email' }
+                        ]}
+                      >
+                        <Button type="primary" size="small" onClick={handleCreateTokenAccount}
+                          loading={createTokenAccountLoading}
+                        >
+                          Create 1SOL Token Account
+                        </Button>
+                      </Form.Item>
+                      ) : null
+                    }
+                    
+                    <Form.Item>
+                      <Button 
+                        type="primary" 
+                        htmlType="submit" 
+                        onClick={handleRegister}
+                        disabled={!form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
+                      >
+                        Register
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                ) : 
+                <LoadingOutlined />
                 }
-                
-                <Form.Item>
-                  <Button type="primary" htmlType="submit">
-                    Register
-                  </Button>
-                </Form.Item>
-              </Form>
-            </div>
+              </div>
             </>
         ) : (
-          <Button size="large" type="primary" onClick={connect}>
+          <Button size="large" type="primary" onClick={connect} style={{marginTop: '155px'}}>
             Connect Wallet
           </Button>
         )}
         </Card>
       </div>
       <Social />
+
+      <Modal title="Warning" visible={modal} closable={false}
+        footer={[<Button type="primary" onClick={handleOk}>OK</Button>]}
+      >
+      </Modal>
     </div>
   )
 }
