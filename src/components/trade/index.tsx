@@ -172,7 +172,7 @@ export const TradeEntry = () => {
           SABER_PROGRAM_ID.toBase58(),
           ORCA_PROGRAM_ID.toBase58(),
           RAYDIUM_PROGRAM_ID.toBase58(),
-          ONEMOON_PROGRAM_ID.toBase58()
+          // ONEMOON_PROGRAM_ID.toBase58()
         ],
         support_single_route_per_tx: true,
         distribution_max_len: 4
