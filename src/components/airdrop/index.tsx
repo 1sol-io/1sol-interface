@@ -5,7 +5,7 @@ import React, {
   useCallback,
   MutableRefObject
 } from 'react'
-import { Button, Input, Form, Card, Modal } from 'antd'
+import { Button, Input, Form, Card, Modal, Tooltip } from 'antd'
 import axios from 'axios'
 
 
@@ -40,14 +40,13 @@ interface UserProps {
 const Airdrop = () => {
   const connection = useConnection();
   const { connected, connect, wallet } = useWallet()
-  const { userAccounts } = useUserAccounts();
+  const { userAccounts, fetchUserTokenAccounts } = useUserAccounts();
 
   const [auth, setAuth] = useLocalStorageState('airdrop:auth:info')
 
   const [user, setUser] = useState<UserProps>()
 
   const [modal, setModal] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const [form] = Form.useForm()
 
@@ -84,13 +83,10 @@ const Airdrop = () => {
   )
 
   const fetchUserInfo = useCallback(async () => {
-    setLoading(true)
-
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
       headers: { Authorization: `Bearer ${auth.token}` }
     })
 
-    setLoading(false)
     setUser(data)
     form.setFieldsValue({...data, email: data.email || ''})
   }, [auth, form])
@@ -113,19 +109,19 @@ const Airdrop = () => {
 
     if (connected && oneSolTokenAccount) {
       setHasTokenAccount(true)
+      form.setFieldsValue({token_acc_address: oneSolTokenAccount.pubkey.toBase58()})
     }
-  }, [connected, userAccounts])
+  }, [connected, userAccounts, form])
 
   useEffect(() => {
-    if (connected && auth) {
+    if (connected && auth && (!user?.channel || !user?.in_group)) {
       fetchUserInfo()
+
+      const timer = setTimeout(() => { fetchUserInfo() }, 10000)
+
+      return () => clearTimeout(timer)
     }
-  }, [connected, auth, fetchUserInfo])
-
-
-  const handleMock = async () => {
-    await callback()
-  }
+  }, [user, connected, auth, fetchUserInfo])
 
   const handleCreateTokenAccount = async () => {
     try {
@@ -135,6 +131,8 @@ const Airdrop = () => {
 
       setCreateTokenAccountLoading(false)
       form.setFieldsValue({ token_acc_address: account.toBase58() })
+
+      fetchUserTokenAccounts()
     } catch (e) {
         setCreateTokenAccountLoading(false)
     }
@@ -227,22 +225,60 @@ const Airdrop = () => {
       <AppBar />
       <div className="bd">
         <Card
+          title="Airdrop Registration"
           className="airdrop-card"
-          style={{ width: '400px', borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
+          style={{ width: '450px', borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
         >
           {connected ? (
             <>
               <div className="airdrop-content">
                 {!auth || auth.expireAt <= Date.now() ? <div ref={widget} /> : null}
-                {/* <div onClick={handleMock}>Mock</div> */}
               </div>
-              <div className="form">
-                { !loading ? (
+              <div className="form" style={{marginTop: '30px'}}>
+                { user?.id ? (
                   <Form
                     form={form}
-                    labelCol={{ span: 6 }}
+                    labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
                   >
+                    <Form.Item label="Channel" name="channel"
+                      rules={[
+                        {required: true},
+                      ]}
+                    >
+                      {
+                        !user?.channel ? (
+                          <Button type="primary">
+                            <a
+                              href="https://t.me/onesolannouncement"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Join
+                            </a>
+                          </Button>
+                        ) : 'Joined'
+                      }  
+                    </Form.Item>
+                    <Form.Item label="Group" name="in_group"
+                      rules={[
+                        {required: true},
+                      ]}
+                    >
+                      {
+                        !user?.in_group ? (
+                          <Button type="primary">
+                            <a
+                              href="https://t.me/onesolcommunity"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Join
+                            </a>
+                          </Button>
+                        ) : 'Joined'
+                      }  
+                    </Form.Item>
                     <Form.Item label="Balance" name="amount"
                       rules={[
                         {required: true},
@@ -275,28 +311,31 @@ const Airdrop = () => {
                       </Form.Item>
                     ) : null }
 
-                    {
-                      !hasTokenAccount ? (
-                      <Form.Item label="Account" name="account"
-                        rules={[
-                          { required: true, message: 'Please input your Email' }
-                        ]}
-                      >
-                        <Button type="primary" size="small" onClick={handleCreateTokenAccount}
-                          loading={createTokenAccountLoading}
-                        >
-                          Create 1SOL Token Account
-                        </Button>
-                      </Form.Item>
-                      ) : null
-                    }
+                    <Form.Item label="1SOL Account" name="token_acc_address"
+                      rules={[
+                        { required: true, message: 'Please create 1SOL Token Account' }
+                      ]}
+                    >
+                      {
+                        !hasTokenAccount ? (
+                          <Button type="primary" size="small" onClick={handleCreateTokenAccount}
+                            loading={createTokenAccountLoading}
+                          >
+                            Create 1SOL Token Account
+                          </Button>
+                        ) : <Input disabled />
+                      }
+                    </Form.Item>
                     
-                    <Form.Item>
+                    <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
                       <Button 
+                        style={{marginTop: '20px'}}
                         type="primary" 
+                        size="large"
+                        block
                         htmlType="submit" 
                         onClick={handleRegister}
-                        disabled={!form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
+                        disabled={!user.channel || !user.in_group || !form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
                       >
                         Register
                       </Button>
@@ -308,7 +347,7 @@ const Airdrop = () => {
               </div>
             </>
         ) : (
-          <Button size="large" type="primary" onClick={connect} style={{marginTop: '155px'}}>
+          <Button size="large" type="primary" onClick={connect} style={{marginTop: '100px'}}>
             Connect Wallet
           </Button>
         )}
@@ -316,9 +355,14 @@ const Airdrop = () => {
       </div>
       <Social />
 
-      <Modal title="Warning" visible={modal} closable={false}
+      <Modal 
+        title="Warning" 
+        visible={modal} 
+        closable={false}
         footer={[<Button type="primary" onClick={handleOk}>OK</Button>]}
       >
+        <p>The wallet you're using is different from the one that associated with your airdrop.</p>
+        <p>Do you want to change your wallet?</p>
       </Modal>
     </div>
   )
