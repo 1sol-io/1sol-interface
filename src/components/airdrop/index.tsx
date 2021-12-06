@@ -47,11 +47,12 @@ const Airdrop = () => {
   const [user, setUser] = useState<UserProps>()
 
   const [modal, setModal] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   const [form] = Form.useForm()
 
   const widget: MutableRefObject<HTMLDivElement | null> = useRef(null)
+
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
   const [createTokenAccountLoading, setCreateTokenAccountLoading] = useState(false)
 
@@ -83,6 +84,8 @@ const Airdrop = () => {
   )
 
   const fetchUserInfo = useCallback(async () => {
+    setLoading(true)
+
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
       headers: { Authorization: `Bearer ${auth.token}` }
     })
@@ -141,6 +144,7 @@ const Airdrop = () => {
     () => {
       if (auth && auth.expireAt > Date.now()) {
         fetchUserInfo()
+
         return
       }
 
@@ -167,7 +171,7 @@ const Airdrop = () => {
 
       if (widget.current) {
         widget.current.appendChild(script)
-      }
+      } 
     },
     [callback, auth, fetchUserInfo, connected]
   )
@@ -229,8 +233,8 @@ const Airdrop = () => {
           {connected ? (
             <>
               <div className="airdrop-content">
-                <div ref={widget} />
-                <div onClick={handleMock}>Mock</div>
+                {!auth || auth.expireAt <= Date.now() ? <div ref={widget} /> : null}
+                {/* <div onClick={handleMock}>Mock</div> */}
               </div>
               <div className="form">
                 { !loading ? (
