@@ -473,14 +473,14 @@ export async function createTokenAccount(
   mint: PublicKey,
 ) {
   const toAccountInstructions: TransactionInstruction[] = [];
-  const cleanupToAccountInstructions: TransactionInstruction[] = [];
   const toAccountigners: Signer[] = [];
 
-  await findOrCreateTokenAssociatedAccountByMint(
+  const account = await findOrCreateAccountByMint(
     wallet.publicKey,
     wallet.publicKey,
     toAccountInstructions,
-    cleanupToAccountInstructions,
+    [],
+    0,
     mint,
     toAccountigners
   )
@@ -497,6 +497,8 @@ export async function createTokenAccount(
     type: "success",
     description: ``,
   });
+
+  return account;
 }
 
 export interface TokenSwapAmountProps {
