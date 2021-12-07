@@ -6,8 +6,8 @@ import React, {
   MutableRefObject
 } from 'react'
 import { Button, Input, Form, Card, Modal } from 'antd'
+import { LoadingOutlined } from '@ant-design/icons'
 import axios from 'axios'
-
 
 import { useWallet } from '../../context/wallet'
 
@@ -18,8 +18,6 @@ import { createTokenAccount } from '../../utils/pools'
 import { useConnection } from '../../utils/connection'
 import { ONESOL_MINT_ADDRESS } from '../../utils/constant'
 import { useUserAccounts } from '../../utils/accounts'
-import { useLocalStorageState } from '../../utils/utils'
-import { LoadingOutlined } from '@ant-design/icons'
 import { notify } from '../../utils/notifications'
 
 interface UserProps {
@@ -42,7 +40,7 @@ const Airdrop = () => {
   const { connected, connect, wallet } = useWallet()
   const { userAccounts, fetchUserTokenAccounts } = useUserAccounts();
 
-  const [auth, setAuth] = useLocalStorageState('airdrop:auth:info')
+  const [auth, setAuth] = useState<{token: string, expireAt: string, uid: string} | null>()
 
   const [user, setUser] = useState<UserProps>()
 
@@ -58,7 +56,7 @@ const Airdrop = () => {
 
   const fetchUserInfo = useCallback(async () => {
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
-      headers: { Authorization: `Bearer ${auth.token}` }
+      headers: { Authorization: `Bearer ${auth?.token}` }
     })
 
     setUser(data)
@@ -77,6 +75,16 @@ const Airdrop = () => {
 
     form.setFieldsValue(fields)
   }, [auth, form])
+
+  useEffect(() => {
+    if (connected) {
+      const auth = localStorage.getItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`)
+
+      if (auth) {
+        setAuth(JSON.parse(auth))
+      }
+    }
+  }, [connected, wallet])
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
@@ -126,7 +134,11 @@ const Airdrop = () => {
 
   useEffect(
     () => {
-      if (auth && auth.expireAt > Date.now()) {
+      if (!connected) {
+        return 
+      }
+
+      if (auth && Number(auth.expireAt) > Date.now()) {
         fetchUserInfo()
 
         return
@@ -139,6 +151,7 @@ const Airdrop = () => {
         )
 
         setAuth({ token, expireAt, uid })
+        localStorage.setItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`, JSON.stringify({ token, expireAt, uid }))
       }
 
       const dataOnauth = (user: any) => {
@@ -166,7 +179,7 @@ const Airdrop = () => {
         widget.current.appendChild(script)
       } 
     },
-    [auth, fetchUserInfo, connected, setAuth]
+    [auth, fetchUserInfo, connected, setAuth, wallet]
   )
 
   useEffect(() => {
@@ -197,7 +210,7 @@ const Airdrop = () => {
             email
           }, 
           {
-            headers: { Authorization: `Bearer ${auth.token}` }
+            headers: { Authorization: `Bearer ${auth?.token}` }
           }
         )
 
@@ -209,6 +222,7 @@ const Airdrop = () => {
         setLoading(false)
       } catch (e) {
         console.error(e)
+
         notify({
           description: "Please try again",
           message: "Registration failed",
@@ -231,7 +245,7 @@ const Airdrop = () => {
           {connected ? (
             <>
               <div className="airdrop-content">
-                {!auth || auth.expireAt <= Date.now() ? <div ref={widget} /> : null}
+                {!auth || Number(auth.expireAt) <= Date.now() ? <div ref={widget} /> : null}
               </div>
               <div className="form" style={{marginTop: '30px'}}>
                 { user?.id ? (
@@ -335,7 +349,13 @@ const Airdrop = () => {
                         htmlType="submit" 
                         onClick={handleRegister}
                         loading={loading}
-                        disabled={!form.getFieldValue('channel') || !form.getFieldValue('in_group') || !form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
+                        disabled={
+                          !form.getFieldValue('channel') || 
+                          !form.getFieldValue('in_group') || 
+                          !form.getFieldValue('email') || 
+                          (wallet && form.getFieldValue('wallet') !== wallet.publicKey.toBase58()) || 
+                          !form.getFieldValue('token_acc_address')
+                        }
                       >
                         Register
                       </Button>
