@@ -66,7 +66,7 @@ const Airdrop = () => {
   }, [auth, form])
 
   useEffect(() => {
-    if (connected) {
+    if (connected && wallet && wallet.publicKey) {
       const auth = localStorage.getItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`)
 
       if (auth) {
@@ -182,7 +182,7 @@ const Airdrop = () => {
   )
 
   useEffect(() => {
-    if (connected && user && user.wallet !== wallet.publicKey.toBase58()) {
+    if (connected && user && wallet && wallet.publicKey && user.wallet !== wallet.publicKey.toBase58()) {
       setModal(true)
     }
   }, [user, wallet, setModal, connected])
@@ -341,7 +341,7 @@ const Airdrop = () => {
                               Create 1SOL Token Account
                             </Button>
                           </div>
-                        ) : <Input disabled />
+                        ) : <Input disabled addonAfter={!form.getFieldValue('token_acc_address') ? <LoadingOutlined /> : null} />
                       }
                     </Form.Item>
                     
@@ -358,11 +358,25 @@ const Airdrop = () => {
                           !form.getFieldValue('channel') || 
                           !form.getFieldValue('in_group') || 
                           !form.getFieldValue('email') || 
-                          (wallet && form.getFieldValue('wallet') !== wallet.publicKey.toBase58()) || 
-                          !form.getFieldValue('token_acc_address')
+                          (wallet && wallet.publicKey && form.getFieldValue('wallet') !== wallet.publicKey.toBase58()) || 
+                          !form.getFieldValue('token_acc_address') || (
+                            form.getFieldValue('channel') && 
+                            form.getFieldValue('in_group') && 
+                            form.getFieldValue('email') &&
+                            form.getFieldValue('wallet') &&
+                            form.getFieldValue('token_acc_address')
+                          )
                         }
                       >
-                        Register
+                        {
+                          form.getFieldValue('channel') && 
+                          form.getFieldValue('in_group') && 
+                          form.getFieldValue('email') &&
+                          form.getFieldValue('wallet') &&
+                          form.getFieldValue('token_acc_address') ? 
+                          'Infomation Submitted': 
+                          'Register'
+                        }
                       </Button>
                     </div>
                   </Form>
