@@ -1197,19 +1197,34 @@ export async function onesolProtocolSwap(
     const signedTransactions = await signAllTransactions(connection, wallet, transactions)
 
     for (let i = 0; i < signedTransactions.length; i++) {
-      const txid = await sendSignedTransaction(
-        connection,
-        wallet,
-        signedTransactions[i]
-      )
+      try {
+        const txid = await sendSignedTransaction(
+          connection,
+          wallet,
+          signedTransactions[i]
+        )
 
-      notify({
-        message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
-        description: `Transaction - ${txid}`,
-        type: 'success',
-        duration: 6,
-        txid
-      });
+        notify({
+          message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
+          description: `Transaction - ${txid}`,
+          type: 'success',
+          duration: 10,
+          txid
+        });
+      } catch (e) {
+        if (signedTransactions.length === 3 && i === 1) {
+          console.log('swap step error: ', e)
+
+          notify({
+            description: "Please try again",
+            message: "Swap trade cancelled.",
+            type: "error",
+            duration: 10 
+          });
+        } else {
+          throw(e)
+        }
+      }
     }
   } else if (routes.length === 1) {
     // direct exchange(SOL -> USDC)
