@@ -333,7 +333,7 @@ const Airdrop = () => {
                       ]}
                     >
                       {
-                        !hasTokenAccount ? (
+                        hasTokenAccount ? (
                           <div className="align">
                             <Button type="primary" size="small" onClick={handleCreateTokenAccount}
                               loading={createTokenAccountLoading}
@@ -341,7 +341,7 @@ const Airdrop = () => {
                               Create 1SOL Token Account
                             </Button>
                           </div>
-                        ) : <Input disabled addonAfter={!form.getFieldValue('token_acc_address') ? <LoadingOutlined /> : null} />
+                        ) : <Input placeholder="loading…" disabled />
                       }
                     </Form.Item>
                     
