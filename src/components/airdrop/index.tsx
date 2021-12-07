@@ -5,7 +5,7 @@ import React, {
   useCallback,
   MutableRefObject
 } from 'react'
-import { Button, Input, Form, Card, Modal, Tooltip } from 'antd'
+import { Button, Input, Form, Card, Modal } from 'antd'
 import axios from 'axios'
 
 
@@ -23,7 +23,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { notify } from '../../utils/notifications'
 
 interface UserProps {
-  id: number,
+  id?: number,
   amount: number,
   channel: boolean,
   email: boolean,
@@ -54,33 +54,7 @@ const Airdrop = () => {
 
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
   const [createTokenAccountLoading, setCreateTokenAccountLoading] = useState(false)
-
-  const callback = useCallback(
-    async () => {
-      const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
-        'https://airdrop-api.1sol.io/login/auth/telegram',
-        {
-          id: 145728019,
-          first_name: 'Miko',
-          last_name: 'Gao',
-          username: 'gaowhen',
-          auth_date: '1638255448',
-          hash: 'b49af762fa9c4b091585fb9e28868f21146441ad381532be9ffd98ea9fd9cf41'
-        }
-      )
-
-      setAuth({ token, expireAt, uid })
-
-      const {
-        data
-      } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
-      setUser(data)
-    },
-    [setAuth]
-  )
+  const [loading, setLoading] = useState(false)
 
   const fetchUserInfo = useCallback(async () => {
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
@@ -88,9 +62,21 @@ const Airdrop = () => {
     })
 
     setUser(data)
-    form.setFieldsValue({...data, email: data.email || ''})
-  }, [auth, form])
 
+    const fields: UserProps = {
+      amount: data.amount,
+      channel: data.channel,
+      email: data.email || '',
+      in_group: data.in_group,
+      wallet: data.wallet,
+    }
+
+    if (data.token_acc_address) {
+      fields.token_acc_address = data.token_acc_address
+    }
+
+    form.setFieldsValue(fields)
+  }, [auth, form])
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
@@ -134,7 +120,7 @@ const Airdrop = () => {
 
       fetchUserTokenAccounts()
     } catch (e) {
-        setCreateTokenAccountLoading(false)
+      setCreateTokenAccountLoading(false)
     }
   }
 
@@ -146,9 +132,18 @@ const Airdrop = () => {
         return
       }
 
+      const callback = async (user: any) => {
+        const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
+          'https://airdrop-api.1sol.io/login/auth/telegram',
+          user
+        )
+
+        setAuth({ token, expireAt, uid })
+      }
+
       const dataOnauth = (user: any) => {
         if (user) {
-          callback()
+          callback(user)
         }
       }
 
@@ -171,7 +166,7 @@ const Airdrop = () => {
         widget.current.appendChild(script)
       } 
     },
-    [callback, auth, fetchUserInfo, connected]
+    [auth, fetchUserInfo, connected, setAuth]
   )
 
   useEffect(() => {
@@ -191,6 +186,8 @@ const Airdrop = () => {
   const handleRegister = async () => {
     form.validateFields().then(async (values: any) => {
       try {
+        setLoading(true)
+
         const {wallet, token_acc_address, email} = form.getFieldsValue()
 
         await axios.post(`https://airdrop-api.1sol.io/api/users/update`, 
@@ -205,10 +202,11 @@ const Airdrop = () => {
         )
 
         notify({
-          message: `Token account created`,
+          message: `Registration completed`,
           type: "success",
           description: ``,
         });
+        setLoading(false)
       } catch (e) {
         console.error(e)
         notify({
@@ -216,6 +214,7 @@ const Airdrop = () => {
           message: "Registration failed",
           type: "error",
         });
+        setLoading(false)
       }
     })
   }
@@ -335,7 +334,8 @@ const Airdrop = () => {
                         block
                         htmlType="submit" 
                         onClick={handleRegister}
-                        disabled={!user.channel || !user.in_group || !form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
+                        loading={loading}
+                        disabled={!form.getFieldValue('channel') || !form.getFieldValue('in_group') || !form.getFieldValue('email') || form.getFieldValue('wallet') !== wallet.publicKey.toBase58() || !form.getFieldValue('token_acc_address')}
                       >
                         Register
                       </Button>
