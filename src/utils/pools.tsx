@@ -1211,7 +1211,12 @@ export async function onesolProtocolSwap(
           duration: 10,
           txid
         });
-      } catch (e) {
+      } catch (e: any) {
+        //@ts-ignore
+        window.gtag('event', 'swap_error', {
+          data: e?.message
+        })
+
         if (signedTransactions.length === 3 && i === 1) {
           console.log('swap step error: ', e)
 
