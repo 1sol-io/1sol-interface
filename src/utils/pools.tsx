@@ -1211,10 +1211,11 @@ export async function onesolProtocolSwap(
           duration: 10,
           txid
         });
-      } catch (e: any) {
+      } catch (e) {
+        const error = e as Error
         //@ts-ignore
         window.gtag('event', 'swap_error', {
-          data: e?.message
+          data: error?.message
         })
 
         if (signedTransactions.length === 3 && i === 1) {
