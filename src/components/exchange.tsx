@@ -13,6 +13,7 @@ import { useWallet } from "../context/wallet";
 import Warning from "./warning";
 
 import './exchange.less'
+import { Link } from "react-router-dom";
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -83,14 +84,14 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Beta Test Airdrop 🎁</div>
+            <div className="hd"> Claim Your 1SOL Airdrop</div>
             <div className="bd">
               <Button 
                 type="primary" 
                 shape="round"
                 style={{minWidth: '82px'}}
               >
-                <a href="https://link.medium.com/2WJ2P88Mqkb" target="_blank" rel="noopener noreferrer">How-To</a>
+                <Link to="/airdrop">Claim 1SOL</Link>
               </Button>
             </div>
           </div>
@@ -120,7 +121,6 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
           bodyStyle={{ position: "relative", padding: '0 20px 20px' }}
         >
-          
           {tradeTab.render()}
         </Card>
 
