@@ -60,20 +60,7 @@ const Airdrop = () => {
     })
 
     setUser(data)
-
-    const fields: UserProps = {
-      amount: data.amount,
-      channel: data.channel,
-      email: data.email || '',
-      in_group: data.in_group,
-      wallet: data.wallet,
-    }
-
-    if (data.token_acc_address) {
-      fields.token_acc_address = data.token_acc_address
-    }
-
-    form.setFieldsValue(fields)
+    form.setFieldsValue({...data, token_acc_address: ''})
   }, [auth, form])
 
   useEffect(() => {
@@ -145,13 +132,23 @@ const Airdrop = () => {
       }
 
       const callback = async (user: any) => {
-        const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
-          'https://airdrop-api.1sol.io/login/auth/telegram',
-          {...user, auth_date: `${user.auth_date}`}
-        )
+        try {
+          const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
+            'https://airdrop-api.1sol.io/login/auth/telegram',
+            user
+          )
 
-        setAuth({ token, expireAt, uid })
-        localStorage.setItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`, JSON.stringify({ token, expireAt, uid }))
+          setAuth({ token, expireAt, uid })
+          localStorage.setItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`, JSON.stringify({ token, expireAt, uid }))
+        } catch (e) {
+          console.error(e)
+
+          notify({
+            description: "Please try again",
+            message: "Telegram authorization failed",
+            type: "error",
+          });
+        }
       }
 
       const dataOnauth = (user: any) => {
@@ -244,9 +241,13 @@ const Airdrop = () => {
         >
           {connected ? (
             <>
-              <div className="airdrop-content">
-                {!auth || Number(auth.expireAt) <= Date.now() ? <div ref={widget} /> : null}
-              </div>
+              { 
+                !user ?
+                <div className="airdrop-content">
+                  <div ref={widget} />
+                </div> : 
+                null
+              }
               <div className="form" style={{marginTop: '30px'}}>
                 { user?.id ? (
                   <Form
