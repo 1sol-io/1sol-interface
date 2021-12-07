@@ -333,7 +333,7 @@ const Airdrop = () => {
                       ]}
                     >
                       {
-                        hasTokenAccount ? (
+                        !hasTokenAccount ? (
                           <div className="align">
                             <Button type="primary" size="small" onClick={handleCreateTokenAccount}
                               loading={createTokenAccountLoading}
