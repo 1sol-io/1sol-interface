@@ -135,7 +135,7 @@ const Airdrop = () => {
       const callback = async (user: any) => {
         const { data: { token, exp: expireAt, user_id: uid } } = await axios.post(
           'https://airdrop-api.1sol.io/login/auth/telegram',
-          user
+          {...user, auth_date: `${user.auth_date}`}
         )
 
         setAuth({ token, expireAt, uid })
@@ -341,8 +341,8 @@ const Airdrop = () => {
                       </Button>
                     </Form.Item>
                   </Form>
-                ) : 
-                <LoadingOutlined />
+                  ) : 
+                  auth ? <LoadingOutlined /> : null
                 }
               </div>
             </>
