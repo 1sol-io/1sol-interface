@@ -20,6 +20,8 @@ import { ONESOL_MINT_ADDRESS } from '../../utils/constant'
 import { useUserAccounts } from '../../utils/accounts'
 import { notify } from '../../utils/notifications'
 
+import './index.less'
+
 interface UserProps {
   id?: number,
   amount: number,
@@ -60,7 +62,7 @@ const Airdrop = () => {
     })
 
     setUser(data)
-    form.setFieldsValue({...data, token_acc_address: ''})
+    form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
   }, [auth, form])
 
   useEffect(() => {
@@ -237,7 +239,7 @@ const Airdrop = () => {
         <Card
           title="Airdrop Registration"
           className="airdrop-card"
-          style={{ width: '450px', borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
+          style={{ borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
         >
           {connected ? (
             <>
@@ -271,7 +273,7 @@ const Airdrop = () => {
                               Join
                             </a>
                           </Button>
-                        ) : 'Joined'
+                        ) : <div className="align">Joined</div>
                       }  
                     </Form.Item>
                     <Form.Item label="Group" name="in_group"
@@ -290,7 +292,7 @@ const Airdrop = () => {
                               Join
                             </a>
                           </Button>
-                        ) : 'Joined'
+                        ) : <div className="align">Joined</div>
                       }  
                     </Form.Item>
                     <Form.Item label="Balance" name="amount"
@@ -332,16 +334,18 @@ const Airdrop = () => {
                     >
                       {
                         !hasTokenAccount ? (
-                          <Button type="primary" size="small" onClick={handleCreateTokenAccount}
-                            loading={createTokenAccountLoading}
-                          >
-                            Create 1SOL Token Account
-                          </Button>
+                          <div className="align">
+                            <Button type="primary" size="small" onClick={handleCreateTokenAccount}
+                              loading={createTokenAccountLoading}
+                            >
+                              Create 1SOL Token Account
+                            </Button>
+                          </div>
                         ) : <Input disabled />
                       }
                     </Form.Item>
                     
-                    <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
+                    <div className="form-footer">
                       <Button 
                         style={{marginTop: '20px'}}
                         type="primary" 
@@ -360,7 +364,7 @@ const Airdrop = () => {
                       >
                         Register
                       </Button>
-                    </Form.Item>
+                    </div>
                   </Form>
                   ) : 
                   auth ? <LoadingOutlined /> : null
