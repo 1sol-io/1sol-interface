@@ -55,6 +55,7 @@ const Airdrop = () => {
   const [hasTokenAccount, setHasTokenAccount] = useState(false)
   const [createTokenAccountLoading, setCreateTokenAccountLoading] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [changeWallet, setChangeWallet] = useState(false)
 
   const fetchUserInfo = useCallback(async () => {
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
@@ -63,7 +64,11 @@ const Airdrop = () => {
 
     setUser(data)
     form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
-  }, [auth, form])
+
+    if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58()) {
+      setModal(true)
+    }
+  }, [auth, form, wallet])
 
   useEffect(() => {
     if (connected && wallet && wallet.publicKey) {
@@ -181,17 +186,12 @@ const Airdrop = () => {
     [auth, fetchUserInfo, connected, setAuth, wallet]
   )
 
-  useEffect(() => {
-    if (connected && user && wallet && wallet.publicKey && user.wallet !== wallet.publicKey.toBase58()) {
-      setModal(true)
-    }
-  }, [user, wallet, setModal, connected])
-
   const handleOk = async () => {
     form.setFieldsValue({ 
       wallet: wallet.publicKey.toBase58() 
     })
 
+    setChangeWallet(true)
     setModal(false)
   } 
 
@@ -373,9 +373,10 @@ const Airdrop = () => {
                           form.getFieldValue('in_group') && 
                           form.getFieldValue('email') &&
                           form.getFieldValue('wallet') &&
-                          form.getFieldValue('token_acc_address') ? 
-                          'Infomation Submitted': 
-                          'Register'
+                          form.getFieldValue('token_acc_address') &&
+                          !changeWallet ? 
+                          'Submitted': 
+                          'Submit'
                         }
                       </Button>
                     </div>
@@ -397,8 +398,8 @@ const Airdrop = () => {
       <Modal 
         title="Warning" 
         visible={modal} 
-        closable={false}
-        footer={[<Button type="primary" onClick={handleOk}>OK</Button>]}
+        onCancel={() => setModal(false)}
+        onOk={handleOk}
       >
         <p>The wallet you're using is different from the one that associated with your airdrop.</p>
         <p>Do you want to change your wallet?</p>
