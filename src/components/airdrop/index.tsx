@@ -57,7 +57,14 @@ const Airdrop = () => {
   const [loading, setLoading] = useState(false)
   const [changeWallet, setChangeWallet] = useState(false)
 
+  const timer: {current: NodeJS.Timeout | null} = useRef(null)
+  const modalShowed = useRef(false)
+
   const fetchUserInfo = useCallback(async () => {
+    if (timer.current) {
+      clearTimeout(timer.current)
+    }
+
     const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
       headers: { Authorization: `Bearer ${auth?.token}` }
     })
@@ -65,10 +72,15 @@ const Airdrop = () => {
     setUser(data)
     form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
 
-    if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58()) {
+    if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58() && !modalShowed.current) {
       setModal(true)
+      modalShowed.current = true
     }
-  }, [auth, form, wallet])
+
+    if (!data.channel || !data.in_group) {
+      timer.current = setTimeout(() => fetchUserInfo(), 3000)
+    }
+  }, [auth, form, wallet, modalShowed])
 
   useEffect(() => {
     if (connected && wallet && wallet.publicKey) {
@@ -102,14 +114,16 @@ const Airdrop = () => {
   }, [connected, userAccounts, form])
 
   useEffect(() => {
-    if (connected && auth && (!user?.channel || !user?.in_group)) {
+    if (connected && auth ) {
       fetchUserInfo()
+    } 
 
-      const timer = setTimeout(() => { fetchUserInfo() }, 10000)
-
-      return () => clearTimeout(timer)
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current)
+      }
     }
-  }, [user, connected, auth, fetchUserInfo])
+  }, [connected, auth, fetchUserInfo])
 
   const handleCreateTokenAccount = async () => {
     try {
