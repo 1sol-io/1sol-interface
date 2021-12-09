@@ -21,6 +21,8 @@ import { BitpieWalletAdapter } from '@solana/wallet-adapter-bitpie'
 import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare'
 import { LedgerWalletAdapter } from "@solana/wallet-adapter-ledger"
 
+import { SolareumWalletAdapter } from '../wallet-adapters'
+
 import { useConnectionConfig } from "../utils/connection";
 import { useLocalStorageState } from "../utils/utils";
 import { notify } from "../utils/notifications";
@@ -36,6 +38,7 @@ import SolflareLogo from '../assets/solflare.svg'
 import LedgerLogo from '../assets/ledger.svg'
 import SolongLogo from "../assets/solong.png"
 import MathWalletLogo from "../assets/mathwallet.svg"
+import SolareumLogo from '../assets/solareum.png'
 
 export const WALLET_PROVIDERS = [
   {
@@ -125,6 +128,13 @@ export const WALLET_PROVIDERS = [
     icon: BitpieLogo,
     url: 'https://bitpie.com',
     adapter: BitpieWalletAdapter
+  },
+  {
+    key: 'Solareum',
+    name: 'Solareum',
+    icon: SolareumLogo,
+    url: 'https://solareum.app/',
+    adapter: SolareumWalletAdapter
   },
 ];
 
