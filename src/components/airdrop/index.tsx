@@ -44,7 +44,7 @@ const Airdrop = () => {
 
   const [auth, setAuth] = useState<{token: string, expireAt: string, uid: string} | null>()
 
-  const [user, setUser] = useState<UserProps>()
+  const [user, setUser] = useState<UserProps | null>()
 
   const [modal, setModal] = useState(false)
 
@@ -113,18 +113,6 @@ const Airdrop = () => {
     }
   }, [connected, userAccounts, form])
 
-  useEffect(() => {
-    if (connected && auth ) {
-      fetchUserInfo()
-    } 
-
-    return () => {
-      if (timer.current) {
-        clearTimeout(timer.current)
-      }
-    }
-  }, [connected, auth, fetchUserInfo])
-
   const handleCreateTokenAccount = async () => {
     try {
       setCreateTokenAccountLoading(true)
@@ -144,9 +132,12 @@ const Airdrop = () => {
     () => {
       if (!connected) {
         return 
+      } else {
+        setUser(null)
+        form.resetFields()
       }
 
-      if (auth && Number(auth.expireAt) > Date.now()) {
+      if (auth && Number(auth.expireAt) * 1000 > Date.now()) {
         fetchUserInfo()
 
         return
@@ -196,8 +187,14 @@ const Airdrop = () => {
       if (widget.current) {
         widget.current.appendChild(script)
       } 
+
+      return () => {
+        if (timer.current) {
+          clearTimeout(timer.current)
+        }
+      }
     },
-    [auth, fetchUserInfo, connected, setAuth, wallet]
+    [auth, fetchUserInfo, connected, setAuth, wallet, form]
   )
 
   const handleOk = async () => {
@@ -373,12 +370,14 @@ const Airdrop = () => {
                           !form.getFieldValue('in_group') || 
                           !form.getFieldValue('email') || 
                           (wallet && wallet.publicKey && form.getFieldValue('wallet') !== wallet.publicKey.toBase58()) || 
-                          !form.getFieldValue('token_acc_address') || (
+                          !form.getFieldValue('token_acc_address') || 
+                          (
                             form.getFieldValue('channel') && 
                             form.getFieldValue('in_group') && 
                             form.getFieldValue('email') &&
                             form.getFieldValue('wallet') &&
-                            form.getFieldValue('token_acc_address')
+                            form.getFieldValue('token_acc_address') &&
+                            !changeWallet
                           )
                         }
                       >
@@ -412,11 +411,12 @@ const Airdrop = () => {
       <Modal 
         title="Warning" 
         visible={modal} 
-        onCancel={() => setModal(false)}
-        onOk={handleOk}
+        closable={false}
+        footer={[<Button type="primary" onClick={handleOk}>Ok</Button>]}
       >
         <p>The wallet you're using is different from the one that associated with your airdrop.</p>
         <p>Do you want to change your wallet?</p>
+        <p>Or you need switch wallet to view your airdrop information.</p>
       </Modal>
     </div>
   )
