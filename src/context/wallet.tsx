@@ -133,7 +133,7 @@ export const WALLET_PROVIDERS = [
     key: 'Solareum',
     name: 'Solareum',
     icon: SolareumLogo,
-    url: 'https://solareum.app/',
+    url: 'https://solareum.app',
     adapter: SolareumWalletAdapter
   },
 ];
@@ -145,6 +145,10 @@ export function WalletProvider({ children = null as any }) {
 
   const [autoConnect, setAutoConnect] = useState(false);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
+
+  if ((window as any).solana?.platform === 'solareum') {
+    setProviderUrl('https://solareum.app')
+  }
 
   const provider = useMemo(
     () => WALLET_PROVIDERS.find(({ url }) => url === providerUrl),
@@ -169,7 +173,6 @@ export function WalletProvider({ children = null as any }) {
     if (wallet) {
       wallet.on("connect", () => {
         if (wallet.publicKey) {
-          localStorage.removeItem("feeDiscountKey");
           setConnected(true);
 
           const walletPublicKey = wallet.publicKey.toBase58();
@@ -199,8 +202,6 @@ export function WalletProvider({ children = null as any }) {
           message: "Wallet update",
           description: "Disconnected from wallet",
         });
-
-        localStorage.removeItem("feeDiscountKey");
       });
     }
 
@@ -215,17 +216,16 @@ export function WalletProvider({ children = null as any }) {
   }, [wallet]);
 
   useEffect(() => {
-    if (wallet && autoConnect) {
-      try {
-        wallet.connect();
-        setAutoConnect(false);
-      } catch (e) {
-        console.error(e);
-      }
+    if (wallet && providerUrl === 'https://solareum.app') {
+      setAutoConnect(true);
     }
+  }, [providerUrl, wallet]);
 
-    return () => {
-    };
+  useEffect(() => {
+    if (wallet && autoConnect) {
+      wallet.connect();
+      setAutoConnect(false);
+    }
   }, [wallet, autoConnect]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
