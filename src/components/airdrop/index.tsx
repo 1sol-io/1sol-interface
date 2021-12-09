@@ -186,7 +186,7 @@ const Airdrop = () => {
       script.setAttribute('data-size', 'large')
       script.setAttribute('data-request-access', 'write')
       if (window.innerWidth < 768) {
-        script.setAttribute('data-onauth-url', 'https://app.1sol.io/airdrop')
+        script.setAttribute('data-auth-url', 'https://app.1sol.io/airdrop')
       } else {
         script.setAttribute('data-onauth', 'TelegramLoginWidget.dataOnauth(user)')
       }
@@ -296,7 +296,7 @@ const Airdrop = () => {
       <AppBar />
       <div className="bd">
         <Card
-          title="Airdrop Registration"
+          title={window.innerWidth < 768 ? "Airdrop Registration." : "Airdrop Registration"}
           className="airdrop-card"
           style={{ borderRadius: 20, margin: '20px auto 0', minHeight: '398px' }}
         >
