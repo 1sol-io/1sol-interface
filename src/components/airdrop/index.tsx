@@ -239,7 +239,7 @@ const Airdrop = () => {
       }
     }
 
-    if (user) {
+    if (user.id && user.auth_date && user.hash) {
       callback(user)
     }
 
