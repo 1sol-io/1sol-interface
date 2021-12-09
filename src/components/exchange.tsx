@@ -79,7 +79,7 @@ export const ExchangeView = (props: {}) => {
       />
 
       <div style={{position: 'relative', zIndex: 10}}>
-        {/* <Card
+        <Card
           className="airdrop-card exchange-card"
           headStyle={{ padding: 0 }}
         >
@@ -95,7 +95,7 @@ export const ExchangeView = (props: {}) => {
               </Button>
             </div>
           </div>
-        </Card> */}
+        </Card>
 
         {/* <Card
           className="airdrop-card exchange-card"
