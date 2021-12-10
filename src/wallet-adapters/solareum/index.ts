@@ -81,6 +81,7 @@ export class SolareumWalletAdapter extends EventEmitter {
   _handleConnect = () => {
     if (!this._handlerAdded) {
       this._handlerAdded = true;
+
       const isUIWebView = /\(ip.*applewebkit(?!.*(version|crios))/i.test(
         navigator.userAgent,
       );
@@ -88,6 +89,7 @@ export class SolareumWalletAdapter extends EventEmitter {
       receiver.addEventListener('message', this._handleMessage);
       receiver.addEventListener('beforeunload', this.disconnect);
     }
+
     if (this._injectedProvider) {
       return new Promise((resolve) => {
         this._sendRequest('connect', {});
@@ -100,6 +102,7 @@ export class SolareumWalletAdapter extends EventEmitter {
         '_blank',
         'location,resizable,width=460,height=675',
       );
+
       return new Promise((resolve) => {
         this.once('connect', resolve);
       });
@@ -174,6 +177,7 @@ export class SolareumWalletAdapter extends EventEmitter {
     if (this._popup) {
       this._popup.close();
     }
+
     return this._handleConnect();
   };
 
