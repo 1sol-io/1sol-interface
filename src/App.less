@@ -6,6 +6,47 @@ body {
   background: #000201;
 }
 
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+@keyframes breathing {
+  0% {
+    transform: scale(0.9);
+  }
+
+  25% {
+    transform: scale(1.0);
+  }
+
+  60% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(0.9);
+  }
+}
+
+.g-loading {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.g-loading-logo {
+  width: 70px;
+  animation: rotation 2s infinite linear;
+  // animation: breathing 1.5s ease-out infinite normal;
+}
+
 .App-logo {
   background-image: url("./assets/logo.png");
   pointer-events: none;
