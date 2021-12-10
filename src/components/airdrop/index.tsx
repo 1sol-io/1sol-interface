@@ -49,6 +49,7 @@ const Airdrop = () => {
   const [user, setUser] = useState<UserProps | null>()
 
   const [modal, setModal] = useState(false)
+  const [showLoginBtn, setShowLoginBtn] = useState(false)
 
   const [form] = Form.useForm()
 
@@ -63,24 +64,28 @@ const Airdrop = () => {
   const modalShowed = useRef(false)
 
   const fetchUserInfo = useCallback(async () => {
-    if (timer.current) {
-      clearTimeout(timer.current)
-    }
+    try {
+      if (timer.current) {
+        clearTimeout(timer.current)
+      }
 
-    const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
-      headers: { Authorization: `Bearer ${auth?.token}` }
-    })
+      const { data } = await axios.get('https://airdrop-api.1sol.io/api/users/self', {
+        headers: { Authorization: `Bearer ${auth?.token}` }
+      })
 
-    setUser(data)
-    form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
+      setUser(data)
+      form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
 
-    if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58() && !modalShowed.current) {
-      setModal(true)
-      modalShowed.current = true
-    }
+      if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58() && !modalShowed.current) {
+        setModal(true)
+        modalShowed.current = true
+      }
 
-    if (!data.channel || !data.in_group) {
-      timer.current = setTimeout(() => fetchUserInfo(), 3000)
+      if (!data.channel || !data.in_group) {
+        timer.current = setTimeout(() => fetchUserInfo(), 3000)
+      }
+    } catch (e) {
+      setShowLoginBtn(true)
     }
   }, [auth, form, wallet, modalShowed])
 
@@ -88,10 +93,18 @@ const Airdrop = () => {
     if (connected && wallet && wallet.publicKey) {
       localStorage.setItem('airdrop_wallet', wallet.publicKey.toBase58())
 
-      const auth = localStorage.getItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`)
+      const authInfo = localStorage.getItem(`airdrop:auth:info:${wallet.publicKey.toBase58()}`)
 
-      if (auth) {
-        setAuth(JSON.parse(auth))
+      if (authInfo) {
+        const auth = JSON.parse(authInfo)
+
+        setAuth(auth)
+
+        if (Number(auth.expireAt) * 1000 < Date.now()) {
+          setShowLoginBtn(true)
+        }
+      } else {
+        setShowLoginBtn(true)
       }
     }
   }, [connected, wallet])
@@ -145,7 +158,7 @@ const Airdrop = () => {
         fetchUserInfo()
 
         return
-      }
+      } 
 
       const callback = async (user: any) => {
         try {
@@ -203,7 +216,7 @@ const Airdrop = () => {
         }
       }
     },
-    [auth, fetchUserInfo, connected, setAuth, wallet, form]
+    [auth, fetchUserInfo, connected, setAuth, wallet, form, showLoginBtn]
   )
 
   useEffect(() => {
@@ -242,7 +255,6 @@ const Airdrop = () => {
     if (user.id && user.auth_date && user.hash) {
       callback(user)
     }
-
   } , [wallet, location.pathname, location.search])
 
   const handleOk = async () => {
@@ -303,7 +315,7 @@ const Airdrop = () => {
           {connected ? (
             <>
               { 
-                !user ?
+                showLoginBtn ? 
                 <div className="airdrop-content">
                   <div ref={widget} />
                 </div> : 
