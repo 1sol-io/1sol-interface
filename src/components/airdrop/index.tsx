@@ -38,6 +38,15 @@ interface UserProps {
   user_id?: number,
 }
 
+interface AuthInfo {
+  id: number,
+  hash: string,
+  auth_date: number,
+  username?: string,
+  first_name?: string,
+  last_name?: string,
+}
+
 const Airdrop = () => {
   const connection = useConnection();
   const { connected, connect, wallet } = useWallet()
@@ -74,6 +83,7 @@ const Airdrop = () => {
       })
 
       setUser(data)
+      setShowLoginBtn(false)
       form.setFieldsValue({...data, email: data.email || '', token_acc_address: ''})
 
       if (wallet && wallet.publicKey && data.wallet !== wallet.publicKey.toBase58() && !modalShowed.current) {
@@ -225,17 +235,27 @@ const Airdrop = () => {
     const authDate = urlParams.get("auth_date");
     const firstName = urlParams.get("first_name");
     const lastName = urlParams.get("last_name");
-    const hash = urlParams.get("hash");
+    const hash = urlParams.get("hash") || "";
     const username = urlParams.get("username");
 
-    const user = {
+    const user: AuthInfo = {
       id: Number(id),
       auth_date: Number(authDate),
-      first_name: firstName,
-      last_name: lastName,
       hash,
-      username
     }
+
+    if (firstName) {
+      user.first_name = firstName
+    }
+
+    if (lastName) {
+      user.last_name = lastName
+    }
+
+    if (username) {
+      user.username = username
+    }
+
     const wallet = localStorage.getItem('airdrop_wallet')
 
     const callback = async (user: any) => {
