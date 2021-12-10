@@ -21,6 +21,8 @@ import { BitpieWalletAdapter } from '@solana/wallet-adapter-bitpie'
 import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare'
 import { LedgerWalletAdapter } from "@solana/wallet-adapter-ledger"
 
+import { SolareumWalletAdapter } from '../wallet-adapters'
+
 import { useConnectionConfig } from "../utils/connection";
 import { useLocalStorageState } from "../utils/utils";
 import { notify } from "../utils/notifications";
@@ -36,11 +38,18 @@ import SolflareLogo from '../assets/solflare.svg'
 import LedgerLogo from '../assets/ledger.svg'
 import SolongLogo from "../assets/solong.png"
 import MathWalletLogo from "../assets/mathwallet.svg"
+import SolareumLogo from '../assets/solareum.png'
+
+const PHANTOM_URL = "https://www.phantom.app"
+const SOLAREUM_URL = 'https://solareum.app'
+const MATH_WALLET_URL = "https://mathwallet.app"
+const SAFEPAL_URL = "https://safepal.app"
+const COIN98_URL = "https://coin98.app"
 
 export const WALLET_PROVIDERS = [
   {
     name: "Phantom",
-    url: "https://www.phantom.app",
+    url: PHANTOM_URL,
     icon: PhantomLogo,
     adapter: PhantomWalletAdapter,
   },
@@ -87,21 +96,21 @@ export const WALLET_PROVIDERS = [
   {
     key: "MathWallet",
     name: "MathWallet",
-    url: "https://www.mathwallet.org",
+    url: MATH_WALLET_URL,
     icon: MathWalletLogo,
     adapter: MathWalletWalletAdapter,
   },
   {
     key: "SafePalWallet",
     name: "SafePal",
-    url: "https://www.safepal.io/",
+    url: SAFEPAL_URL,
     icon: SafePalLogo,
     adapter: SafePalWalletAdapter,
   },
   {
     key: "Coin98",
     name: "Coin98",
-    url: "https://www.coin98.com",
+    url: COIN98_URL,
     icon: Coin98Logo,
     adapter: Coin98WalletAdapter,
   },
@@ -126,7 +135,16 @@ export const WALLET_PROVIDERS = [
     url: 'https://bitpie.com',
     adapter: BitpieWalletAdapter
   },
+  {
+    key: 'Solareum',
+    name: 'Solareum',
+    icon: SolareumLogo,
+    url: SOLAREUM_URL,
+    adapter: SolareumWalletAdapter
+  },
 ];
+
+const SOLAREUM_NAME = 'solareum'
 
 const WalletContext = React.createContext<any>(null);
 
@@ -135,6 +153,26 @@ export function WalletProvider({ children = null as any }) {
 
   const [autoConnect, setAutoConnect] = useState(false);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
+
+  if ((window as any).solana?.platform === SOLAREUM_NAME) {
+    setProviderUrl(SOLAREUM_URL)
+  }
+
+  // if ((window as any).solana?.isPhantom) {
+  //   setProviderUrl(PHANTOM_URL)
+  // }
+
+  // if ((window as any).solana?.isMathWallet) {
+  //   setProviderUrl(PHANTOM_URL)
+  // }
+
+  // if ((window as any).solana?.isSafePal) {
+  //   setProviderUrl(SAFEPAL_URL)  
+  // }
+
+  // if ((window as any).solana?.isCoin98) {
+  //   setProviderUrl(COIN98_URL)  
+  // }
 
   const provider = useMemo(
     () => WALLET_PROVIDERS.find(({ url }) => url === providerUrl),
@@ -145,7 +183,7 @@ export function WalletProvider({ children = null as any }) {
     function () {
       if (provider) {
         return new (provider.adapter || Wallet)(
-          providerUrl,
+          providerUrl === SOLAREUM_URL ? (window as any).solana: providerUrl,
           endpoint
         ) as WalletAdapter;
       }
@@ -159,7 +197,6 @@ export function WalletProvider({ children = null as any }) {
     if (wallet) {
       wallet.on("connect", () => {
         if (wallet.publicKey) {
-          localStorage.removeItem("feeDiscountKey");
           setConnected(true);
 
           const walletPublicKey = wallet.publicKey.toBase58();
@@ -184,18 +221,18 @@ export function WalletProvider({ children = null as any }) {
 
       wallet.on("disconnect", () => {
         setConnected(false);
+        setAutoConnect(false);
 
         notify({
           message: "Wallet update",
           description: "Disconnected from wallet",
         });
-
-        localStorage.removeItem("feeDiscountKey");
       });
     }
 
     return () => {
       setConnected(false);
+      setAutoConnect(false);
 
       if (wallet) {
         wallet.disconnect();
@@ -205,17 +242,22 @@ export function WalletProvider({ children = null as any }) {
   }, [wallet]);
 
   useEffect(() => {
-    if (wallet && autoConnect) {
-      try {
-        wallet.connect();
-        setAutoConnect(false);
-      } catch (e) {
-        console.error(e);
-      }
+    if (wallet && 
+      [
+        SOLAREUM_URL, 
+        PHANTOM_URL, 
+      //   SAFEPAL_URL, MATH_WALLET_URL, COIN98_URL
+      ].includes(providerUrl)
+    ) {
+      setAutoConnect(true);
     }
+  }, [providerUrl, wallet]);
 
-    return () => {
-    };
+  useEffect(() => {
+    if (wallet && autoConnect) {
+      wallet.connect();
+      setAutoConnect(false);
+    }
   }, [wallet, autoConnect]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -273,7 +315,7 @@ export function WalletProvider({ children = null as any }) {
                 />
               }
               style={{
-                display: "block",
+                display: provider.name === "Solareum" ? "none" : "block" ,
                 width: "100%",
                 textAlign: "left",
                 marginBottom: 8,

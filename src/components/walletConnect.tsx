@@ -5,7 +5,7 @@ import { useWallet } from "../context/wallet";
 import { ExplorerLink } from "./explorerLink";
 
 export const WalletConnect: FunctionComponent = ({ children }) => {
-  const { connected, wallet, select, connect, disconnect } = useWallet();
+  const { connected, wallet, select, disconnect } = useWallet();
   const publicKey = (connected && wallet?.publicKey?.toBase58()) || "";
 
   const menu = (
