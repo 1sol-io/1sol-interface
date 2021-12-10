@@ -151,28 +151,20 @@ const WalletContext = React.createContext<any>(null);
 export function WalletProvider({ children = null as any }) {
   const { endpoint } = useConnectionConfig();
 
-  const [autoConnect, setAutoConnect] = useState(false);
+  const [autoConnect, setAutoConnect] = useState(true);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
 
   if ((window as any).solana?.platform === SOLAREUM_NAME) {
     setProviderUrl(SOLAREUM_URL)
   }
 
-  // if ((window as any).solana?.isPhantom) {
-  //   setProviderUrl(PHANTOM_URL)
-  // }
+  if ((window as any).solana?.isMathWallet) {
+    setProviderUrl(MATH_WALLET_URL)
+  }
 
-  // if ((window as any).solana?.isMathWallet) {
-  //   setProviderUrl(PHANTOM_URL)
-  // }
-
-  // if ((window as any).solana?.isSafePal) {
-  //   setProviderUrl(SAFEPAL_URL)  
-  // }
-
-  // if ((window as any).solana?.isCoin98) {
-  //   setProviderUrl(COIN98_URL)  
-  // }
+  if ((window as any).solana?.isSafePal) {
+    setProviderUrl(SAFEPAL_URL)  
+  }
 
   const provider = useMemo(
     () => WALLET_PROVIDERS.find(({ url }) => url === providerUrl),
@@ -221,7 +213,6 @@ export function WalletProvider({ children = null as any }) {
 
       wallet.on("disconnect", () => {
         setConnected(false);
-        setAutoConnect(false);
 
         notify({
           message: "Wallet update",
@@ -232,7 +223,6 @@ export function WalletProvider({ children = null as any }) {
 
     return () => {
       setConnected(false);
-      setAutoConnect(false);
 
       if (wallet) {
         wallet.disconnect();
@@ -240,18 +230,6 @@ export function WalletProvider({ children = null as any }) {
       }
     };
   }, [wallet]);
-
-  useEffect(() => {
-    if (wallet && 
-      [
-        SOLAREUM_URL, 
-        PHANTOM_URL, 
-      //   SAFEPAL_URL, MATH_WALLET_URL, COIN98_URL
-      ].includes(providerUrl)
-    ) {
-      setAutoConnect(true);
-    }
-  }, [providerUrl, wallet]);
 
   useEffect(() => {
     if (wallet && autoConnect) {
