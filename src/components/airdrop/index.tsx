@@ -182,9 +182,17 @@ const Airdrop = () => {
         } catch (e) {
           console.error(e)
 
+          let description = 'Please try again'
+          let message = 'Telegram authorization failed'
+
+          if ((e as any).response && (e as any).response.status === 403) {
+            description = "You don't have permission to access this service."
+            message = '403 Forbidden'
+          }
+
           notify({
-            description: "Please try again",
-            message: "Telegram authorization failed",
+            description,
+            message,
             type: "error",
           });
         }
