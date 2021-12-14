@@ -12,6 +12,7 @@ import { notify } from "../utils/notifications";
 
 export interface StakePoolProps {
   token: TokenInfo | undefined;
+  rewardToken: TokenInfo | undefined;
   enableDeposit: boolean;
   enableWithdraw: boolean;
   total: BN,
@@ -21,6 +22,8 @@ export interface StakePoolProps {
   poolTokenSupply: BN;
   poolMintDecimals: number;
   stakeMintDecimals: number;
+  stakeMint: PublicKey;
+  capacity: number
 }
 
 export const useStakePool = () => {
@@ -51,10 +54,13 @@ export const useStakePool = () => {
         poolTokenSupply,
         depositOffset,
         stakeMintDecimals,
+        depositCapacity,
+        rewardMint,
       } = pool
 
       setPool({
         token: tokenMap.get(stakeMint.toBase58()),
+        rewardToken: tokenMap.get(rewardMint.toBase58()),
         enableDeposit,
         enableWithdraw,
         total: totalDepositAmount.sub(depositOffset),
@@ -64,6 +70,8 @@ export const useStakePool = () => {
         poolTokenSupply,
         poolMintDecimals,
         stakeMintDecimals,
+        stakeMint,
+        capacity: depositCapacity.divn(10 ** poolMintDecimals).toNumber()
       });
     }
   }, [connection, tokenMap]);
@@ -165,5 +173,6 @@ export const useStakePool = () => {
     pool,
     handleDeposit,
     handleWithdraw,
+    fetchStakePool,
   }
 }

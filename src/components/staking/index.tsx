@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Button, Card, Input, Modal, Tooltip } from 'antd'
-import { QuestionCircleOutlined } from '@ant-design/icons'
+import { Button, Card, Input, Modal } from 'antd'
 import BN from 'bn.js'
 import { MintInfo } from '@solana/spl-token'
 
@@ -17,7 +16,8 @@ import './index.less'
 
 const Staking = () => {
   const { connected, connect } = useWallet()
-  const { pool, handleDeposit, handleWithdraw } = useStakePool()
+  const { pool, handleDeposit, handleWithdraw, fetchStakePool } = useStakePool()
+
   const [stakeLoading, setStakeLoading] = useState(false)
   const [unstakeLoading, setUnstakeLoading] = useState(false)
 
@@ -27,7 +27,7 @@ const Staking = () => {
   const [stakeValue, setStakeValue] = useState('')
   const [unstakeValue, setUnstakeValue] = useState('')
 
-  const { userAccounts } = useUserAccounts();
+  const { userAccounts, fetchUserTokenAccounts } = useUserAccounts();
 
   const [oneSolTokenAccount, setOneSolTokenAccount] = useState<TokenAccount | null>()
   const [oneSolMintInfo, setOneSolMintInfo] = useState<MintInfo | null>()
@@ -40,7 +40,7 @@ const Staking = () => {
   const [modalStakeDisabled, setModalStakeDisabled] = useState(true)
   const [modalUnstakeDisabled, setModalUnstakeDisabled] = useState(true)
 
-  const [userDeposit, setUserDeposit] = useState(0)
+  const [userDeposit, setUserDeposit] = useState('-')
 
   useEffect(() => {
     const getTokenAccount = (mint: string) => {
@@ -128,10 +128,13 @@ const Staking = () => {
         sourceTokenAccount: oneSolTokenAccount.pubkey,
       })
 
+      fetchStakePool()
+      fetchUserTokenAccounts()
+
       setStakeValue('')
       setStakeLoading(false)
     }
-  }, [stakeValue, oneSolTokenAccount, handleDeposit, oneSolMintInfo])
+  }, [stakeValue, oneSolTokenAccount, handleDeposit, oneSolMintInfo, fetchStakePool, fetchUserTokenAccounts])
 
   useEffect(() => {
     if (
@@ -154,16 +157,19 @@ const Staking = () => {
         amount: Number(unstakeValue) * 10 ** stakedMintInfo!.decimals,
       })
 
+      fetchStakePool()
+      fetchUserTokenAccounts()  
+
       setUnstakeValue('')
       setUnstakeLoading(false)
     }
-  }, [unstakeValue, stakedTokenAccount, handleWithdraw, stakedMintInfo])
+  }, [unstakeValue, stakedTokenAccount, handleWithdraw, stakedMintInfo, fetchStakePool, fetchUserTokenAccounts])
 
   useEffect(() => {
     if (pool && connected && stakedBalance) {
       const userDeposit = pool.total.mul(new BN(stakedBalance * 10 ** pool.stakeMintDecimals)).div(pool.poolTokenSupply)
 
-      setUserDeposit(userDeposit.divn(10 ** pool.stakeMintDecimals).toNumber())
+      setUserDeposit(`${userDeposit.divn(10 ** pool.stakeMintDecimals).toNumber().toFixed(2)}`)
     }
   }, [pool, connected, stakedBalance])
 
@@ -180,27 +186,28 @@ const Staking = () => {
                 </div>
                 <div className="bd">
                   <strong>{pool?.token?.symbol}</strong>
-                  <div>from to</div>
+                  <div>Reward Token: {pool?.rewardToken?.symbol}</div>
+                  <div>from 2021-12-22 to 2022-01-21</div>
                 </div>
               </div>
             </div>
             <div className="bd">
               <div className="mod-item">
                 <div className="hd">Total Staking</div>
-                <div className="bd">{pool ? pool.uiTotal.toFixed(2) : '-'}</div>
+                <div className="bd">{pool ? `${pool.uiTotal}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</div>
               </div>
               <div className="mod-item">
                 <div className="hd">Your Staking</div>
-                <div className="bd">{userDeposit.toFixed(2)}</div>
+                <div className="bd">{userDeposit.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
               </div>
               <div className="mod-item">
                 <div className="hd">
                   APY
-                  <Tooltip title="Average yearly yield">
+                  {/* <Tooltip title="Average yearly yield">
                     <QuestionCircleOutlined />
-                  </Tooltip>
+                  </Tooltip> */}
                 </div>
-                <div className="bd">15%</div>
+                <div className="bd">121.9%</div>
               </div>
             </div>
             <div className="ft">

@@ -349,7 +349,7 @@ export class StakePool {
     ]);
     const data = Buffer.alloc(dataLayout.span);
     const instruction = {
-      instruction: 3,
+      instruction: 4,
       amount: new u64(amount),
     }
     dataLayout.encode(instruction, data);
