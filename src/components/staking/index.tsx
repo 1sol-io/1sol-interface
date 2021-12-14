@@ -187,18 +187,24 @@ const Staking = () => {
                 <div className="bd">
                   <strong>{pool?.token?.symbol}</strong>
                   <div>Reward Token: {pool?.rewardToken?.symbol}</div>
-                  <div>from 2021-12-22 to 2022-01-21</div>
+                  <div>2021-12-22 - 2022-01-21</div>
                 </div>
               </div>
             </div>
             <div className="bd">
               <div className="mod-item">
                 <div className="hd">Total Staking</div>
-                <div className="bd">{pool ? `${pool.uiTotal}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</div>
+                <div className="bd">
+                  {pool ? `${pool.uiTotal}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}
+                  <span style={{color: '#999', fontSize: '12px'}}>/{pool ? `${pool.capacity}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</span>
+                </div>
               </div>
               <div className="mod-item">
                 <div className="hd">Your Staking</div>
-                <div className="bd">{userDeposit.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
+                <div className="bd">
+                  {userDeposit.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  <span style={{color: '#999', fontSize: '12px'}}>/{pool ? `${pool.max}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</span>
+                </div>
               </div>
               <div className="mod-item">
                 <div className="hd">
