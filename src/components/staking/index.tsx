@@ -203,16 +203,13 @@ const Staking = () => {
               <div className="mod-item">
                 <div className="hd">
                   APY
-                  {/* <Tooltip title="Average yearly yield">
-                    <QuestionCircleOutlined />
-                  </Tooltip> */}
                 </div>
                 <div className="bd">121.9%</div>
               </div>
             </div>
             <div className="ft">
               <Button 
-                disabled={!pool?.enableDeposit} 
+                disabled={!pool?.enableDeposit || !setOneSolBalance || !connected} 
                 className="btn-stake" 
                 type={!pool?.enableDeposit ? 'default' : 'primary'} 
                 size="large" 
@@ -222,7 +219,7 @@ const Staking = () => {
                 Stake
               </Button>
               <Button   
-                disabled={!pool?.enableWithdraw} 
+                disabled={!pool?.enableWithdraw || !stakedBalance || !connected} 
                 className="btn-withdraw" 
                 type={!pool?.enableWithdraw ? 'default' : 'primary'} 
                 size="large" block
