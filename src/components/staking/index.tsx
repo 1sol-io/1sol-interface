@@ -195,7 +195,12 @@ const Staking = () => {
               <div className="mod-item">
                 <div className="hd">Total Staking</div>
                 <div className="bd">
-                  {pool ? `${pool.uiTotal}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}
+                  { pool ? 
+                    pool.enableWithdraw ? 
+                    `${pool.capacity}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') :
+                    `${pool.uiTotal}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 
+                    '-'
+                  }
                   <span style={{color: '#999', fontSize: '12px'}}>/{pool ? `${pool.capacity}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</span>
                 </div>
               </div>
