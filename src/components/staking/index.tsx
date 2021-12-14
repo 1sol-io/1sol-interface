@@ -209,7 +209,7 @@ const Staking = () => {
             </div>
             <div className="ft">
               <Button 
-                disabled={!pool?.enableDeposit || !setOneSolBalance || !connected} 
+                disabled={!pool?.enableDeposit || !oneSolBalance || !connected} 
                 className="btn-stake" 
                 type={!pool?.enableDeposit ? 'default' : 'primary'} 
                 size="large" 
