@@ -52,7 +52,13 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
             </NavLink>
           </Menu.Item>
           <Menu.Item key="/doc">
-            <a href="https://doc.1sol.io">Doc</a>
+            <a
+              href="https://doc.1sol.io"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Doc
+            </a>
           </Menu.Item>
           <Menu.Item disabled key="lending">
             Lending
