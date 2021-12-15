@@ -33,7 +33,7 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
           <Menu.Item key="/trade">
             <NavLink
               to={{
-                pathname: '/trade/SOL-USDC'
+                pathname: '/trade/USDC-1SOL'
               }}
               isActive={(match, location) => {
                 return location.pathname.includes('/trade')
