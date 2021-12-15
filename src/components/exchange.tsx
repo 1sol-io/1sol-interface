@@ -1,15 +1,12 @@
-import React, {useState} from "react";
+import React from "react";
 import { Button, Card, Popover } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
 import { AppBar } from "./appBar";
 import Social from "./social";
 
-import { notify } from "../utils/notifications";
-import { useWallet } from "../context/wallet";
 import Warning from "./warning";
 
 import './exchange.less'
@@ -24,39 +21,6 @@ export const ExchangeView = (props: {}) => {
         return <TradeEntry />;
       },
     };
-
-  const {wallet, connect, connected} = useWallet()
-  const [loading, setLoading] = useState(false)
-
-  const handleRequestAirdrop = async () => {
-    try {
-      if (loading) {
-        return
-      }
-
-      setLoading(true)
-
-      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
-      const signature = await connection.requestAirdrop(new PublicKey(wallet.publicKey), LAMPORTS_PER_SOL * 1);
-
-      await connection.confirmTransaction(signature);
-
-      setLoading(false)
-
-      notify({
-        message: "Airdrop requested success.",
-        type: "success",
-      });
-    } catch (e) {
-      console.error(e)
-      setLoading(false)
-
-      notify({
-        message: "Airdrop requested error.",
-        type: "error",
-      });
-    }
-  }
 
   return (
     <>
@@ -84,6 +48,33 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
+            <div className="hd">Buy 1SOL</div>
+            <div className="bd">
+              <Button 
+                type="primary" 
+                shape="round"
+                style={{minWidth: '70px'}}
+                size="small"
+              >
+                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">Huobi</a>
+              </Button>
+              <Button 
+                type="primary" 
+                shape="round"
+                style={{minWidth: '70px', marginLeft: '15px'}}
+                size="small"
+              >
+                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">Bybit</a>
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="airdrop-card exchange-card"
+          headStyle={{ padding: 0 }}
+        >
+          <div className="airdrop">
             <div className="hd">Stake 1SOL with <strong style={{fontSize: '22px'}}>120+</strong>% APY</div>
             <div className="bd">
               <Button 
@@ -96,25 +87,6 @@ export const ExchangeView = (props: {}) => {
             </div>
           </div>
         </Card>
-
-        {/* <Card
-          className="airdrop-card exchange-card"
-          headStyle={{ padding: 0 }}
-        >
-          <div className="airdrop">
-            <div className="hd">SOL Token<strong>(Devnet)</strong></div>
-            <div className="bd">
-              <Button 
-                type="primary" 
-                shape="round"
-                style={{minWidth: '82px'}}
-                onClick={connected ? handleRequestAirdrop : connect}
-              >
-                {loading ? 'Requesting' : 'Faucet'}
-              </Button>
-            </div>
-          </div>
-        </Card> */}
 
         <Card
           className="exchange-card"
