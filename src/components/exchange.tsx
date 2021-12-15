@@ -58,7 +58,7 @@ export const ExchangeView = (props: {}) => {
                 shape="round"
                 style={{minWidth: '70px'}}
               >
-                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.huobi.com/en-us/exchange/1sol_usdt/" target="_blank" rel="noopener noreferrer">
                   <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={HuobiLogo} alt="" />
                 </a>
               </Button>
