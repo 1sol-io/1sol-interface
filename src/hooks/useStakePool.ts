@@ -69,19 +69,19 @@ export const useStakePool = () => {
         enableDeposit,
         enableWithdraw,
         total: totalDepositAmount.sub(depositOffset),
-        uiTotal: totalDepositAmount.isZero() ? 0 : totalDepositAmount.sub(depositOffset).divn(10 ** poolMintDecimals).toNumber(),
+        uiTotal: totalDepositAmount.isZero() ? 0 : totalDepositAmount.sub(depositOffset).div(new BN(10).pow(new BN(stakeMintDecimals))).toNumber(),
         poolMint,
         stakePoolInfo: pool,
         poolTokenSupply,
         poolMintDecimals,
         stakeMintDecimals,
         stakeMint,
-        capacity: depositCapacity.divn(10 ** poolMintDecimals).toNumber(),
-        uiMax: maximumDepositAmount.divn(10 ** poolMintDecimals).toNumber(),
+        capacity: depositCapacity.div(new BN(10).pow(new BN(stakeMintDecimals))).toNumber(),
+        uiMax: maximumDepositAmount.div(new BN(10).pow(new BN(stakeMintDecimals))).toNumber(),
         max: maximumDepositAmount,
         // TODO
         // if minimum is less than 1
-        uiMin: minimumDepositAmount.divn(10 ** poolMintDecimals).toNumber(),
+        uiMin: minimumDepositAmount.div(new BN(10).pow(new BN(stakeMintDecimals))).toNumber(),
       });
     }
   }, [connection, tokenMap]);
