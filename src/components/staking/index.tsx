@@ -172,9 +172,9 @@ const Staking = () => {
   useEffect(() => {
     if (pool && connected && stakedBalance) {
       if (Number(stakedBalance) > 0) {
-        const userDeposit = pool.total.mul(new BN(stakedBalance * 10 ** pool.stakeMintDecimals)).div(pool.poolTokenSupply)
+        const userDeposit = pool.total.mul(new BN(stakedBalance).mul(new BN(10).pow(new BN(pool.stakeMintDecimals)))).div(pool.poolTokenSupply)
 
-        setUserDeposit(`${userDeposit.divn(10 ** pool.stakeMintDecimals).toNumber().toFixed(2)}`)
+        setUserDeposit(userDeposit.isZero() ? '0' :`${userDeposit.div(new BN(10).pow(new BN(pool.stakeMintDecimals))).toNumber().toFixed(2)}`)
       } else {
         setUserDeposit('0')
       }
