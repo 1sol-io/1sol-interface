@@ -32,49 +32,6 @@ body {
         border: 1px solid #383a3e;
       }
 
-      .ant-btn-primary {
-        background: linear-gradient(45deg, #67b5fd, #8944ef, #5632de);
-        border-radius: 32px;
-        border: 0 none;
-        z-index: 1;
-
-        &::after {
-          content: "";
-          position: absolute;
-          z-index: -1;
-          bottom: -3px;
-          left: 0;
-          height: 110%;
-          width: 100%;
-          opacity: 0.8;
-          border-radius: 50px;
-
-          /* Declaring our shadow color inherit from the parent (button) */
-          background: inherit;
-
-          /* Blurring the element for shadow effect */
-          filter: blur(6px);
-
-          /* Transition for the magic */
-          -webkit-transition: all 0.2s;
-          transition: all 0.2s;
-        }
-
-        &:hover::after {
-          /* Changing blur effect */
-          -webkit-filter: blur(4px);
-          -moz-filter: blur(4px);
-          -o-filter: blur(4px);
-          -ms-filter: blur(4px);
-          filter: blur(4px);
-
-          /* And change the style properties */
-          width: 100%;
-          bottom: -5px;
-          left: 0;
-        }
-      }
-
       .ant-btn-round {
         border-radius: 32px;
       }
@@ -88,6 +45,13 @@ body {
       .ant-input-number-handler-wrap {
         display: none;
       }
+
+      .ant-btn[disabled],
+      .ant-btn[disabled]:hover,
+      .ant-btn[disabled]:focus,
+      .ant-btn[disabled]:active {
+        border-radius: 32px;
+      }
     }
   }
 }
@@ -97,5 +61,48 @@ body {
   select,
   textarea {
     font-size: 16px;
+  }
+}
+
+.ant-btn-primary {
+  background: linear-gradient(45deg, #67b5fd, #8944ef, #5632de);
+  border-radius: 32px;
+  border: 0 none;
+  z-index: 1;
+
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    bottom: -3px;
+    left: 0;
+    height: 110%;
+    width: 100%;
+    opacity: 0.8;
+    border-radius: 50px;
+
+    /* Declaring our shadow color inherit from the parent (button) */
+    background: inherit;
+
+    /* Blurring the element for shadow effect */
+    filter: blur(6px);
+
+    /* Transition for the magic */
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+  }
+
+  &:hover::after {
+    /* Changing blur effect */
+    -webkit-filter: blur(4px);
+    -moz-filter: blur(4px);
+    -o-filter: blur(4px);
+    -ms-filter: blur(4px);
+    filter: blur(4px);
+
+    /* And change the style properties */
+    width: 100%;
+    bottom: -5px;
+    left: 0;
   }
 }

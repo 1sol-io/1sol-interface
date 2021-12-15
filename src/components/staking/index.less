@@ -1,0 +1,75 @@
+.staking-card {
+  width: 400px;
+
+  @media only screen and (max-width: 600px) {
+    width: 100%;
+  }
+
+  .mod-staking {
+    > .hd {
+      display: flex;
+      justify-content: space-around;
+    }
+
+    > .bd {
+      margin: 30px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-stake {
+      margin-bottom: 15px;
+    }
+  }
+
+  .mod-token {
+    display: flex;
+    align-items: center;
+
+    > .hd .token-logo {
+      width: 60px;
+      border-radius: 50%;
+    }
+
+    > .bd {
+      margin-left: 20px;
+      text-align: left;
+
+      strong {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .mod-item {
+    > .hd {
+      font-size: 14px;
+    }
+
+    > .bd {
+      font-size: 22px;
+      font-weight: 500;
+    }
+  }
+}
+
+.modal-stake,
+.modal-unstake {
+  padding: 30px 0 0;
+
+  > .hd {
+    margin-bottom: 30px;
+  }
+
+  .mod-input {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    > .hd {
+      flex-grow: 1;
+    }
+  }
+}
