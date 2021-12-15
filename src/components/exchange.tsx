@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card, Popover } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
@@ -9,8 +10,10 @@ import Social from "./social";
 
 import Warning from "./warning";
 
+import HuobiLogo from '../assets/huobi.svg'
+import BybitLogo from '../assets/bybit.svg'
+
 import './exchange.less'
-import { Link } from "react-router-dom";
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -48,23 +51,25 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Buy 1SOL</div>
+            <div className="hd">$1SOL is live on</div>
             <div className="bd">
               <Button 
                 type="primary" 
                 shape="round"
                 style={{minWidth: '70px'}}
-                size="small"
               >
-                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">Huobi</a>
+                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">
+                  <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={HuobiLogo} alt="" />
+                </a>
               </Button>
               <Button 
                 type="primary" 
                 shape="round"
                 style={{minWidth: '70px', marginLeft: '15px'}}
-                size="small"
               >
-                <a href="https://1sol.io/buy" target="_blank" rel="noopener noreferrer">Bybit</a>
+                <a href="https://www.bybit.com/en-US/trade/spot/1SOL/USDT" target="_blank" rel="noopener noreferrer">
+                  <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={BybitLogo} alt="" />
+                </a>
               </Button>
             </div>
           </div>
