@@ -42,6 +42,15 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Trade
             </NavLink>
           </Menu.Item>
+          <Menu.Item key="/staking">
+            <NavLink
+              to={{
+                pathname: '/staking'
+              }}
+            >
+              Staking
+            </NavLink>
+          </Menu.Item>
           <Menu.Item disabled key="lending">
             Lending
           </Menu.Item>

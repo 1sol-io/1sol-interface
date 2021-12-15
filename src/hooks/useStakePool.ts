@@ -24,7 +24,8 @@ export interface StakePoolProps {
   stakeMintDecimals: number;
   stakeMint: PublicKey;
   capacity: number,
-  max: number
+  uiMax: number
+  max: BN
 }
 
 export const useStakePool = () => {
@@ -74,7 +75,8 @@ export const useStakePool = () => {
         stakeMintDecimals,
         stakeMint,
         capacity: depositCapacity.divn(10 ** poolMintDecimals).toNumber(),
-        max: maximumDepositAmount.divn(10 ** poolMintDecimals).toNumber(),
+        uiMax: maximumDepositAmount.divn(10 ** poolMintDecimals).toNumber(),
+        max: maximumDepositAmount
       });
     }
   }, [connection, tokenMap]);

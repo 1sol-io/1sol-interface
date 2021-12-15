@@ -21,7 +21,7 @@ const Staking = () => {
   const [stakeLoading, setStakeLoading] = useState(false)
   const [unstakeLoading, setUnstakeLoading] = useState(false)
 
-  const [stakeModalVisible, setStakeModalVisible] = useState(false)
+  const [stakeModalVisible, setStakeModalVisible] = useState(true)
   const [unstakeModalVisible, setUnstakeModalVisible] = useState(false)
 
   const [stakeValue, setStakeValue] = useState('')
@@ -111,13 +111,14 @@ const Staking = () => {
       oneSolTokenAccount &&
       oneSolMintInfo && 
       stakeValue && 
-      new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(oneSolTokenAccount.info.amount)
+      new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(oneSolTokenAccount.info.amount) &&
+      pool && new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(pool.max)
     ) {
       setModalStakeDisabled(false)
     } else {
       setModalStakeDisabled(true)
     }
-  }, [oneSolTokenAccount, stakeValue, oneSolMintInfo, stakeLoading])
+  }, [oneSolTokenAccount, stakeValue, oneSolMintInfo, stakeLoading, pool])
 
   const handleStake = useCallback(async () => {
     if (stakeValue && oneSolTokenAccount && oneSolMintInfo) {
@@ -173,6 +174,18 @@ const Staking = () => {
     }
   }, [pool, connected, stakedBalance])
 
+  const handleSetMaxStake = useCallback(() => {
+    if (oneSolTokenAccount && pool) {
+      if (oneSolTokenAccount.info.amount.lte(pool.max)) {
+        setStakeValue(oneSolTokenAccount && oneSolMintInfo ? `${convert(oneSolTokenAccount, oneSolMintInfo)}`: '0')
+
+        return
+      }
+
+      setStakeValue(`${pool?.uiMax}`)
+    } 
+  }, [oneSolTokenAccount, pool, oneSolMintInfo])
+
   return (
     <div className="page-staking">
       <AppBar />
@@ -208,7 +221,7 @@ const Staking = () => {
                 <div className="hd">Your Staking</div>
                 <div className="bd">
                   {userDeposit.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  <span style={{color: '#999', fontSize: '12px'}}>/{pool ? `${pool.max}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</span>
+                  <span style={{color: '#999', fontSize: '12px'}}>/{pool ? `${pool.uiMax}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}</span>
                 </div>
               </div>
               <div className="mod-item">
@@ -266,7 +279,7 @@ const Staking = () => {
                   style={{fontSize: '12px', color: '#999'}} 
                   type="text" 
                   size="large"
-                  onClick={() => setStakeValue(oneSolTokenAccount && oneSolMintInfo ? `${convert(oneSolTokenAccount, oneSolMintInfo)}`: '0')}
+                  onClick={handleSetMaxStake}
                 >
                   Max
                 </Button>
