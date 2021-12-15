@@ -21,7 +21,7 @@ const Staking = () => {
   const [stakeLoading, setStakeLoading] = useState(false)
   const [unstakeLoading, setUnstakeLoading] = useState(false)
 
-  const [stakeModalVisible, setStakeModalVisible] = useState(true)
+  const [stakeModalVisible, setStakeModalVisible] = useState(false)
   const [unstakeModalVisible, setUnstakeModalVisible] = useState(false)
 
   const [stakeValue, setStakeValue] = useState('')
@@ -112,7 +112,8 @@ const Staking = () => {
       oneSolMintInfo && 
       stakeValue && 
       new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(oneSolTokenAccount.info.amount) &&
-      pool && new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(pool.max)
+      pool && new BN(Number(stakeValue) * 10 ** oneSolMintInfo.decimals).lte(pool.max) &&
+      pool && Number(stakeValue) >= pool.uiMin
     ) {
       setModalStakeDisabled(false)
     } else {
@@ -134,6 +135,7 @@ const Staking = () => {
 
       setStakeValue('')
       setStakeLoading(false)
+      setStakeModalVisible(false)
     }
   }, [stakeValue, oneSolTokenAccount, handleDeposit, oneSolMintInfo, fetchStakePool, fetchUserTokenAccounts])
 
@@ -163,14 +165,19 @@ const Staking = () => {
 
       setUnstakeValue('')
       setUnstakeLoading(false)
+      setUnstakeModalVisible(false)
     }
   }, [unstakeValue, stakedTokenAccount, handleWithdraw, stakedMintInfo, fetchStakePool, fetchUserTokenAccounts])
 
   useEffect(() => {
     if (pool && connected && stakedBalance) {
-      const userDeposit = pool.total.mul(new BN(stakedBalance * 10 ** pool.stakeMintDecimals)).div(pool.poolTokenSupply)
+      if (Number(stakedBalance) > 0) {
+        const userDeposit = pool.total.mul(new BN(stakedBalance * 10 ** pool.stakeMintDecimals)).div(pool.poolTokenSupply)
 
-      setUserDeposit(`${userDeposit.divn(10 ** pool.stakeMintDecimals).toNumber().toFixed(2)}`)
+        setUserDeposit(`${userDeposit.divn(10 ** pool.stakeMintDecimals).toNumber().toFixed(2)}`)
+      } else {
+        setUserDeposit('0')
+      }
     }
   }, [pool, connected, stakedBalance])
 
@@ -233,7 +240,12 @@ const Staking = () => {
             </div>
             <div className="ft">
               <Button 
-                disabled={!pool?.enableDeposit || !oneSolBalance || !connected} 
+                disabled={
+                  !pool?.enableDeposit || 
+                  !oneSolBalance || 
+                  !connected ||
+                  (userDeposit !== '-' && new BN(Number(userDeposit) * 10 ** pool.stakeMintDecimals).lte(pool.max))
+                } 
                 className="btn-stake" 
                 type={!pool?.enableDeposit ? 'default' : 'primary'} 
                 size="large" 
