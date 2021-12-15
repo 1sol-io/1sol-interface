@@ -245,8 +245,10 @@ const Staking = () => {
                   !oneSolBalance || 
                   !connected ||
                   (
+                    pool &&
                     userDeposit !== '-' && 
-                    new BN(userDeposit).mul(new BN(10).pow(new BN(pool.stakeMintDecimals))).gte(pool.max)
+                    Number(userDeposit) > 0 &&
+                    new BN(Number(userDeposit) * 10 ** pool.stakeMintDecimals).gte(pool.max)
                   )
                 } 
                 className="btn-stake" 
