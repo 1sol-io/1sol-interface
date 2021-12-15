@@ -1,19 +1,19 @@
-import React, {useState} from "react";
+import React from "react";
 import { Button, Card, Popover } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Link } from "react-router-dom";
 
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
 import { AppBar } from "./appBar";
 import Social from "./social";
 
-import { notify } from "../utils/notifications";
-import { useWallet } from "../context/wallet";
 import Warning from "./warning";
 
+import HuobiLogo from '../assets/huobi.svg'
+import BybitLogo from '../assets/bybit.svg'
+
 import './exchange.less'
-import { Link } from "react-router-dom";
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -24,39 +24,6 @@ export const ExchangeView = (props: {}) => {
         return <TradeEntry />;
       },
     };
-
-  const {wallet, connect, connected} = useWallet()
-  const [loading, setLoading] = useState(false)
-
-  const handleRequestAirdrop = async () => {
-    try {
-      if (loading) {
-        return
-      }
-
-      setLoading(true)
-
-      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
-      const signature = await connection.requestAirdrop(new PublicKey(wallet.publicKey), LAMPORTS_PER_SOL * 1);
-
-      await connection.confirmTransaction(signature);
-
-      setLoading(false)
-
-      notify({
-        message: "Airdrop requested success.",
-        type: "success",
-      });
-    } catch (e) {
-      console.error(e)
-      setLoading(false)
-
-      notify({
-        message: "Airdrop requested error.",
-        type: "error",
-      });
-    }
-  }
 
   return (
     <>
@@ -84,6 +51,35 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
+            <div className="hd">$1SOL is live on</div>
+            <div className="bd">
+              <Button 
+                type="primary" 
+                shape="round"
+                style={{minWidth: '70px'}}
+              >
+                <a href="https://www.huobi.com/en-us/exchange/1sol_usdt/" target="_blank" rel="noopener noreferrer">
+                  <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={HuobiLogo} alt="" />
+                </a>
+              </Button>
+              <Button 
+                type="primary" 
+                shape="round"
+                style={{minWidth: '70px', marginLeft: '15px'}}
+              >
+                <a href="https://www.bybit.com/en-US/trade/spot/1SOL/USDT" target="_blank" rel="noopener noreferrer">
+                  <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={BybitLogo} alt="" />
+                </a>
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="airdrop-card exchange-card"
+          headStyle={{ padding: 0 }}
+        >
+          <div className="airdrop">
             <div className="hd">Stake 1SOL with <strong style={{fontSize: '22px'}}>120+</strong>% APY</div>
             <div className="bd">
               <Button 
@@ -96,25 +92,6 @@ export const ExchangeView = (props: {}) => {
             </div>
           </div>
         </Card>
-
-        {/* <Card
-          className="airdrop-card exchange-card"
-          headStyle={{ padding: 0 }}
-        >
-          <div className="airdrop">
-            <div className="hd">SOL Token<strong>(Devnet)</strong></div>
-            <div className="bd">
-              <Button 
-                type="primary" 
-                shape="round"
-                style={{minWidth: '82px'}}
-                onClick={connected ? handleRequestAirdrop : connect}
-              >
-                {loading ? 'Requesting' : 'Faucet'}
-              </Button>
-            </div>
-          </div>
-        </Card> */}
 
         <Card
           className="exchange-card"
