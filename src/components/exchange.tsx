@@ -84,14 +84,14 @@ export const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Stake 1SOL with 120+% APY</div>
+            <div className="hd">Stake 1SOL with <strong style={{fontSize: '22px'}}>120+</strong>% APY</div>
             <div className="bd">
               <Button 
                 type="primary" 
                 shape="round"
                 style={{minWidth: '82px'}}
               >
-                <Link to="/staking">Stake</Link>
+                <Link to="/staking">Stake Now</Link>
               </Button>
             </div>
           </div>
