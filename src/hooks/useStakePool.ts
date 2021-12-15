@@ -69,7 +69,7 @@ export const useStakePool = () => {
         enableDeposit,
         enableWithdraw,
         total: totalDepositAmount.sub(depositOffset),
-        uiTotal: totalDepositAmount.sub(depositOffset).divn(10 ** poolMintDecimals).toNumber(),
+        uiTotal: totalDepositAmount.isZero() ? 0 : totalDepositAmount.sub(depositOffset).divn(10 ** poolMintDecimals).toNumber(),
         poolMint,
         stakePoolInfo: pool,
         poolTokenSupply,
