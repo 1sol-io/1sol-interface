@@ -9,7 +9,6 @@ import { CurrencyPairProvider } from "./utils/currencyPair";
 import { ExchangeView } from "./components/exchange";
 import { Dashboard } from './components/dashboard'
 import Staking from './components/staking'
-import Airdrop from "./components/airdrop";
 
 export function Routes() {
   return (
@@ -25,7 +24,9 @@ export function Routes() {
                   </Route>
                   <Route path="/trade/:pair" component={ExchangeView} />
                   <Route exact path="/dashboard" component={() => <Dashboard />} />
-                  <Route exact path="/airdrop" component={Airdrop} />
+                  <Route exact path="/airdrop">
+                    <Redirect to="/trade/USDC-1SOL" />
+                  </Route>
                   <Route exact path="/staking" component={() => <Staking />} />
                 </Switch>
               </CurrencyPairProvider>
