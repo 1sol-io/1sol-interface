@@ -55,7 +55,8 @@ const {
   REACT_APP_ENDPOINTS,
   REACT_APP_CHAIN_ID,
   REACT_APP_CHAIN_NAME,
-  REACT_APP_STAKE_POOLS
+  REACT_APP_STAKE_POOLS,
+  REACT_APP_STAKE_POOLS_1
 } = process.env
 
 export const ONESOL_PROGRAM_ID = new PublicKey(REACT_APP_ONESOL)
@@ -77,3 +78,4 @@ export const CHAIN_NAME: "mainnet-beta" | "testnet" | "devnet" | "localnet" = RE
 export const ONESOL_MINT_ADDRESS = new PublicKey('4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF')
 
 export const STAKE_POOLS_ID = new PublicKey(REACT_APP_STAKE_POOLS)
+export const STAKE_POOLS_ID_1 = new PublicKey(REACT_APP_STAKE_POOLS_1)
