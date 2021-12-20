@@ -29,14 +29,14 @@ module.exports = {
 
       webpackConfig.optimization = {
         splitChunks: {
-          chunks: 'async',
+          chunks: 'all',
           minSize: 10000,
           maxAsyncRequests: 5,
           maxInitialRequests: 4,
           automaticNameDelimiter: '~',
           name: true,
           cacheGroups: {
-            common: {
+            vendors: {
               name: 'chunk-vendors',
               chunks: 'all',
               test: /[\\/]node_modules[\\/](react|react-dom|react-router|redux-saga|dva|react-router-dom|draft-js\/lib|core-js|@antv\/data-set\/build|)[\\/]/,
@@ -57,7 +57,7 @@ module.exports = {
             solana: {
               name: 'chunk-solana',
               chunks: 'all',
-              test: /[\\/]node_modules[\\/](@solana|@project-serum|@blocto)[\\/]/
+              test: /[\\/]node_modules[\\/](@solana|@project-serum|@blocto|bn.js|buffer-layout|elliptic)[\\/]/
             }
           }
         }

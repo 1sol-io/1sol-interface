@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
-import { TokenInfo } from "@solana/spl-token-registry";
+import { TokenInfo } from "../utils/token-registry";
 
 import { PoolInfo, TokenAccount } from "./../models";
 import axios from 'axios';

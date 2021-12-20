@@ -10,7 +10,7 @@ import {
 import {
   TokenInfo,
   TokenListContainer
-} from "@solana/spl-token-registry";
+} from "./token-registry";
 
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, useLocalStorageState, getFastestEndpoint } from './utils'

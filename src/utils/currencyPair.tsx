@@ -4,17 +4,17 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { MintInfo } from "@solana/spl-token";
 import bs58 from "bs58";
-import { TokenInfo } from "@solana/spl-token-registry";
+import { TokenInfo } from "./token-registry";
 import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
 
 import {
   PoolOperation,
 } from "./pools";
 import { cache, useAccountByMint } from "./accounts";
-import { useConnection, useConnectionConfig } from "./connection";
+import { useConnectionConfig } from "./connection";
 import {
   CurveType,
   PoolConfig,

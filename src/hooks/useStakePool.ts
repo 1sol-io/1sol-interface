@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-import { TokenInfo } from "@solana/spl-token-registry";
+import { TokenInfo } from "../utils/token-registry";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 
