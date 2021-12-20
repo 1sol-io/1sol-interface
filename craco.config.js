@@ -39,7 +39,7 @@ module.exports = {
             vendors: {
               name: 'vendors',
               chunks: 'all',
-              test: /[\\/]node_modules[\\/](react|react-dom|react-router|redux-saga|dva|react-router-dom|draft-js\/lib|core-js|@antv\/data-set\/build|@ant-design|antd|moment|immutable\/dist|rc-calendar\/es|braft-finder\/dist|lodash|rc-tree\/es)[\\/]/,
+              test: /[\\/]node_modules[\\/](react|react-dom|react-error-overlay|react-router|redux-saga|dva|react-router-dom|draft-js\/lib|core-js|@antv\/data-set\/build|@ant-design|antd|moment|immutable\/dist|rc-calendar\/es|braft-finder\/dist|lodash|rc-tree\/es)[\\/]/,
               priority: 1,
               reuseExistingChunk: true
             },

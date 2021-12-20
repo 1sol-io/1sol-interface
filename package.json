@@ -50,8 +50,7 @@
     "localnet:down": "solana-localnet down",
     "localnet:logs": "solana-localnet logs -f",
     "predeploy": "git pull --ff-only && yarn && yarn build",
-    "format:fix": "prettier --write \"**/*.+(js|jsx|ts|tsx|json|css|md)\"",
-    "analyze": "source-map-explorer 'build/static/js/*.js'"
+    "format:fix": "prettier --write \"**/*.+(js|jsx|ts|tsx|json|css|md)\""
   },
   "eslintConfig": {
     "extends": "react-app"
