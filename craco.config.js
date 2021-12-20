@@ -31,10 +31,9 @@ module.exports = {
         splitChunks: {
           chunks: 'async',
           minSize: 10000,
-          maxAsyncRequests: 5, // 最大异步请求数
-          maxInitialRequests: 4, // 页面初始化最大异步请求数
-          automaticNameDelimiter: '~', // 解决命名冲突
-          // name: true 值会自动根据切割之前的代码块和缓存组键值(key)自动分配命名,否则就需要传入一个String或者function.
+          maxAsyncRequests: 5,
+          maxInitialRequests: 4,
+          automaticNameDelimiter: '~',
           name: true,
           cacheGroups: {
             common: {
