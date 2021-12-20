@@ -64,8 +64,6 @@ module.exports = {
         }
       }
 
-      console.log(webpackConfig)
-      console.log('环境：', env, paths)
       return webpackConfig
     }
   }
