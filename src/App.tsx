@@ -6,27 +6,27 @@ import './App.less'
 function App(){
   const [ready, setReady] = useState(false)
 
-  useEffect(() => {
-    const checkStatus = () => {
-      if (document.readyState === 'complete') {
-        setReady(true)
-      } else {
-        const timer = setTimeout(checkStatus, 100)
+  // useEffect(() => {
+  //   const checkStatus = () => {
+  //     if (document.readyState === 'complete') {
+  //       setReady(true)
+  //     } else {
+  //       const timer = setTimeout(checkStatus, 100)
 
-        return () => {
-          clearTimeout(timer)
-        }
-      }
-    }
+  //       return () => {
+  //         clearTimeout(timer)
+  //       }
+  //     }
+  //   }
 
-    checkStatus()
-  }, [])
+  //   checkStatus()
+  // }, [])
 
   return (
     <div className="App">
-      {ready ? (
-        <Routes />
-      ) : (
+      {/* {ready ? ( */}
+      <Routes />
+      {/*) : (
         <div className="g-loading">
           <img
             className="g-loading-logo"
@@ -34,7 +34,7 @@ function App(){
             alt="1SOL Protocol Logo"
           />
         </div>
-      )}
+      )*/}
     </div>
   )
 }
