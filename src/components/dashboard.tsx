@@ -78,7 +78,7 @@ const { TabPane } = Tabs
 //   }
 // ]
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const location = useLocation()
   const [active, setActive] = useState('btc')
   const { chainlinkMap } = useChainlink()
@@ -474,3 +474,5 @@ export const Dashboard = () => {
     </div>
   )
 }
+
+export default Dashboard

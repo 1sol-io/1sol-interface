@@ -31,8 +31,8 @@ import {
 } from "@solana/spl-token";
 import {
   StableSwapLayout,
-  SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID,
-} from "@saberhq/stableswap-sdk";
+  // SWAP_PROGRAM_ID as STABLE_SWAP_PROGRAM_ID,
+} from "./saber/layout";
 
 export const ONESOL_PROTOCOL_PROGRAM_ID: PublicKey = new PublicKey(
   "1SoLTvbiicqXZ3MJmnTL2WYXKLYpuxwHpa4yYrVQaMZ"
@@ -2232,7 +2232,7 @@ export async function loadSaberStableSwap(
   {
     connection,
     address,
-    programId = STABLE_SWAP_PROGRAM_ID,
+    programId,
   }: {
     connection: Connection;
     address: PublicKey,

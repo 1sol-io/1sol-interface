@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   parseMappingData,
   parsePriceData,
@@ -78,7 +78,7 @@ const usePyth = () => {
 
               pythMap[key] = {
                 symbol: key,
-                price: `${price.toFixed(2)}`,
+                price: price ? `${price.toFixed(2)}` : '-',
                 name: 'Pyth',
                 logo: pythLogo
               }

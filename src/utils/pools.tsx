@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   AccountInfo,
   Connection,
@@ -8,14 +7,13 @@ import {
   Keypair,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { Token, MintLayout, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Token, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
-import { sendTransaction, useConnection, Transactions, signAllTransactions, sendSignedTransaction } from "./connection";
+import { sendTransaction, Transactions, signAllTransactions, sendSignedTransaction } from "./connection";
 import { notify } from "./notifications";
 import {
   cache,
   getCachedAccount,
-  getMultipleAccounts,
 } from "./accounts";
 import {
   programIds,
@@ -24,8 +22,6 @@ import {
   PoolInfo,
   TokenAccount,
   TokenSwapLayout,
-  TokenSwapLayoutLegacyV0 as TokenSwapLayoutV0,
-  TokenSwapLayoutV1,
 } from "./../models";
 import {
   loadTokenSwapInfo,

@@ -15,7 +15,7 @@ import BybitLogo from '../assets/bybit.svg'
 
 import './exchange.less'
 
-export const ExchangeView = (props: {}) => {
+const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
   const tradeTab = {
       key: "trade",
@@ -108,3 +108,5 @@ export const ExchangeView = (props: {}) => {
     </>
   );
 };
+
+export default  ExchangeView;

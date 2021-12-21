@@ -10,7 +10,7 @@ import {
 import {
   TokenInfo,
   TokenListContainer
-} from "@solana/spl-token-registry";
+} from "./token-registry";
 
 import { cache, getMultipleAccounts } from "./accounts";
 import { queryJsonFiles, useLocalStorageState, getFastestEndpoint } from './utils'
@@ -92,6 +92,7 @@ export function ConnectionProvider({ children = undefined as any }) {
   useEffect(() => {
     (async () => {
       const customTokenJSON = await queryJsonFiles([
+        // `https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/tokens/solana.tokenlist.json`,
         `https://raw.githubusercontent.com/1sol-io/token-list/main/src/tokens/solana.tokenlist.json`
       ]);
       const customTokenList = new TokenListContainer(customTokenJSON);
