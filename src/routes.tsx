@@ -29,7 +29,7 @@ export function Routes() {
               <CurrencyPairProvider>
                 <Switch>
                   <Route exact path="/">
-                    <Redirect to="/trade/" />
+                    <Redirect to="/trade/USDC-1SOL" />
                   </Route>
                   <Route path="/trade/:pair" component={Exchange} />
                   <Route exact path="/dashboard" component={Dashboard} />

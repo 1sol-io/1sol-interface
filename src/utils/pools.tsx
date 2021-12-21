@@ -27,10 +27,12 @@ import {
   loadTokenSwapInfo,
   loadSerumDexMarket,
   OneSolProtocol,
-  Numberu64,
   loadSaberStableSwap,
   loadRaydiumAmmInfo
 } from '../utils/onesol-protocol'
+import {
+  u64,
+} from '@solana/spl-token';
 import { CurrencyContextState } from '../utils/currencyPair'
 import {
   EXCHANGER_SERUM_DEX,
@@ -326,36 +328,6 @@ export async function calculateDependentAmount(
   return depAdjustedAmount / depPrecision;
 }
 
-function approveAmount(
-  instructions: TransactionInstruction[],
-  cleanupInstructions: TransactionInstruction[],
-  account: PublicKey,
-  owner: PublicKey,
-  amount: number,
-
-  // if delegate is not passed ephemeral transfer authority is used
-  delegate?: PublicKey
-) {
-  const tokenProgram = programIds().token;
-  const transferAuthority = Keypair.generate();
-
-  instructions.push(
-    Token.createApproveInstruction(
-      tokenProgram,
-      account,
-      delegate ?? transferAuthority.publicKey,
-      owner,
-      [],
-      amount
-    )
-  );
-
-  cleanupInstructions.push(
-    Token.createRevokeInstruction(tokenProgram, account, owner, [])
-  );
-
-  return transferAuthority;
-}
 
 function getWrappedAccount(
   instructions: TransactionInstruction[],
@@ -570,9 +542,9 @@ async function swap(
     amount_out,
   } = route
 
-  const amountIn = new Numberu64(amount_in)
-  const expectAmountOut = new Numberu64(amount_out)
-  const minimumAmountOut = new Numberu64(amount_out * (1 - slippage))
+  const amountIn = new u64(amount_in)
+  const expectAmountOut = new u64(amount_out)
+  const minimumAmountOut = new u64(amount_out * (1 - slippage))
 
   if ([EXCHANGER_SPL_TOKEN_SWAP, EXCHANGER_ORCA_SWAP, EXCHANGER_ONEMOON].includes(exchanger_flag)) {
     const splTokenSwapInfo = await loadTokenSwapInfo(
@@ -697,7 +669,7 @@ async function swapIn(
     amount_in,
   } = route
 
-  const amountIn = new Numberu64(amount_in)
+  const amountIn = new u64(amount_in)
 
   const data = {
     fromTokenAccountKey: fromAccount,
@@ -806,8 +778,8 @@ async function swapOut(
     program_id,
   } = route
 
-  const expectAmountOut = new Numberu64(amountOut)
-  const minimumAmountOut = new Numberu64(amountOut * (1 - slippage))
+  const expectAmountOut = new u64(amountOut)
+  const minimumAmountOut = new u64(amountOut * (1 - slippage))
 
   const data = {
     fromTokenAccountKey: fromAccount,

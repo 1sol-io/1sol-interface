@@ -1,12 +1,8 @@
 import * as BufferLayout from "buffer-layout";
-
-const publicKeyLayout = (property: string = "publicKey"): Object => {
-  return BufferLayout.blob(32, property);
-};
-
-const uint64 = (property: string = "uint64"): Object => {
-  return BufferLayout.blob(8, property);
-};
+import {
+  publicKeyLayout,
+  uint64,
+} from '../utils/layout';
 
 /**
  * Raw representation of fees.

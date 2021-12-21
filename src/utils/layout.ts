@@ -3,14 +3,14 @@ import * as BufferLayout from 'buffer-layout';
 /**
  * Layout for a public key
  */
-export const publicKey = (property: string = 'publicKey'): Object => {
+export const publicKeyLayout = (property: string = 'publicKey'): BufferLayout.Layout<Buffer> => {
   return BufferLayout.blob(32, property);
 };
 
 /**
  * Layout for a 64bit unsigned value
  */
-export const uint64 = (property: string = 'uint64'): Object => {
+export const uint64 = (property: string = 'uint64'): BufferLayout.Layout<Buffer> => {
   return BufferLayout.blob(8, property);
 };
 
@@ -30,7 +30,7 @@ export const rustString = (property: string = 'string'): Object => {
   const _encode = rsl.encode.bind(rsl);
 
   rsl.decode = (buffer: Buffer, offset: number) => {
-    const data = _decode(buffer, offset);
+    const data: any = _decode(buffer, offset);
     return data.chars.toString('utf8');
   };
 
