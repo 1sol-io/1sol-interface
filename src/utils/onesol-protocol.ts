@@ -1,13 +1,9 @@
-import assert from "assert";
-import BN, { min } from "bn.js";
 import bs58 from "bs58";
 import { Buffer } from "buffer";
 import * as BufferLayout from "buffer-layout";
 import {
-  AccountInfo,
   Connection,
   Keypair,
-  SystemInstruction,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   TransactionSignature,
@@ -19,7 +15,6 @@ import {
   TransactionInstruction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-// import { Market, OpenOrders } from "@project-serum/serum";
 import { 
   TokenSwapLayout,
   StableSwapLayout,
@@ -28,8 +23,6 @@ import {
 } from "../models";
 import {
   MintInfo as TokenMint,
-  MintLayout as TokenMintLayout,
-  Token,
   TOKEN_PROGRAM_ID,
   u64,
 } from "@solana/spl-token";
@@ -2141,7 +2134,7 @@ export async function loadSerumDexMarket(
   const asks = new PublicKey(decoded.asks);
   const coinVault = new PublicKey(decoded.baseVault);
   const pcVault = new PublicKey(decoded.quoteVault);
-  const vaultSignerNonce = decoded.vaultSignerNonce;
+  const vaultSignerNonce = new u64(decoded.vaultSignerNonce);
 
   const vaultSigner = await PublicKey.createProgramAddress(
     [pubkey.toBuffer()].concat(vaultSignerNonce.toArrayLike(Buffer, "le", 8)),
@@ -2228,11 +2221,12 @@ export async function loadRaydiumAmmInfo(
 
   const serumMarketProgramId = new PublicKey(raydiumDecoded.marketProgramId);
   const serumMarket = new PublicKey(raydiumDecoded.marketId);
+
   const marketDecoded: any = SERUM_MARKET_LAYOUT_V2.decode(
     await loadAccount(connection, serumMarket, serumMarketProgramId)
   );
 
-  const vaultSignerNonce = marketDecoded.vaultSignerNonce;
+  const vaultSignerNonce: u64 = new u64(marketDecoded.vaultSignerNonce);
 
   const vaultSigner = await PublicKey.createProgramAddress(
     [serumMarket.toBuffer()].concat(vaultSignerNonce.toArrayLike(Buffer, "le", 8)),
