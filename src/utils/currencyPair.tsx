@@ -8,7 +8,9 @@ import { useHistory, useLocation } from "react-router-dom";
 import { MintInfo } from "@solana/spl-token";
 import bs58 from "bs58";
 import { TokenInfo } from "./token-registry";
-import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
+import {
+  WRAPPED_SOL_MINT
+} from '../utils/ids';
 
 import {
   PoolOperation,
