@@ -7,6 +7,8 @@
     "@project-serum/borsh": "^0.2.3",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@pythnetwork/client": "^2.0.0",
+    "@sentry/react": "^6.16.1",
+    "@sentry/tracing": "^6.16.1",
     "@solana/spl-token": "0.1.8",
     "@solana/wallet-adapter-base": "^0.7.0",
     "@solana/wallet-adapter-bitpie": "^0.3.0",
@@ -54,7 +56,11 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",

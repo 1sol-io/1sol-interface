@@ -22,6 +22,7 @@ import {
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
 import { QuoteCurrencyInput } from "../quoteCurrencyInput";
+import * as Sentry from '@sentry/react'
 
 import {
   PoolOperation,
@@ -47,6 +48,7 @@ import {
   WRAPPED_SOL_MINT, 
   ONEMOON_PROGRAM_ID
 } from "../../utils/constant";
+
 
 import timeoutIcon from '../../assets/4.gif'
 
@@ -409,13 +411,13 @@ export const TradeEntry = () => {
     loading.current = false
     setTimeoutLoading(false)
 
+    const distribution = distributions.find(({ id }: { id: string }) => id === active)
+
     try {
       setPendingTx(true);
 
-      const distribution = distributions.find(({ id }: { id: string }) => id === active)
-
       if (!distribution || !distribution.routes.length) {
-        return
+        throw new Error('No route found')
       }
 
       await onesolProtocolSwap(
@@ -433,6 +435,13 @@ export const TradeEntry = () => {
       fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
+      Sentry.withScope(function(scope) {
+        scope.setTag("fromMint", A.mintAddress);
+        scope.setTag("toMint", B.mintAddress);
+        scope.setTag("mode", distribution?.routes.length === 1 ? "single" : "multiple");
+        scope.setLevel(Sentry.Severity.Error);
+        Sentry.captureException(e);
+      });
 
       notify({
         description: "Please try again and approve transactions from your wallet",
