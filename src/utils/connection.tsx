@@ -19,6 +19,7 @@ import { ENDPOINTS, CHAIN_ID, CHAIN_NAME} from '../utils/constant'
 
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
+import { MintInfo, u64 } from "@solana/spl-token";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -91,39 +92,54 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const customTokenJSON = await queryJsonFiles([
-        // `https://cdn.jsdelivr.net/gh/1sol-io/token-list@main/src/tokens/solana.tokenlist.json`,
-        `https://raw.githubusercontent.com/1sol-io/token-list/main/src/tokens/solana.tokenlist.json`
-      ]);
-      const customTokenList = new TokenListContainer(customTokenJSON);
+      const customToken = await fetch(`https://api.1sol.io/1/token-list?chain_id=${chainId}`) 
+      const json = await customToken.json()
+      const customTokenList = new TokenListContainer(json.tokens);
 
       const customList = customTokenList
-        .filterByChainId(chainId)
+        // .filterByChainId(chainId)
         .excludeByTag("nft")
         .getList();
 
-      const knownMints = customList.reduce((map, item) => {
-        map.set(item.address, item);
-        return map;
-      }, new Map<string, TokenInfo>());
+      let knownMints = new Map<string, TokenInfo>()
 
-      const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
+      // const knownMints = customList.reduce((map, item) => {
+      //   map.set(item.address, item);
+      //   return map;
+      // }, new Map<string, TokenInfo>());
 
-      accounts.keys.forEach((key, index) => {
-        const account = accounts.array[index];
+      customList.forEach(item => {
+        const mint: MintInfo = {
+          mintAuthority: null,
+          supply: new u64(0),
+          decimals: item.decimals,
+          isInitialized: true,
+          freezeAuthority: null
+        };
 
-        if (!account) {
-          knownMints.delete(accounts.keys[index]);
 
-          return;
-        }
+        knownMints.set(item.address, item);
+        
+        cache.addMint(new PublicKey(item.address), mint);
+      })
 
-        try {
-          cache.addMint(new PublicKey(key), account);
-        } catch {
-          // ignore
-        }
-      });
+      // const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
+
+      // accounts.keys.forEach((key, index) => {
+      //   const account = accounts.array[index];
+
+      //   if (!account) {
+      //     knownMints.delete(accounts.keys[index]);
+
+      //     return;
+      //   }
+
+      //   try {
+      //     cache.addMint(new PublicKey(key), account);
+      //   } catch {
+      //     // ignore
+      //   }
+      // });
 
       setTokenMap(knownMints);
       setTokens([...knownMints.values()]);

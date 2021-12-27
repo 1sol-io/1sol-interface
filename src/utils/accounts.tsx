@@ -256,8 +256,8 @@ export const cache = {
 
     return mintCache.get(key);
   },
-  addMint: (pubKey: PublicKey, obj: AccountInfo<Buffer>) => {
-    const mint = deserializeMint(obj.data);
+  addMint: (pubKey: PublicKey, mint: MintInfo) => {
+    // const mint = deserializeMint(obj.data);
     const id = pubKey.toBase58();
     mintCache.set(id, mint);
     return mint;
@@ -421,21 +421,21 @@ export function AccountsProvider({ children = null as any }) {
 
     const accounts = selectUserAccounts();
 
-    const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
-      .filter(a => cache.getMint(a) === undefined))]
-      .sort();
+    // const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
+    //   .filter(a => cache.getMint(a) === undefined))]
+    //   .sort();
 
-    const response = await getMultipleAccounts(connection, mints, 'single');
+    // const response = await getMultipleAccounts(connection, mints, 'single');
 
-    response.keys.forEach((key, index) => {
-      if (response.array[index]) {
-        try {
-          cache.addMint(new PublicKey(key), response.array[index]);
-        } catch {
-          debugger;
-        }
-      }
-    });
+    // response.keys.forEach((key, index) => {
+    //   if (response.array[index]) {
+    //     try {
+    //       cache.addMint(new PublicKey(key), response.array[index]);
+    //     } catch {
+    //       debugger;
+    //     }
+    //   }
+    // });
 
     setTokenAccounts(accounts);
   }, [connection, ownerAddress, selectUserAccounts, setNativeAccount]);
