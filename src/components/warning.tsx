@@ -1,25 +1,21 @@
 import React from 'react'
 import { Modal, Button } from 'antd'
 
-const Warning = () => {
-  let agreed = true
-
-  if (
-    localStorage.getItem('agreed') === 'true' &&
-    Number(localStorage.getItem('agreedExpire')) > Date.now()
-  ) {
-    agreed = false
-  }
-
-  const [visible, setVisible] = React.useState(agreed)
-
+const Warning = ({
+  visible,
+  onClick
+}: {
+  visible: boolean
+  onClick: () => void
+}) => {
   const handleOk = () => {
-    setVisible(false)
     localStorage.setItem('agreed', 'true')
     localStorage.setItem(
       'agreedExpire',
       `${Date.now() + 365 * 60 * 60 * 24 * 1000}`
     )
+
+    onClick()
   }
 
   return (
