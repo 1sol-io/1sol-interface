@@ -19,7 +19,6 @@ import { AppBar } from './appBar'
 import Social from './social'
 import { TVL } from './tvl/tvl'
 import { Beach } from './beach'
-import Warning from './warning'
 
 import pythLogo from '../assets/pyth.svg'
 import chainkLinkLogo from '../assets/chainlink_footer.svg'
@@ -469,7 +468,6 @@ const Dashboard = () => {
           </a>
         </div>
         <Social />
-        <Warning />
       </div>
     </div>
   )

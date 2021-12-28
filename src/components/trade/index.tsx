@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import axios, { AxiosRequestConfig } from 'axios'
 import { PublicKey } from "@solana/web3.js";
+import * as Sentry from '@sentry/react'
 
 import {
   useConnection,
@@ -22,7 +23,7 @@ import {
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
 import { QuoteCurrencyInput } from "../quoteCurrencyInput";
-import * as Sentry from '@sentry/react'
+import Warning from "../warning";
 
 import {
   PoolOperation,
@@ -37,7 +38,6 @@ import { Settings } from "../settings";
 
 import { TokenIcon } from "../tokenIcon";
 
-// import { cache, useUserAccounts } from "../../utils/accounts";
 import { 
   PROVIDER_MAP, 
   TOKEN_SWAP_PROGRAM_ID, 
@@ -125,6 +125,9 @@ export const TradeEntry = () => {
 
   const loading: { current: boolean } = useRef(false)
   const [timeoutLoading, setTimeoutLoading] = useState(false)
+
+  // warning modal
+  const [showWarning, setShowWarning] = useState(false)
 
   // best swap routes
   const [swapRoutes, setSwapRoutes] = useState<SwapRoute[][]>([])
@@ -397,6 +400,15 @@ export const TradeEntry = () => {
   };
 
   const handleSwap = async () => {
+    const agreed = localStorage.getItem('agreed') === 'true' &&
+    Number(localStorage.getItem('agreedExpire')) > Date.now()
+
+    if (!agreed) {
+      setShowWarning(true)
+
+      return
+    }
+
     if (!A.amount || !B.mintAddress) {
       return
     }
@@ -674,6 +686,8 @@ export const TradeEntry = () => {
       <Modal width={580} visible={showRoute} centered footer={null} onCancel={() => setShowRoute(false)}>
         {swapRoutes.length ? <TradeRoute swapRoutes={swapRoutes} /> : null}
       </Modal>
+        
+      <Warning visible={showWarning} onClick={() => setShowWarning(false)} />
     </>
   );
 };

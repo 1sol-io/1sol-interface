@@ -8,8 +8,6 @@ import { Settings } from "./settings";
 import { AppBar } from "./appBar";
 import Social from "./social";
 
-import Warning from "./warning";
-
 import HuobiLogo from '../assets/huobi.svg'
 import BybitLogo from '../assets/bybit.svg'
 
@@ -103,7 +101,6 @@ const ExchangeView = (props: {}) => {
 
         <Social />
 
-        <Warning />
       </div>
     </>
   );
