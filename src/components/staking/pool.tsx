@@ -32,7 +32,6 @@ const Pool = () => {
   const [oneSolBalance, setOneSolBalance] = useState(0)
 
   const [stakedTokenAccount, setStakedTokenAccount] = useState<TokenAccount | null>()
-  const [stakedMintInfo, setStakedMintInfo] = useState<MintInfo | null>()
   const [stakedBalance, setStakedBalance] = useState(0)
 
   const [modalStakeDisabled, setModalStakeDisabled] = useState(true)
@@ -74,12 +73,6 @@ const Pool = () => {
         if (stakedTokenAccount) {
           setStakedTokenAccount(stakedTokenAccount);
         }
-
-        const mint = cache.getMint(pool.poolMint.toBase58());
-
-        if (mint) {
-          setStakedMintInfo(mint);
-        }
       }
     }
   }, [connected, userAccounts, pool])
@@ -95,14 +88,14 @@ const Pool = () => {
   }, [pool, oneSolTokenAccount, oneSolMintInfo])
 
   useEffect(() => {
-    if (stakedTokenAccount && stakedMintInfo) {
-      const balance = convert(stakedTokenAccount, stakedMintInfo)  
+    if (stakedTokenAccount && pool) {
+      const balance = convert(stakedTokenAccount, pool.poolMintDecimals)  
 
       if (balance) {
         setStakedBalance(balance)
       }
     }
-  }, [pool, stakedTokenAccount, stakedMintInfo])
+  }, [pool, stakedTokenAccount])
 
   useEffect(() => {
     if (
@@ -140,22 +133,22 @@ const Pool = () => {
   useEffect(() => {
     if (
       stakedTokenAccount &&
-      stakedMintInfo && 
+      pool && 
       unstakeValue && 
-      new BN(Number(unstakeValue) * 10 ** stakedMintInfo.decimals).lte(stakedTokenAccount.info.amount)
+      new BN(Number(unstakeValue) * 10 ** pool.poolMintDecimals).lte(stakedTokenAccount.info.amount)
     ) {
       setModalUnstakeDisabled(false)
     } else {
       setModalUnstakeDisabled(true)
     }
-  }, [stakedTokenAccount, unstakeValue, stakedMintInfo])
+  }, [stakedTokenAccount, unstakeValue, pool])
 
   const handleUnstake = useCallback(async () => {
-    if (unstakeValue && stakedTokenAccount && stakedMintInfo) {
+    if (unstakeValue && stakedTokenAccount && pool) {
       setUnstakeLoading(true)
 
       await handleWithdraw({
-        amount: Number(unstakeValue) * 10 ** stakedMintInfo!.decimals,
+        amount: Number(unstakeValue) * 10 ** pool.poolMintDecimals,
       })
 
       fetchStakePool()
@@ -165,7 +158,7 @@ const Pool = () => {
       setUnstakeLoading(false)
       setUnstakeModalVisible(false)
     }
-  }, [unstakeValue, stakedTokenAccount, handleWithdraw, stakedMintInfo, fetchStakePool, fetchUserTokenAccounts])
+  }, [unstakeValue, stakedTokenAccount, handleWithdraw, pool, fetchStakePool, fetchUserTokenAccounts])
 
   useEffect(() => {
     if (pool && connected && stakedBalance) {
@@ -339,7 +332,9 @@ const Pool = () => {
                   style={{fontSize: '12px', color: '#999'}} 
                   type="text" 
                   size="large"
-                  onClick={() => setUnstakeValue(stakedTokenAccount && stakedMintInfo ? `${convert(stakedTokenAccount, stakedMintInfo)}`: '0')}
+                  onClick={() => setUnstakeValue(stakedTokenAccount && pool ? `${convert(stakedTokenAccount, 
+                    pool.poolMintDecimals
+                  )}`: '0')}
                 >
                   Max
                 </Button>
