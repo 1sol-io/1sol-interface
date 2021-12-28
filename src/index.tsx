@@ -12,7 +12,23 @@ Sentry.init({
   dsn:
     'https://b38fa4cb18f34d3fadb15787420bab8c@o288719.ingest.sentry.io/6124533',
   integrations: [new Integrations.BrowserTracing()],
-  tracesSampleRate: 0.1
+  tracesSampleRate: 0.1,
+  allowUrls: [
+    /https?:\/\/app\.1sol\.io/,
+  ],
+  ignoreErrors: [
+    "top.GLOBALS",
+    "unknown",
+    "<unknown>",
+    "ResizeObserver loop limit exceeded",
+    "Promise.any is not a function",
+    "TypeError",
+    "WalletConnectionError",
+    "User rejected the request.",
+    "Network Error",
+    "NotFoundError",
+    "Error",
+  ],
 })
 
 ReactDOM.render(
