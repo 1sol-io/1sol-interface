@@ -53,6 +53,7 @@ import {
 import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
+import { TradeError } from "../../utils/error";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -440,7 +441,7 @@ export const TradeEntry = () => {
         scope.setTag("toMint", B.mintAddress);
         scope.setTag("mode", distribution?.routes.length === 1 ? "single" : "multiple");
         scope.setLevel(Sentry.Severity.Error);
-        Sentry.captureException(e);
+        Sentry.captureException(new TradeError(`${e}`));
       });
 
       notify({
