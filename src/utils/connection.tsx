@@ -7,19 +7,22 @@ import {
   Signer,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { MintInfo, u64 } from "@solana/spl-token";
+
 import {
   TokenInfo,
   TokenListContainer
 } from "./token-registry";
 
-import { cache, getMultipleAccounts } from "./accounts";
-import { queryJsonFiles, useLocalStorageState, getFastestEndpoint } from './utils'
+import useOnesolProtocol from "../hooks/useOnesolProtocol";
+
+import { cache } from "./accounts";
+import { useLocalStorageState, getFastestEndpoint } from './utils'
 import { setProgramIds } from "./ids";
 import { ENDPOINTS, CHAIN_ID, CHAIN_NAME} from '../utils/constant'
 
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
-import { MintInfo, u64 } from "@solana/spl-token";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -73,6 +76,8 @@ export function ConnectionProvider({ children = undefined as any }) {
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
 
+  const { tokenList } = useOnesolProtocol();
+
   useEffect(() => {
     if (!['mainnet-beta', 'devnet'].includes(env)) {
       notify({
@@ -92,28 +97,9 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const customToken = await fetch(`https://api.1sol.io/1/token-list?chain_id=${chainId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json, text/plain, */*'
-        }
-      }) 
-      const json = await customToken.json()
-      const customTokenList = new TokenListContainer(json.tokens);
-
-      const customList = customTokenList
-        // .filterByChainId(chainId)
-        .excludeByTag("nft")
-        .getList();
-
       let knownMints = new Map<string, TokenInfo>()
 
-      // const knownMints = customList.reduce((map, item) => {
-      //   map.set(item.address, item);
-      //   return map;
-      // }, new Map<string, TokenInfo>());
-
-      customList.forEach(item => {
+      tokenList.forEach(item => {
         const mint: MintInfo = {
           mintAuthority: null,
           supply: new u64(0),
@@ -122,34 +108,15 @@ export function ConnectionProvider({ children = undefined as any }) {
           freezeAuthority: null
         };
 
-
         knownMints.set(item.address, item);
         
         cache.addMint(new PublicKey(item.address), mint);
       })
 
-      // const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
-
-      // accounts.keys.forEach((key, index) => {
-      //   const account = accounts.array[index];
-
-      //   if (!account) {
-      //     knownMints.delete(accounts.keys[index]);
-
-      //     return;
-      //   }
-
-      //   try {
-      //     cache.addMint(new PublicKey(key), account);
-      //   } catch {
-      //     // ignore
-      //   }
-      // });
-
       setTokenMap(knownMints);
       setTokens([...knownMints.values()]);
     })();
-  }, [chainId, connection]);
+  }, [chainId, connection, tokenList]);
 
   setProgramIds(env);
 
