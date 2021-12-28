@@ -78,14 +78,14 @@ const ExchangeView = (props: {}) => {
           headStyle={{ padding: 0 }}
         >
           <div className="airdrop">
-            <div className="hd">Stake 1SOL with <strong style={{fontSize: '22px'}}>120+</strong>% APY</div>
+            <div className="hd">Stake 1SOL/USDC on Orca</div>
             <div className="bd">
               <Button 
                 type="primary" 
                 shape="round"
                 style={{minWidth: '82px'}}
               >
-                <Link to="/staking">Stake Now</Link>
+                <a href="https://www.orca.so/pools?pool=1sol/usdc" target="_blank" rel="noopener noreferrer">Stake Now</a>
               </Button>
             </div>
           </div>
