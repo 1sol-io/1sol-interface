@@ -7,8 +7,9 @@ import BN from "bn.js";
 import { useWallet } from "../context/wallet";
 import { StakePool, StakePoolV1Info, PROGRAM_ID } from '../utils/stake-pools'
 import { STAKE_POOLS_ID_1 } from '../utils/constant'
-import { sendTransaction, useConnection, useConnectionConfig } from "../utils/connection";
+import { sendTransaction, useConnection } from "../utils/connection";
 import { notify } from "../utils/notifications";
+import { useOnesolProtocol } from "./useOnesolProtocol";
 
 export interface StakePoolProps {
   token: TokenInfo | undefined;
@@ -32,7 +33,7 @@ export interface StakePoolProps {
 export const useStakePool = () => {
   const connection = useConnection();
   const { connected, wallet } = useWallet();
-  const { tokenMap } = useConnectionConfig()
+  const { tokenMap } = useOnesolProtocol()
 
   const [stakePoolInfo, setStakePoolInfo] = useState<StakePoolV1Info | null>();
   const [pool, setPool] = useState<StakePoolProps>();

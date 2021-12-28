@@ -49,29 +49,6 @@ export const isLatest = (swap: AccountInfo<Buffer>) => {
   return swap.data.length === TokenSwapLayout.span;
 };
 
-const getHoldings = (connection: Connection, accounts: string[]) => {
-  return accounts.map((acc) =>
-    cache.queryAccount(connection, new PublicKey(acc))
-  );
-};
-
-const toPoolInfo = (item: any, program: PublicKey) => {
-  const mint = new PublicKey(item.data.tokenPool);
-  return {
-    pubkeys: {
-      account: item.pubkey,
-      program: program,
-      mint,
-      holdingMints: [] as PublicKey[],
-      holdingAccounts: [item.data.tokenAccountA, item.data.tokenAccountB].map(
-        (a) => new PublicKey(a)
-      ),
-    },
-    legacy: false,
-    raw: item,
-  } as PoolInfo;
-};
-
 export const hasAccount = (
   owner: PublicKey,
   mint: PublicKey,

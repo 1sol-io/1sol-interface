@@ -8,8 +8,8 @@ import {
   cache,
 } from "../../utils/accounts";
 import "./styles.less";
-import { useConnectionConfig } from "../../utils/connection";
 import { TokenIcon } from "../tokenIcon";
+import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 const { Option } = Select;
 
@@ -79,7 +79,7 @@ export const CurrencyInput = (props: {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
 
-  const { tokenMap } = useConnectionConfig();
+  const { tokenMap } = useOnesolProtocol();
 
   const keys = [...tokenMap.keys()]
   const sortByBalance = userAccounts.sort((a, b) => {

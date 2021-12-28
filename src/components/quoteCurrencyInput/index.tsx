@@ -1,6 +1,5 @@
 import React from "react";
-import { Card, Select } from "antd";
-import { NumericInput } from "../numericInput";
+import { Select } from "antd";
 import { convert, getTokenName } from "../../utils/utils";
 import {
   useUserAccounts,
@@ -8,8 +7,8 @@ import {
   cache,
 } from "../../utils/accounts";
 import "./styles.less";
-import { useConnectionConfig } from "../../utils/connection";
 import { TokenIcon } from "../tokenIcon";
+import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 const { Option } = Select;
 
@@ -78,7 +77,7 @@ export const QuoteCurrencyInput = (props: {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
 
-const { tokenMap } = useConnectionConfig();
+const { tokenMap } = useOnesolProtocol();
 
   const keys = [...tokenMap.keys()]
   const sortByBalance = userAccounts.sort((a, b) => {

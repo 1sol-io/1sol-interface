@@ -5,6 +5,8 @@ import { TokenInfo } from "../utils/token-registry";
 
 import { PoolInfo, TokenAccount } from "./../models";
 import axios from 'axios';
+import { RawDistribution, RawRoute, Route, SwapRoute } from '@1solProtocol/sdk/types';
+import { PROVIDER_MAP } from './constant';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -263,4 +265,57 @@ export const getFastestEndpoint = async (endpoints: string[]) => {
   }
 
   return await Promise.any(endpoints.map((endpoint) => axios.post(endpoint, { jsonrpc: '2.0', id: 1, method: 'getEpochInfo' }).then(() => endpoint)))
+}
+
+export const getDecimalLength = (num: number) => {
+  let length = 0
+
+  if (`${num}`.includes('.')) {
+    length = `${num}`.split('.')[1].length
+  }
+
+  return length
+}
+
+
+export const getSwapRoute = ({ routes, tokenMap }: { routes: RawRoute[][], tokenMap: any }) => {
+  const swapRoutes: SwapRoute[][] = routes.map((routes: any) => routes.map(({
+    amount_in,
+    amount_out,
+    exchanger_flag,
+    source_token_mint,
+    destination_token_mint
+  }: RawDistribution) => ({
+    from: tokenMap.get(source_token_mint.pubkey)?.symbol,
+    to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
+    in: amount_in / 10 ** source_token_mint.decimals,
+    out: amount_out / 10 ** destination_token_mint.decimals,
+    provider: PROVIDER_MAP[exchanger_flag],
+    ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
+  }
+  )))
+
+  let labels: string[] = []
+
+  swapRoutes.forEach(routes => {
+    const [first] = routes
+
+    if (first) {
+      labels.push(first.from)
+      labels.push(first.to)
+    }
+  })
+
+  labels = [...new Set(labels)]
+
+  return { routes: swapRoutes, labels }
+}
+
+
+export const setMaxPrecision = (num: number, max = 10): number => {
+  if (`${num}`.length > max) {
+    return +num.toPrecision(max)
+  }
+
+  return num
 }

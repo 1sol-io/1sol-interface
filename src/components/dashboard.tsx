@@ -91,7 +91,7 @@ const Dashboard = () => {
   // }> = []
   // const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(true)
-  const [duration, setDuration] = useState('30')
+  // const [duration, setDuration] = useState('30')
   const chartDiv = useRef<HTMLDivElement>(null)
   const echartsRef = useRef<any>(null)
 
@@ -230,13 +230,13 @@ const Dashboard = () => {
         const { data: { prices } } = await axios.get(
           `https://api.coingecko.com/api/v3/coins/${COINS_MAP[
             active
-          ]}/market_chart?vs_currency=usd&days=${duration}&interval=daily`
+          ]}/market_chart?vs_currency=usd&days=${30}&interval=daily`
         )
 
         updateChart(prices)
       } catch (e) {}
     },
-    [active, duration]
+    [active]
   )
 
   useEffect(

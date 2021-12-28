@@ -32,10 +32,11 @@ import {
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
-import { getTokenName } from "../../utils/utils";
+import { getSwapRoute, getTokenName, setMaxPrecision } from "../../utils/utils";
 import { useUserAccounts } from "../../utils/accounts";
-import { Settings } from "../settings";
+import { TradeError } from "../../utils/error";
 
+import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { 
@@ -49,76 +50,25 @@ import {
   ONEMOON_PROGRAM_ID
 } from "../../utils/constant";
 
+import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
-import { TradeError } from "../../utils/error";
+import { Distribution, RawDistribution } from "@1solProtocol/sdk/types";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
-const getDecimalLength = (num: number) => {
-  let length = 0
-
-  if (`${num}`.includes('.')) {
-    length = `${num}`.split('.')[1].length
-  }
-
-  return length
-}
-interface RawDistribution {
-  id: string,
-  routes: any[],
-  split_tx: boolean,
-  destination_token_mint: {
-    decimals: number,
-    pubkey: string
-  },
-  source_token_mint: {
-    decimals: number,
-    pubkey: string
-  },
-  amount_in: number,
-  amount_out: number,
-  exchanger_flag: string,
-}
-
-interface Distribution extends RawDistribution {
-  providers: string[],
-  input: number,
-  output: number,
-  swapRoute: {
-    routes: SwapRoute[][],
-    labels: string[]
-  },
-  offset?: number,
-}
-
-interface SwapRoute {
-  from: string,
-  to: string,
-  in: number,
-  out: number,
-  provider: string,
-  ratio: number
-}
-
-interface PriceExchange {
-  from: string,
-  to: string,
-  input: number,
-  output: number
-}
 
 export const TradeEntry = () => {
   const { wallet, connect, connected } = useWallet();
   const connection = useConnection();
+  const { getRoutes, tokenMap } = useOnesolProtocol()
+
   const [pendingTx, setPendingTx] = useState(false);
   const {
     A,
     B,
     setLastTypedAccount,
-    setPoolOperation,
   } = useCurrencyPairState();
 
   const refreshBtnRef: { current: any } = useRef()
@@ -136,7 +86,7 @@ export const TradeEntry = () => {
   const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
-  const { tokenMap, chainId } = useConnectionConfig();
+  const { chainId } = useConnectionConfig();
 
   const CancelToken = axios.CancelToken;
   const cancel = useRef(function () { })
@@ -186,60 +136,12 @@ export const TradeEntry = () => {
       cancelToken: new CancelToken((c) => cancel.current = c)
     }
 
-    const getSwapRoute = (routes: any) => {
-      const swapRoutes: SwapRoute[][] = routes.map((routes: any) => routes.map(({
-          amount_in,
-          amount_out,
-          exchanger_flag,
-          source_token_mint,
-          destination_token_mint
-        }: RawDistribution) => ({
-          from: tokenMap.get(source_token_mint.pubkey)?.symbol,
-          to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
-          in: amount_in / 10 ** source_token_mint.decimals,
-          out: amount_out / 10 ** destination_token_mint.decimals,
-          provider: PROVIDER_MAP[exchanger_flag],
-          ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
-        }
-      )))
-
-      let labels: string[] = []
-
-      swapRoutes.forEach(routes => {
-        const [first] = routes
-
-        if (first) {
-          labels.push(first.from)
-          labels.push(first.to)
-        }
-      })
-
-      labels = [...new Set(labels)]
-
-      return {routes: swapRoutes, labels}
-    }
-
-    
-    const setMaxPrecision = (num: number, max = 10): number => {
-      if (`${num}`.length > max) {
-        return +num.toPrecision(max)
-      }
-
-      return num
-    }
-
     try {
-      const {
-        data: {
-          distributions
-        }
-      }: {
-        data: {
-          distributions: RawDistribution[]
-        }
-      } = await axios({
-        ...axiosOption
-      })
+      const distributions: RawDistribution[] = await getRoutes({
+        amount: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
+        sourceMintAddress: A.mintAddress,
+        destinationMintAddress: B.mintAddress
+      }) 
 
       const endTime = Date.now()
 
@@ -266,7 +168,7 @@ export const TradeEntry = () => {
           providers: [...new Set(providers)],
           offset: 0,
           id,
-          swapRoute: getSwapRoute(best.routes),
+          swapRoute: getSwapRoute({routes: best.routes, tokenMap }),
         })
       }
 
@@ -286,7 +188,7 @@ export const TradeEntry = () => {
               providers: [...new Set(providers)],
               offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
               id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, exchanger_flag)}`,
-              swapRoute: getSwapRoute(routes),
+              swapRoute: getSwapRoute({routes, tokenMap }),
             }
         })
       ]
@@ -331,7 +233,7 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
 
-  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap, getRoutes])
 
   useEffect(() => {
     setSwapRoutes([])
@@ -551,8 +453,6 @@ export const TradeEntry = () => {
         <CurrencyInput
           title="From"
           onInputChange={(val: any) => {
-            setPoolOperation(PoolOperation.SwapGivenInput);
-
             if (A.amount !== val) {
               setLastTypedAccount(A.mintAddress);
             }
@@ -581,8 +481,6 @@ export const TradeEntry = () => {
           <QuoteCurrencyInput
             title="To(estimated)"
             onInputChange={(val: any) => {
-              setPoolOperation(PoolOperation.SwapGivenProceeds);
-
               if (B.amount !== val) {
                 setLastTypedAccount(B.mintAddress);
               }
