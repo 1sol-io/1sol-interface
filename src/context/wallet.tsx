@@ -154,16 +154,15 @@ export function WalletProvider({ children = null as any }) {
   const [autoConnect, setAutoConnect] = useState(true);
   const [providerUrl, setProviderUrl] = useLocalStorageState("walletProvider");
 
-  if ((window as any).solana?.platform === SOLAREUM_NAME) {
-    setProviderUrl(SOLAREUM_URL)
-  }
-
-  if ((window as any).solana?.isMathWallet) {
-    setProviderUrl(MATH_WALLET_URL)
-  }
-
-  if ((window as any).solana?.isSafePal) {
-    setProviderUrl(SAFEPAL_URL)  
+  if ((window as any).solana) {
+    if ((window as any).solana.platform === SOLAREUM_NAME) {
+      setProviderUrl(SOLAREUM_URL)
+    } else if ((window as any).solana.isSafePalWallet) {
+      // SafePal Wallet Android version also set isMathWallet to true
+      setProviderUrl(SAFEPAL_URL)  
+    } else if ((window as any).solana.isMathWallet) {
+      setProviderUrl(MATH_WALLET_URL)
+    }
   }
 
   const provider = useMemo(
