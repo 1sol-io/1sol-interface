@@ -719,12 +719,12 @@ export const Result = (props: {
                   {
                     providers.map((provider: string, i: number) => {
                       return (
-                        <>
+                        <React.Fragment key={provider}>
                           <div>{provider}</div>
                           {
                             i < providers.length - 1 ? <div>×</div> : ''
                           }
-                        </>
+                        </React.Fragment>
                       )
                     })
                   }
@@ -763,10 +763,10 @@ export const TradeRoute = (props: { swapRoutes: SwapRoute[][] }) => {
       <RightOutlined style={{ margin: '0 5px' }} />
       <div className="bd">
         {swapRoutes.map((routes, i: number) => (
-          <>
+          <React.Fragment key={i}>
             <div className="token-route" key={i}>
               {routes.map((route, j: number) => (
-                <>
+                <React.Fragment key={j}>
                   <div className="market-route" key={j}>
                     <div className="pool">
                       <div className="name">{route.provider}</div>
@@ -783,7 +783,7 @@ export const TradeRoute = (props: { swapRoutes: SwapRoute[][] }) => {
                       <PlusOutlined style={{ margin: '5px 0' }} />
                       : null
                   }
-                </>
+                </React.Fragment>
               ))}
             </div>
             {
@@ -791,7 +791,7 @@ export const TradeRoute = (props: { swapRoutes: SwapRoute[][] }) => {
                 <RightOutlined style={{ margin: '0 10px' }} />
                 : null
             }
-          </>
+          </React.Fragment>
         ))}
       </div>
       <RightOutlined style={{ margin: '0 5px' }} />
