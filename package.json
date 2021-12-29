@@ -17,7 +17,7 @@
     "@solana/wallet-adapter-ledger": "^0.7.0",
     "@solana/wallet-adapter-mathwallet": "^0.7.0",
     "@solana/wallet-adapter-phantom": "^0.7.0",
-    "@solana/wallet-adapter-safepal": "^0.3.0",
+    "@solana/wallet-adapter-safepal": "0.4.0",
     "@solana/wallet-adapter-slope": "^0.3.0",
     "@solana/wallet-adapter-solflare": "^0.4.0",
     "@solana/wallet-adapter-sollet": "^0.8.0",
@@ -56,11 +56,7 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",

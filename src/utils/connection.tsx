@@ -92,7 +92,12 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   useEffect(() => {
     (async () => {
-      const customToken = await fetch(`https://api.1sol.io/1/token-list?chain_id=${chainId}`) 
+      const customToken = await fetch(`https://api.1sol.io/1/token-list?chain_id=${chainId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      }) 
       const json = await customToken.json()
       const customTokenList = new TokenListContainer(json.tokens);
 
