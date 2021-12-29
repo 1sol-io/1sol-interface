@@ -415,22 +415,6 @@ export function AccountsProvider({ children = null as any }) {
 
     const accounts = selectUserAccounts();
 
-    // const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
-    //   .filter(a => cache.getMint(a) === undefined))]
-    //   .sort();
-
-    // const response = await getMultipleAccounts(connection, mints, 'single');
-
-    // response.keys.forEach((key, index) => {
-    //   if (response.array[index]) {
-    //     try {
-    //       cache.addMint(new PublicKey(key), response.array[index]);
-    //     } catch {
-    //       debugger;
-    //     }
-    //   }
-    // });
-
     setTokenAccounts(accounts);
   }, [connection, ownerAddress, selectUserAccounts, setNativeAccount]);
 

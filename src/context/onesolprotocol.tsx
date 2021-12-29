@@ -1,11 +1,13 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
 import { OnesolProtocol, TokenInfo } from '@1solProtocol/sdk'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
+import { RawDistribution } from '@1solProtocol/sdk/types'
+import { TokenAccountInfo } from '@1solProtocol/sdk/lib/util/token'
 
 export const OnesolProtocolContext = createContext<any>(null)
 
@@ -83,12 +85,60 @@ export function OnesolProtocolProvider({ children = null as any }){
     [oneSolProtocol]
   )
 
+  const composeInstructions = useCallback(
+    async ({
+      option,
+      walletAddress,
+      fromTokenAccount,
+      toTokenAccount,
+      instructions1,
+      instructions2,
+      instructions3,
+      signers1,
+      signers2,
+      signers3,
+      slippage = 0.005
+    }: {
+      option: RawDistribution
+      walletAddress: PublicKey
+      fromTokenAccount: TokenAccountInfo
+      toTokenAccount: TokenAccountInfo
+      instructions1: TransactionInstruction[]
+      instructions2: TransactionInstruction[]
+      instructions3: TransactionInstruction[]
+      signers1: Signer[]
+      signers2: Signer[]
+      signers3: Signer[]
+      slippage?: number
+    }) => {
+      if (oneSolProtocol) {
+        const instructions = await oneSolProtocol.composeInstructions({
+          option,
+          walletAddress,
+          fromTokenAccount,
+          toTokenAccount,
+          instructions1,
+          instructions2,
+          instructions3,
+          signers1,
+          signers2,
+          signers3,
+          slippage
+        })
+
+        return instructions
+      }
+    },
+    [oneSolProtocol]
+  )
+
   return (
     <OnesolProtocolContext.Provider
       value={{
         tokens,
         tokenMap,
-        getRoutes
+        getRoutes,
+        composeInstructions
       }}
     >
       {children}

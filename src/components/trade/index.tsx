@@ -11,13 +11,11 @@ import {
   InfoCircleOutlined,
   SwapOutlined
 } from "@ant-design/icons";
-import axios, { AxiosRequestConfig } from 'axios'
-import { PublicKey } from "@solana/web3.js";
+import { Signer, TransactionInstruction } from "@solana/web3.js";
 import * as Sentry from '@sentry/react'
 
 import {
   useConnection,
-  useConnectionConfig,
   useSlippageConfig,
 } from "../../utils/connection";
 import { useWallet } from "../../context/wallet";
@@ -26,13 +24,19 @@ import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import Warning from "../warning";
 
 import {
-  PoolOperation,
-  onesolProtocolSwap,
+  makeSwapTransactions,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
 import { generateActionLabel, POOL_NOT_AVAILABLE, SWAP_LABEL } from "../labels";
-import { getSwapRoute, getTokenName, setMaxPrecision } from "../../utils/utils";
+import { 
+  getSwapRoute, 
+  getTokenName, 
+  setMaxPrecision, 
+  SwapRoute, 
+  PriceExchange, 
+  getDecimalLength 
+} from "../../utils/utils";
 import { useUserAccounts } from "../../utils/accounts";
 import { TradeError } from "../../utils/error";
 
@@ -41,13 +45,7 @@ import { TokenIcon } from "../tokenIcon";
 
 import { 
   PROVIDER_MAP, 
-  TOKEN_SWAP_PROGRAM_ID, 
-  ORCA_PROGRAM_ID, 
-  SERUM_PROGRAM_ID, 
-  RAYDIUM_PROGRAM_ID, 
-  SABER_PROGRAM_ID,
   WRAPPED_SOL_MINT, 
-  ONEMOON_PROGRAM_ID
 } from "../../utils/constant";
 
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
@@ -61,8 +59,9 @@ const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 export const TradeEntry = () => {
   const { wallet, connect, connected } = useWallet();
-  const connection = useConnection();
-  const { getRoutes, tokenMap } = useOnesolProtocol()
+  const connection = useConnection()
+
+  const { getRoutes, tokenMap, composeInstructions } = useOnesolProtocol()
 
   const [pendingTx, setPendingTx] = useState(false);
   const {
@@ -86,10 +85,6 @@ export const TradeEntry = () => {
   const [refresh, setRefresh] = useState(0)
 
   const { slippage } = useSlippageConfig();
-  const { chainId } = useConnectionConfig();
-
-  const CancelToken = axios.CancelToken;
-  const cancel = useRef(function () { })
 
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
   const choice: { current: string } = useRef('')
@@ -100,7 +95,7 @@ export const TradeEntry = () => {
   const [hasPriceSwapped, setHasPriceSwapped] = useState(true)
 
   const { fetchUserTokenAccounts } = useUserAccounts();
-  
+
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
       loading.current = false
@@ -114,44 +109,12 @@ export const TradeEntry = () => {
 
     const decimals = [A.mint.decimals, B.mint.decimals]
 
-    const startTime = Date.now()
-    const axiosOption: AxiosRequestConfig = {
-      url: `https://api.1sol.io/1/swap/1/${chainId}`,
-      method: 'post',
-      data: {
-        amount_in: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
-        source_token_mint_key: A.mintAddress,
-        destination_token_mint_key: B.mintAddress,
-        programs: [
-          TOKEN_SWAP_PROGRAM_ID.toBase58(),
-          SERUM_PROGRAM_ID.toBase58(),
-          SABER_PROGRAM_ID.toBase58(),
-          ORCA_PROGRAM_ID.toBase58(),
-          RAYDIUM_PROGRAM_ID.toBase58(),
-          ONEMOON_PROGRAM_ID.toBase58()
-        ],
-        support_single_route_per_tx: true,
-        distribution_max_len: 4
-      },
-      cancelToken: new CancelToken((c) => cancel.current = c)
-    }
-
     try {
       const distributions: RawDistribution[] = await getRoutes({
         amount: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
         sourceMintAddress: A.mintAddress,
         destinationMintAddress: B.mintAddress
       }) 
-
-      const endTime = Date.now()
-
-      //@ts-ignore
-      window.gtag('event', 'api_request_time', {
-        url: axiosOption.url,
-        method: axiosOption.method,
-        data: JSON.stringify(axiosOption.data, null, 2),
-        time: endTime - startTime,
-      })
 
       let result: Distribution[] = []
 
@@ -219,21 +182,10 @@ export const TradeEntry = () => {
     } catch (e) {
       console.error(e)
 
-      if (axios.isAxiosError(e)) {
-        if (!axios.isCancel(e) && e.response) {
-          loading.current = false
-          errorMessage.current = e.response.data.error || e.message || 'Error Occurred'
-          // setSwapRoutes([])
-          // setDistributions([])
-        }
-      }
+      loading.current = false
+      errorMessage.current = (e as any)?.response.data.error || (e as any)?.message || 'Error Occurred'
     }
-
-    refreshBtnRef.current.classList.remove('refresh-btn')
-    void refreshBtnRef.current.offsetHeight
-    refreshBtnRef.current.classList.add('refresh-btn')
-
-  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, CancelToken, chainId, tokenMap, getRoutes])
+  }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, tokenMap, getRoutes])
 
   useEffect(() => {
     setSwapRoutes([])
@@ -253,10 +205,6 @@ export const TradeEntry = () => {
     void refreshBtnRef.current.offsetHeight
     refreshBtnRef.current.classList.add('refresh-btn')
     setTimeoutLoading(false)
-
-    if (cancel.current) {
-      cancel.current()
-    }
 
     if (timer.current) {
       clearTimeout(timer.current)
@@ -287,18 +235,6 @@ export const TradeEntry = () => {
     if (A.amount) {
       loading.current = true
     }
-
-    // @ts-ignore
-    setPoolOperation((op: PoolOperation) => {
-      switch (+op) {
-        case PoolOperation.SwapGivenInput:
-          return PoolOperation.SwapGivenProceeds;
-        case PoolOperation.SwapGivenProceeds:
-          return PoolOperation.SwapGivenInput;
-        case PoolOperation.Add:
-          return PoolOperation.SwapGivenInput;
-      }
-    });
   };
 
   const handleSwap = async () => {
@@ -315,10 +251,6 @@ export const TradeEntry = () => {
       return
     }
 
-    if (cancel.current) {
-      cancel.current()
-    }
-
     if (timer.current) {
       clearTimeout(timer.current)
     }
@@ -326,25 +258,56 @@ export const TradeEntry = () => {
     loading.current = false
     setTimeoutLoading(false)
 
-    const distribution = distributions.find(({ id }: { id: string }) => id === active)
+    const option = distributions.find(({ id }: { id: string }) => id === active)
 
     try {
       setPendingTx(true);
 
-      if (!distribution || !distribution.routes.length) {
+      if (!option || !option.routes.length) {
         throw new Error('No route found')
       }
 
-      await onesolProtocolSwap(
-        connection, 
-        wallet, 
-        A, 
-        B, 
-        distribution, 
-        slippage, 
-        // @ts-ignore
-        new PublicKey(tokenMap.get(distribution.destination_token_mint.pubkey).feeAccount)
-      );
+      const instructions1: TransactionInstruction[] = [];
+      const signers1: Signer[] = [];
+      const instructions2: TransactionInstruction[] = [];
+      const signers2: Signer[] = [];
+      const instructions3: TransactionInstruction[] = [];
+      const signers3: Signer[] = [];
+      
+      await composeInstructions({
+        option,
+        walletAddress: wallet.publicKey,
+        fromTokenAccount: {
+          pubkey: A.account?.pubkey,
+          mint: A.account?.info.mint,
+          owner: A.account?.info.owner,
+          programId: A.account?.account.owner
+        },
+        toTokenAccount: {
+          pubkey: B.account?.pubkey,
+          mint: B.account?.info.mint,
+          owner: B.account?.info.owner,
+          programId: B.account?.account.owner
+        },
+        instructions1,
+        instructions2,
+        instructions3,
+        signers1,
+        signers2,
+        signers3,
+        slippage,
+      }) 
+
+      await makeSwapTransactions({
+        connection,
+        wallet,
+        instructions1,
+        instructions2,
+        instructions3,
+        signers1,
+        signers2,
+        signers3,
+      })
 
       A.setAmount('')
       fetchUserTokenAccounts()
@@ -353,7 +316,7 @@ export const TradeEntry = () => {
       Sentry.withScope(function(scope) {
         scope.setTag("fromMint", A.mintAddress);
         scope.setTag("toMint", B.mintAddress);
-        scope.setTag("mode", distribution?.routes.length === 1 ? "single" : "multiple");
+        scope.setTag("mode", option?.routes.length === 1 ? "single" : "multiple");
         scope.setLevel(Sentry.Severity.Error);
         Sentry.captureException(new TradeError(`${e}`));
       });
@@ -369,10 +332,6 @@ export const TradeEntry = () => {
   };
 
   const handleSwitchChoice = (s: string) => {
-    if (cancel.current) {
-      cancel.current()
-    }
-
     if (timer.current) {
       clearTimeout(timer.current)
     }

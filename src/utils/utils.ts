@@ -5,7 +5,7 @@ import { TokenInfo } from "../utils/token-registry";
 
 import { PoolInfo, TokenAccount } from "./../models";
 import axios from 'axios';
-import { RawDistribution, RawRoute, Route, SwapRoute } from '@1solProtocol/sdk/types';
+import { RawDistribution, RawRoute } from '@1solProtocol/sdk/types';
 import { PROVIDER_MAP } from './constant';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
@@ -277,7 +277,6 @@ export const getDecimalLength = (num: number) => {
   return length
 }
 
-
 export const getSwapRoute = ({ routes, tokenMap }: { routes: RawRoute[][], tokenMap: any }) => {
   const swapRoutes: SwapRoute[][] = routes.map((routes: any) => routes.map(({
     amount_in,
@@ -311,11 +310,25 @@ export const getSwapRoute = ({ routes, tokenMap }: { routes: RawRoute[][], token
   return { routes: swapRoutes, labels }
 }
 
-
 export const setMaxPrecision = (num: number, max = 10): number => {
   if (`${num}`.length > max) {
     return +num.toPrecision(max)
   }
 
   return num
+}
+export interface SwapRoute {
+  from: string,
+  to: string,
+  in: number,
+  out: number,
+  provider: string,
+  ratio: number
+}
+
+export interface PriceExchange {
+  from: string,
+  to: string,
+  input: number,
+  output: number
 }

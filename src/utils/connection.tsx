@@ -252,7 +252,6 @@ export const sendTransaction = async (
 
 export const sendSignedTransaction = async (
   connection: Connection,
-  wallet: any,
   transaction: Transaction,
   awaitConfirmation = true
 ) => {
