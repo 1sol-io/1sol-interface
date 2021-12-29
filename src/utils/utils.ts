@@ -258,7 +258,7 @@ export const getClientId = () => {
 }
 
 export const getFastestEndpoint = async (endpoints: string[]) => {
-  if (endpoints.length === 1) {
+  if (endpoints.length === 1 || !Promise.any) {
     return endpoints[0]
   }
 
