@@ -88,5 +88,13 @@
       window.gtag = gtag;
     </script>
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="a61082fe-a67b-4893-aa4d-20b11bf0da86";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);$crisp.push(["safe", true])})();</script>
+    <script>
+      ;(function () {
+        var src = '//cdn.jsdelivr.net/npm/eruda';
+        if (!/eruda=true/.test(window.location) && localStorage.getItem('active-eruda') != 'true') return;
+        document.write('<scr' + 'ipt src="' + src + '"></scr' + 'ipt>');
+        document.write('<scr' + 'ipt>eruda.init();eruda.position({ x: 40, y: 200 });</scr' + 'ipt>');
+      })();
+    </script>
   </body>
 </html>
