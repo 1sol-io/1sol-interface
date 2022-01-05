@@ -12,7 +12,7 @@ import {
 import { SYMBOL_PAIRS } from '../utils/constant'
 import { formatShortDate } from '../utils/utils'
 
-import useChainlink from '../hooks/useChainlink'
+// import useChainlink from '../hooks/useChainlink'
 import usePyth from '../hooks/usePyth'
 
 import { AppBar } from './appBar'
@@ -21,7 +21,7 @@ import { TVL } from './tvl/tvl'
 import { Beach } from './beach'
 
 import pythLogo from '../assets/pyth.svg'
-import chainkLinkLogo from '../assets/chainlink_footer.svg'
+// import chainkLinkLogo from '../assets/chainlink_footer.svg'
 import onesole_te from '../assets/pro-te.png'
 import SodaLogo from '../assets/token/soda.svg'
 
@@ -80,16 +80,16 @@ const { TabPane } = Tabs
 const Dashboard = () => {
   const location = useLocation()
   const [active, setActive] = useState('btc')
-  const { chainlinkMap } = useChainlink()
+  // const { chainlinkMap } = useChainlink()
   const { pythMap } = usePyth()
 
-  const dataSource: Array<{
-    symbol: string
-    pyth: string
-    chainlink: string
-    token: string
-  }> = []
-  const [products, setProducts] = useState(dataSource)
+  // const dataSource: Array<{
+  //   symbol: string
+  //   pyth: string
+  //   chainlink: string
+  //   token: string
+  // }> = []
+  // const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(true)
   const [duration, setDuration] = useState('30')
   const chartDiv = useRef<HTMLDivElement>(null)
@@ -337,13 +337,6 @@ const Dashboard = () => {
                     <div className="partners">
                       <div className="hd">
                         <div className="partner">
-                          <div className="hd">
-                            ${pythMap && pythMap[`${active}/usd`] ? (
-                              pythMap[`${active}/usd`].price
-                            ) : (
-                              '-'
-                            )}
-                          </div>
                           <div className="bd">
                             <img
                               style={{ width: '50px' }}
@@ -351,9 +344,16 @@ const Dashboard = () => {
                               alt=""
                             />
                           </div>
+                          <div className="hd">
+                            ${pythMap && pythMap[`${active}/usd`] ? (
+                              pythMap[`${active}/usd`].price
+                            ) : (
+                              '-'
+                            )}
+                          </div>
                         </div>
 
-                        <div className="partner">
+                        {/* <div className="partner">
                           <div className="hd">
                             ${chainlinkMap && chainlinkMap[active] ? (
                               chainlinkMap[active].price
@@ -368,7 +368,7 @@ const Dashboard = () => {
                               alt=""
                             />
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                       <div
                         className="bd"
