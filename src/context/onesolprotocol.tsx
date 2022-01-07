@@ -1,13 +1,22 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react'
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} from 'react'
 import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
-import { OnesolProtocol, TokenInfo } from '@1solProtocol/sdk'
+import { OnesolProtocol } from '@onesol/onesol-sdk'
+import {
+  RawDistribution,
+  TokenAccountInfo,
+  TokenInfo
+} from '@onesol/onesol-sdk/types'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
-import { RawDistribution } from '@1solProtocol/sdk/types'
-import { TokenAccountInfo } from '@1solProtocol/sdk/lib/util/token'
 
 export const OnesolProtocolContext = createContext<any>(null)
 
@@ -19,6 +28,10 @@ export function OnesolProtocolProvider({ children = null as any }){
   )
   const [tokens, setTokens] = useState<TokenInfo[]>([])
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+
+  const abortController: {
+    current: AbortController | null
+  } = useRef(null)
 
   useEffect(
     () => {
@@ -71,10 +84,17 @@ export function OnesolProtocolProvider({ children = null as any }){
   const getRoutes = useCallback(
     async ({ amount, sourceMintAddress, destinationMintAddress }) => {
       if (oneSolProtocol) {
+        if (abortController.current) {
+          abortController.current.abort()
+        }
+
+        abortController.current = new AbortController()
+
         const routes = await oneSolProtocol.getRoutes({
           amount,
           sourceMintAddress,
-          destinationMintAddress
+          destinationMintAddress,
+          signal: abortController.current.signal
         })
 
         return routes

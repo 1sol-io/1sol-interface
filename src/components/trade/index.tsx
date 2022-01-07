@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
 import * as Sentry from '@sentry/react'
+import { Distribution, RawDistribution } from "@onesol/onesol-sdk/types";
 
 import {
   useConnection,
@@ -53,7 +54,14 @@ import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
-import { Distribution, RawDistribution } from "@1solProtocol/sdk/types";
+
+function isAbortError(error: any): error is DOMException {
+  if (error && error.name === "AbortError") {
+    return true;
+  }
+
+  return false;
+}
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -113,8 +121,8 @@ export const TradeEntry = () => {
       const distributions: RawDistribution[] = await getRoutes({
         amount: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
         sourceMintAddress: A.mintAddress,
-        destinationMintAddress: B.mintAddress
-      }) 
+        destinationMintAddress: B.mintAddress,
+      })  
 
       let result: Distribution[] = []
 
@@ -182,8 +190,10 @@ export const TradeEntry = () => {
     } catch (e) {
       console.error(e)
 
-      loading.current = false
-      errorMessage.current = (e as any)?.response.data.error || (e as any)?.message || 'Error Occurred'
+      if (!isAbortError(e)) {
+        loading.current = false
+        errorMessage.current = (e as any)?.response.data.error || (e as any)?.message || 'Error Occurred'
+      }
     }
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, tokenMap, getRoutes])
 
