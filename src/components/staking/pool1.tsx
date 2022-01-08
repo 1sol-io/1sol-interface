@@ -223,7 +223,7 @@ const Pool = () => {
             <div className="hd">
               APY
             </div>
-            <div className="bd">121.9%</div>
+            <div className="bd">78%</div>
           </div>
         </div>
         <div className="ft">
