@@ -195,7 +195,7 @@ const Pool = () => {
             <div className="bd">
               <strong>{pool?.token?.symbol}</strong>
               <div>Reward Token: {pool?.rewardToken?.symbol}</div>
-              <div>2021-12-22 - 2022-01-21</div>
+              <div>2021-12-26 - 2022-01-25</div>
             </div>
           </div>
         </div>
