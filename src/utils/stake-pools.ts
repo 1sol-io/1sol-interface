@@ -3,7 +3,6 @@ import {
   AccountInfo,
   Connection,
   TransactionInstruction,
-  Signer,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
 import * as Borsh from '@project-serum/borsh';

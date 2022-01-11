@@ -3,8 +3,8 @@ import { Button, Col, Popover, Row } from "antd";
 import { PoolInfo } from "../../models";
 import { CopyOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { ExplorerLink } from "./../explorerLink";
-import { useConnectionConfig } from "../../utils/connection";
 import { getTokenName } from "../../utils/utils";
+import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 const Address = (props: {
   address: string;
@@ -56,7 +56,7 @@ export const AccountsAddress = (props: {
   pool?: PoolInfo;
   style?: React.CSSProperties;
 }) => {
-  const { tokenMap } = useConnectionConfig();
+  const { tokenMap } = useOnesolProtocol();
   const { pool } = props;
 
   if (!pool) {

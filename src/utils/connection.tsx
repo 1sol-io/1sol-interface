@@ -2,24 +2,17 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Connection,
-  PublicKey,
   Transaction,
   Signer,
   TransactionInstruction,
 } from "@solana/web3.js";
-import {
-  TokenInfo,
-  TokenListContainer
-} from "./token-registry";
 
-import { cache, getMultipleAccounts } from "./accounts";
-import { queryJsonFiles, useLocalStorageState, getFastestEndpoint } from './utils'
+import { useLocalStorageState, getFastestEndpoint } from './utils'
 import { setProgramIds } from "./ids";
 import { ENDPOINTS, CHAIN_ID, CHAIN_NAME} from '../utils/constant'
 
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
-import { MintInfo, u64 } from "@solana/spl-token";
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
@@ -34,8 +27,6 @@ interface ConnectionConfig {
   setSlippage: (val: number) => void;
   env: ENV;
   setEndpoint: (val: string) => void;
-  tokens: TokenInfo[];
-  tokenMap: Map<string, TokenInfo>;
   chainId: number,
 }
 
@@ -47,8 +38,6 @@ const ConnectionContext = React.createContext<ConnectionConfig>({
   connection: new Connection(DEFAULT, "recent"),
   // sendConnection: new Connection(DEFAULT, "recent"),
   env: CHAIN_NAME,
-  tokens: [],
-  tokenMap: new Map<string, TokenInfo>(),
   chainId: Number(CHAIN_ID),
 });
 
@@ -70,9 +59,6 @@ export function ConnectionProvider({ children = undefined as any }) {
   const env = CHAIN_NAME;
   const chainId = Number(CHAIN_ID); 
 
-  const [tokens, setTokens] = useState<TokenInfo[]>([]);
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
-
   useEffect(() => {
     if (!['mainnet-beta', 'devnet'].includes(env)) {
       notify({
@@ -90,104 +76,7 @@ export function ConnectionProvider({ children = undefined as any }) {
     })(); 
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const customToken = await fetch(`https://api.1sol.io/1/token-list?chain_id=${chainId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json, text/plain, */*'
-        }
-      }) 
-      const json = await customToken.json()
-      const customTokenList = new TokenListContainer(json.tokens);
-
-      const customList = customTokenList
-        // .filterByChainId(chainId)
-        .excludeByTag("nft")
-        .getList();
-
-      let knownMints = new Map<string, TokenInfo>()
-
-      // const knownMints = customList.reduce((map, item) => {
-      //   map.set(item.address, item);
-      //   return map;
-      // }, new Map<string, TokenInfo>());
-
-      customList.forEach(item => {
-        const mint: MintInfo = {
-          mintAuthority: null,
-          supply: new u64(0),
-          decimals: item.decimals,
-          isInitialized: true,
-          freezeAuthority: null
-        };
-
-
-        knownMints.set(item.address, item);
-        
-        cache.addMint(new PublicKey(item.address), mint);
-      })
-
-      // const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
-
-      // accounts.keys.forEach((key, index) => {
-      //   const account = accounts.array[index];
-
-      //   if (!account) {
-      //     knownMints.delete(accounts.keys[index]);
-
-      //     return;
-      //   }
-
-      //   try {
-      //     cache.addMint(new PublicKey(key), account);
-      //   } catch {
-      //     // ignore
-      //   }
-      // });
-
-      setTokenMap(knownMints);
-      setTokens([...knownMints.values()]);
-    })();
-  }, [chainId, connection]);
-
   setProgramIds(env);
-
-  // The websocket library solana/web3.js uses closes its websocket connection when the subscription list
-  // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
-  // This is a hack to prevent the list from every getting empty
-  // useEffect(() => {
-  //   const id = connection.onAccountChange(Keypair.generate().publicKey, () => { });
-
-  //   return () => {
-  //     connection.removeAccountChangeListener(id);
-  //   };
-  // }, [connection]);
-
-  // useEffect(() => {
-  //   const id = connection.onSlotChange(() => null);
-
-  //   return () => {
-  //     connection.removeSlotChangeListener(id);
-  //   };
-  // }, [connection]);
-
-  // useEffect(() => {
-  //   const id = sendConnection.onAccountChange(
-  //     new Account().publicKey,
-  //     () => {}
-  //   );
-  //   return () => {
-  //     sendConnection.removeAccountChangeListener(id);
-  //   };
-  // }, [sendConnection]);
-
-  // useEffect(() => {
-  //   const id = sendConnection.onSlotChange(() => null);
-  //   return () => {
-  //     sendConnection.removeSlotChangeListener(id);
-  //   };
-  // }, [sendConnection]);
 
   return (
     <ConnectionContext.Provider
@@ -198,8 +87,6 @@ export function ConnectionProvider({ children = undefined as any }) {
         setSlippage: (val) => setSlippage(val.toString()),
         connection,
         // sendConnection,
-        tokens,
-        tokenMap,
         env,
         chainId,
       }}
@@ -223,8 +110,6 @@ export function useConnectionConfig() {
     endpoint: context.endpoint,
     setEndpoint: context.setEndpoint,
     env: context.env,
-    tokens: context.tokens,
-    tokenMap: context.tokenMap,
     chainId: context.chainId,
   };
 }
@@ -367,7 +252,6 @@ export const sendTransaction = async (
 
 export const sendSignedTransaction = async (
   connection: Connection,
-  wallet: any,
   transaction: Transaction,
   awaitConfirmation = true
 ) => {

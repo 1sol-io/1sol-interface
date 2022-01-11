@@ -333,13 +333,7 @@ const UseNativeAccount = () => {
         setNativeAccount(acc);
       }
     });
-
-    // connection.onAccountChange(wallet.publicKey, (acc) => {
-    //   if (acc) {
-    //     setNativeAccount(acc);
-    //   }
-    // });
-  }, [setNativeAccount, wallet, wallet?.publicKey, connection]);
+  }, [setNativeAccount, wallet, connection]);
 
   useEffect(() => {
     if (!wallet?.publicKey) {
@@ -420,22 +414,6 @@ export function AccountsProvider({ children = null as any }) {
     await precacheUserTokenAccounts(connection, ownerAddress)
 
     const accounts = selectUserAccounts();
-
-    // const mints = [...new Set(accounts.map(a => a.info.mint.toBase58())
-    //   .filter(a => cache.getMint(a) === undefined))]
-    //   .sort();
-
-    // const response = await getMultipleAccounts(connection, mints, 'single');
-
-    // response.keys.forEach((key, index) => {
-    //   if (response.array[index]) {
-    //     try {
-    //       cache.addMint(new PublicKey(key), response.array[index]);
-    //     } catch {
-    //       debugger;
-    //     }
-    //   }
-    // });
 
     setTokenAccounts(accounts);
   }, [connection, ownerAddress, selectUserAccounts, setNativeAccount]);

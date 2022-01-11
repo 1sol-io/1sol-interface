@@ -49,29 +49,6 @@ export const isLatest = (swap: AccountInfo<Buffer>) => {
   return swap.data.length === TokenSwapLayout.span;
 };
 
-const getHoldings = (connection: Connection, accounts: string[]) => {
-  return accounts.map((acc) =>
-    cache.queryAccount(connection, new PublicKey(acc))
-  );
-};
-
-const toPoolInfo = (item: any, program: PublicKey) => {
-  const mint = new PublicKey(item.data.tokenPool);
-  return {
-    pubkeys: {
-      account: item.pubkey,
-      program: program,
-      mint,
-      holdingMints: [] as PublicKey[],
-      holdingAccounts: [item.data.tokenAccountA, item.data.tokenAccountB].map(
-        (a) => new PublicKey(a)
-      ),
-    },
-    legacy: false,
-    raw: item,
-  } as PoolInfo;
-};
-
 export const hasAccount = (
   owner: PublicKey,
   mint: PublicKey,
@@ -1168,7 +1145,6 @@ export async function onesolProtocolSwap(
       try {
         const txid = await sendSignedTransaction(
           connection,
-          wallet,
           signedTransactions[i]
         )
 
@@ -1282,5 +1258,107 @@ export async function onesolProtocolSwap(
     });
   } else {
     return
+  }
+}
+
+export async function makeSwapTransactions({
+  connection,
+  wallet,
+  instructions1,
+  instructions2,
+  instructions3,
+  signers1,
+  signers2,
+  signers3,
+}: {
+  connection: Connection,
+  wallet: any,
+  instructions1: TransactionInstruction[],
+  instructions2: TransactionInstruction[],
+  instructions3: TransactionInstruction[],
+  signers1: Signer[],
+  signers2: Signer[],
+  signers3: Signer[],
+}
+) {
+   const transactions: Transactions[] = []
+
+   if (instructions1.length) {
+     transactions.push({
+       instructions: instructions1,
+       signers: signers1
+     })
+   }
+
+   if (instructions2.length) {
+     transactions.push({
+       instructions: instructions2,
+       signers: signers2
+     })
+   }
+   
+   if (instructions3.length) {
+     transactions.push({
+       instructions: instructions3,
+       signers: signers3
+     })
+   }
+
+  if (!transactions.length) {
+    throw new Error('No instructions to send')
+  } else if (transactions.length === 1) {
+    const { instructions, signers } = transactions[0]
+
+    const txid = await sendTransaction(
+      connection,
+      wallet,
+      instructions,
+      signers
+    );
+
+    notify({
+      message: "Trade executed.",
+      type: "success",
+      description: `Transaction - ${txid}`,
+      txid
+    });
+  } else {
+    const signedTransactions = await signAllTransactions(connection, wallet, transactions)
+
+    for (let i = 0; i < signedTransactions.length; i++) {
+      try {
+        const txid = await sendSignedTransaction(
+          connection,
+          signedTransactions[i]
+        )
+
+        notify({
+          message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
+          description: `Transaction - ${txid}`,
+          type: 'success',
+          duration: 10,
+          txid
+        });
+      } catch (e) {
+        const error = e as Error
+        //@ts-ignore
+        window.gtag('event', 'swap_error', {
+          data: error?.message
+        })
+
+        if (signedTransactions.length === 3 && i === 1) {
+          console.log('swap step error: ', e)
+
+          notify({
+            description: "Please try again",
+            message: "Swap trade cancelled.",
+            type: "error",
+            duration: 10 
+          });
+        } else {
+          throw(e)
+        }
+      }
+    }
   }
 }

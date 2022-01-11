@@ -12,11 +12,7 @@ import {
   WRAPPED_SOL_MINT
 } from '../utils/ids';
 
-import {
-  PoolOperation,
-} from "./pools";
 import { cache, useAccountByMint } from "./accounts";
-import { useConnectionConfig } from "./connection";
 import {
   CurveType,
   PoolConfig,
@@ -24,6 +20,7 @@ import {
   DEFAULT_DENOMINATOR,
 } from "../models";
 import { convert, getTokenIcon, getTokenName } from "./utils";
+import { useOnesolProtocol } from "../hooks/useOnesolProtocol";
 
 export interface CurrencyContextState {
   mintAddress: string;
@@ -44,7 +41,6 @@ export interface CurrencyPairContextState {
   B: CurrencyContextState;
   lastTypedAccount: string;
   setLastTypedAccount: (mintAddress: string) => void;
-  setPoolOperation: (swapDirection: PoolOperation) => void;
   options: PoolConfig;
   setOptions: (config: PoolConfig) => void;
 }
@@ -58,7 +54,7 @@ const convertAmount = (amount: string, mint?: MintInfo) => {
 };
 
 export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
-  const { tokenMap } = useConnectionConfig();
+  const { tokenMap } = useOnesolProtocol();
   const [amount, setAmount] = useState("");
   const [mintAddress, setMintAddress] = useState(defaultMint || "");
   const account = useAccountByMint(mintAddress);
@@ -100,15 +96,12 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
 };
 
 export function CurrencyPairProvider({ children = null as any }) {
-  const { tokens } = useConnectionConfig();
+  const { tokens } = useOnesolProtocol();
 
   const history = useHistory();
   const location = useLocation();
 
   const [lastTypedAccount, setLastTypedAccount] = useState("");
-  const [poolOperation, setPoolOperation] = useState<PoolOperation>(
-    PoolOperation.Add
-  );
 
   const [options, setOptions] = useState<PoolConfig>({
     curveType: CurveType.ConstantProduct,
@@ -134,9 +127,9 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   useEffect(() => {
     const base =
-      tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
+      tokens.find((t: TokenInfo) => t.address === mintAddressA)?.symbol || mintAddressA;
     const quote =
-      tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
+      tokens.find((t: TokenInfo) => t.address === mintAddressB)?.symbol || mintAddressB;
 
     if (location.pathname.includes('/trade/')) {
       document.title = `Trade | 1Sol (${base}/${quote})`;
@@ -157,9 +150,9 @@ export function CurrencyPairProvider({ children = null as any }) {
     if (location.pathname.includes('/trade/')) {
       // set history
       const base =
-        tokens.find((t) => t.address === mintAddressA)?.symbol || mintAddressA;
+        tokens.find((t: TokenInfo) => t.address === mintAddressA)?.symbol || mintAddressA;
       const quote =
-        tokens.find((t) => t.address === mintAddressB)?.symbol || mintAddressB;
+        tokens.find((t: TokenInfo) => t.address === mintAddressB)?.symbol || mintAddressB;
 
       if (base && quote) {
         // will trigger location change handler below
@@ -186,12 +179,12 @@ export function CurrencyPairProvider({ children = null as any }) {
     }
 
     setMintAddressA(
-      tokens.find((t) => t.symbol === defaultBase)?.address ||
+      tokens.find((t: TokenInfo) => t.symbol === defaultBase)?.address ||
         (isValidAddress(defaultBase) ? defaultBase : "") ||
         ""
     );
     setMintAddressB(
-      tokens.find((t) => t.symbol === defaultQuote)?.address ||
+      tokens.find((t: TokenInfo) => t.symbol === defaultQuote)?.address ||
         (isValidAddress(defaultQuote) ? defaultQuote : "") ||
         ""
     );
@@ -212,7 +205,6 @@ export function CurrencyPairProvider({ children = null as any }) {
         B: quote,
         lastTypedAccount,
         setLastTypedAccount,
-        setPoolOperation,
         options,
         setOptions,
       }}

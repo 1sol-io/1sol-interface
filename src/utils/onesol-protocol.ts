@@ -15,7 +15,7 @@ import {
   TransactionInstruction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import { 
+import {
   TokenSwapLayout,
   StableSwapLayout,
   SERUM_MARKET_LAYOUT_V2,
@@ -569,8 +569,8 @@ export class OneSolProtocol {
     return openOrdersAccounts.publicKey;
   }
 
-  async findOrCreateOpenOrdersAccount({ 
-    market, owner, serumProgramId, instructions, signers, cacheDurationMs = 600000 
+  async findOrCreateOpenOrdersAccount({
+    market, owner, serumProgramId, instructions, signers, cacheDurationMs = 600000
   }: {
     market: PublicKey,
     owner: PublicKey,
@@ -2214,7 +2214,7 @@ export async function loadRaydiumAmmInfo(
   const raydiumDecoded: any = RaydiumLiquidityStateLayout.decode(data);
 
   // this from raydium-sdk src/liquidity/liquidity.ts:getAuthority()
-  const [authority, _] = await PublicKey.findProgramAddress(
+  const [authority] = await PublicKey.findProgramAddress(
     [Buffer.from([97, 109, 109, 32, 97, 117, 116, 104, 111, 114, 105, 116, 121])],
     programId
   );

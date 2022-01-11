@@ -2,14 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import BigNumber from 'bignumber.js';
 
-import { useConnectionConfig } from "../utils/connection";
-
 import { SYMBOL_PAIRS } from '../utils/constant'
 import logo from '../assets/chainlink.svg'
 
 const useChainlink = () => {
-  const connection = useConnectionConfig();
-
   const [loading, setLoading] = useState(true)
   const [symbolMap, setSymbolMap] = useState<{
     [key: string]: { name: string; symbol: string; price: string, logo: string }
@@ -51,7 +47,7 @@ const useChainlink = () => {
     } catch (e) {
       setLoading(false)
     }
-  }, [connection])
+  }, [])
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -64,7 +60,7 @@ const useChainlink = () => {
         clearInterval(timer)
       }
     }
-  }, [])
+  }, [getPrices])
 
   return { chainlinkMap: symbolMap, loading }
 }

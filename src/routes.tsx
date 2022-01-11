@@ -5,6 +5,7 @@ import { WalletProvider } from "./context/wallet";
 import { ConnectionProvider } from "./utils/connection";
 import { AccountsProvider } from "./utils/accounts";
 import { CurrencyPairProvider } from "./utils/currencyPair";
+import { OnesolProtocolProvider } from "./context/onesolprotocol";
 
 const Exchange = lazy(() => import("./components/exchange"));
 const Dashboard = lazy(() => import("./components/dashboard"));
@@ -26,6 +27,7 @@ export function Routes() {
         <ConnectionProvider>
           <WalletProvider>
             <AccountsProvider>
+              <OnesolProtocolProvider>
               <CurrencyPairProvider>
                 <Switch>
                   <Route exact path="/">
@@ -39,6 +41,7 @@ export function Routes() {
                   <Route exact path="/staking" component={Staking} />
                 </Switch>
               </CurrencyPairProvider>
+              </OnesolProtocolProvider>
             </AccountsProvider>
           </WalletProvider>
         </ConnectionProvider>
