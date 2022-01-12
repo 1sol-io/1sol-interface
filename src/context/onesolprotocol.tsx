@@ -8,12 +8,12 @@ import React, {
 import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
-import { OnesolProtocol } from '@onesol/onesol-sdk'
 import {
-  RawDistribution,
+  OnesolProtocol,
+  Route,
   TokenAccountInfo,
   TokenInfo
-} from '@onesol/onesol-sdk/types'
+} from '@onesol/onesol-sdk'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
@@ -107,42 +107,42 @@ export function OnesolProtocolProvider({ children = null as any }){
 
   const composeInstructions = useCallback(
     async ({
-      option,
+      route,
       walletAddress,
       fromTokenAccount,
       toTokenAccount,
-      instructions1,
-      instructions2,
-      instructions3,
-      signers1,
-      signers2,
-      signers3,
+      setupInstructions,
+      swapInstructions,
+      cleanupInstructions,
+      setupSigners,
+      swapSigners,
+      cleanupSigners,
       slippage = 0.005
     }: {
-      option: RawDistribution
+      route: Route
       walletAddress: PublicKey
       fromTokenAccount: TokenAccountInfo
       toTokenAccount: TokenAccountInfo
-      instructions1: TransactionInstruction[]
-      instructions2: TransactionInstruction[]
-      instructions3: TransactionInstruction[]
-      signers1: Signer[]
-      signers2: Signer[]
-      signers3: Signer[]
+      setupInstructions: TransactionInstruction[]
+      swapInstructions: TransactionInstruction[]
+      cleanupInstructions: TransactionInstruction[]
+      setupSigners: Signer[]
+      swapSigners: Signer[]
+      cleanupSigners: Signer[]
       slippage?: number
     }) => {
       if (oneSolProtocol) {
         const instructions = await oneSolProtocol.composeInstructions({
-          option,
+          route,
           walletAddress,
           fromTokenAccount,
           toTokenAccount,
-          instructions1,
-          instructions2,
-          instructions3,
-          signers1,
-          signers2,
-          signers3,
+          setupInstructions,
+          swapInstructions,
+          cleanupInstructions,
+          setupSigners,
+          swapSigners,
+          cleanupSigners,
           slippage
         })
 
