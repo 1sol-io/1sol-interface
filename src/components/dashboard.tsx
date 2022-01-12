@@ -12,16 +12,15 @@ import {
 import { SYMBOL_PAIRS } from '../utils/constant'
 import { formatShortDate } from '../utils/utils'
 
-// import useChainlink from '../hooks/useChainlink'
 import usePyth from '../hooks/usePyth'
 
 import { AppBar } from './appBar'
 import Social from './social'
 import { TVL } from './tvl/tvl'
 import { Beach } from './beach'
+import OnesolOverview from './onesol'
 
 import pythLogo from '../assets/pyth.svg'
-// import chainkLinkLogo from '../assets/chainlink_footer.svg'
 import onesole_te from '../assets/pro-te.png'
 import SodaLogo from '../assets/token/soda.svg'
 
@@ -39,59 +38,12 @@ const COINS_MAP: { [key: string]: string } = {
 
 const { TabPane } = Tabs
 
-// const columns: Array<{
-//   title: string
-//   dataIndex: string
-//   key: string
-//   align?: 'left' | 'center' | 'right' | undefined
-//   render?: any
-// }> = [
-//   { title: 'Asset', dataIndex: 'symbol', key: 'symbol', align: 'left' },
-//   {
-//     title: 'Chainlink',
-//     dataIndex: 'chainlink',
-//     key: 'chainlink',
-//     align: 'left',
-//     render: (value: number) => `$${value}`
-//   },
-//   {
-//     title: 'Pyth',
-//     dataIndex: 'pyth',
-//     key: 'pyth',
-//     align: 'left',
-//     render: (value: number) => `$${value}`
-//   },
-//   {
-//     title: '',
-//     dataIndex: 'trade',
-//     key: 'trade',
-//     render:
-//       (value: number, record: any) => (
-//         <Link to={`/?pair=SOL-${record.token}`}>
-//           <Button type="primary" size="small">
-//             Trade
-//           </Button>
-//         </Link>
-//       ),
-//     align: 'right'
-//   }
-// ]
-
 const Dashboard = () => {
   const location = useLocation()
   const [active, setActive] = useState('btc')
-  // const { chainlinkMap } = useChainlink()
   const { pythMap } = usePyth()
 
-  // const dataSource: Array<{
-  //   symbol: string
-  //   pyth: string
-  //   chainlink: string
-  //   token: string
-  // }> = []
-  // const [products, setProducts] = useState(dataSource)
   const [loading, setLoading] = useState(true)
-  // const [duration, setDuration] = useState('30')
   const chartDiv = useRef<HTMLDivElement>(null)
   const echartsRef = useRef<any>(null)
 
@@ -259,37 +211,6 @@ const Dashboard = () => {
     [location]
   )
 
-  // useEffect(
-  //   () => {
-  //     if (pythMap || chainlinkMap) {
-  //       setLoading(false)
-  //     }
-
-  //     const dataSource: Array<{
-  //       symbol: string
-  //       pyth: string
-  //       chainlink: string
-  //       token: string
-  //     }> = SYMBOL_PAIRS.map(
-  //       ({ name: symbol, token }: { name: string; token: string }) => ({
-  //         symbol,
-  //         pyth:
-  //           pythMap && pythMap[`${symbol.toLowerCase()}/usd`]
-  //             ? pythMap[`${symbol.toLowerCase()}/usd`].price
-  //             : '-',
-  //         chainlink:
-  //           chainlinkMap && chainlinkMap[symbol.toLowerCase()]
-  //             ? chainlinkMap[symbol.toLowerCase()].price
-  //             : '-',
-  //         token
-  //       })
-  //     )
-
-  //     setProducts(dataSource)
-  //   },
-  //   [pythMap, chainlinkMap]
-  // )
-
   const handleSwitchToken = (token: string) => {
     setActive(token.toLowerCase())
   }
@@ -298,6 +219,8 @@ const Dashboard = () => {
     <div className="page-dashboard">
       <AppBar />
       <div className="bd">
+        <OnesolOverview />
+
         <Tabs tabPosition="left">
           <TabPane
             tab={
@@ -352,23 +275,6 @@ const Dashboard = () => {
                             )}
                           </div>
                         </div>
-
-                        {/* <div className="partner">
-                          <div className="hd">
-                            ${chainlinkMap && chainlinkMap[active] ? (
-                              chainlinkMap[active].price
-                            ) : (
-                              '-'
-                            )}
-                          </div>
-                          <div className="bd">
-                            <img
-                              style={{ width: '50px' }}
-                              src={chainkLinkLogo}
-                              alt=""
-                            />
-                          </div>
-                        </div> */}
                       </div>
                       <div
                         className="bd"
