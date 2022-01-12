@@ -290,12 +290,12 @@ export const TradeEntry = () => {
     setRouteLoading(false)
     setTimeoutLoading(false)
 
-    const option = distributions.find(({ id }: { id: string }) => id === active)
+    const route = distributions.find(({ id }: { id: string }) => id === active)
 
     try {
       setPendingTx(true);
 
-      if (!option || !option.routes.length) {
+      if (!route || !route.routes.length) {
         throw new Error('No route found')
       }
 
@@ -307,7 +307,7 @@ export const TradeEntry = () => {
       const cleanupSigners: Signer[] = [];
       
       await composeInstructions({
-        option,
+        route,
         walletAddress: wallet.publicKey,
         fromTokenAccount: {
           pubkey: A.account?.pubkey,
@@ -346,7 +346,7 @@ export const TradeEntry = () => {
       Sentry.withScope(function(scope) {
         scope.setTag("fromMint", A.mintAddress);
         scope.setTag("toMint", B.mintAddress);
-        scope.setTag("mode", option?.routes.length === 1 ? "single" : "multiple");
+        scope.setTag("mode", route?.routes.length === 1 ? "single" : "multiple");
         scope.setLevel(Sentry.Severity.Error);
         Sentry.captureException(new TradeError(`${e}`));
       });
