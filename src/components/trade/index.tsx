@@ -13,7 +13,7 @@ import {
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
 import * as Sentry from '@sentry/react'
-import { Distribution, RawDistribution } from "@onesol/onesol-sdk/types";
+import { Route as RawDistribution } from "@onesol/onesol-sdk";
 
 import {
   useConnection,
@@ -55,6 +55,26 @@ import timeoutIcon from '../../assets/4.gif'
 
 import "./trade.less";
 
+export interface Route {
+  from: string,
+  to: string,
+  in: number,
+  out: number,
+  provider: string,
+  ratio: number
+}
+export interface Distribution extends RawDistribution {
+  id: string,
+  providers: string[],
+  input: number,
+  output: number,
+  swapRoute: {
+    routes: Route[][],
+    labels: string[]
+  },
+  offset?: number,
+}
+
 function isAbortError(error: any): error is DOMException {
   if (error && error.name === "AbortError") {
     return true;
@@ -82,6 +102,8 @@ export const TradeEntry = () => {
 
   const loading: { current: boolean } = useRef(false)
   const [timeoutLoading, setTimeoutLoading] = useState(false)
+  const [routeLoading, setRouteLoading] = useState(false)
+  const [routeError, setRouteError] = useState('')
 
   // warning modal
   const [showWarning, setShowWarning] = useState(false)
@@ -106,14 +128,14 @@ export const TradeEntry = () => {
 
   const fetchDistrubition = useCallback(async () => {
     if (!A.mint || !B.mint) {
-      loading.current = false
+      setRouteLoading(false)
       setTimeoutLoading(false)
 
       return
     }
 
-    loading.current = true
     setTimeoutLoading(false)
+    setRouteLoading(true)
 
     const decimals = [A.mint.decimals, B.mint.decimals]
 
@@ -181,7 +203,7 @@ export const TradeEntry = () => {
         })
       }
 
-      loading.current = false
+      setRouteLoading(false)
 
       setTimeoutLoading(true)
       timer.current = setTimeout(() => {
@@ -191,8 +213,8 @@ export const TradeEntry = () => {
       console.error(e)
 
       if (!isAbortError(e)) {
-        loading.current = false
-        errorMessage.current = (e as any)?.response.data.error || (e as any)?.message || 'Error Occurred'
+        setRouteLoading(false)
+        setRouteError((e as any)?.error || 'Error Occurred')
       }
     }
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, tokenMap, getRoutes])
@@ -208,7 +230,7 @@ export const TradeEntry = () => {
     errorMessage.current = ''
 
     if (!A.amount) {
-      loading.current = false
+      setRouteLoading(false)
     }
 
     refreshBtnRef.current.classList.remove('refresh-btn')
@@ -243,7 +265,7 @@ export const TradeEntry = () => {
     B.setMint(tempMint);
 
     if (A.amount) {
-      loading.current = true
+      setRouteLoading(true)
     }
   };
 
@@ -265,7 +287,7 @@ export const TradeEntry = () => {
       clearTimeout(timer.current)
     }
 
-    loading.current = false
+    setRouteLoading(false)
     setTimeoutLoading(false)
 
     const option = distributions.find(({ id }: { id: string }) => id === active)
@@ -277,12 +299,12 @@ export const TradeEntry = () => {
         throw new Error('No route found')
       }
 
-      const instructions1: TransactionInstruction[] = [];
-      const signers1: Signer[] = [];
-      const instructions2: TransactionInstruction[] = [];
-      const signers2: Signer[] = [];
-      const instructions3: TransactionInstruction[] = [];
-      const signers3: Signer[] = [];
+      const setupInstructions: TransactionInstruction[] = [];
+      const setupSigners: Signer[] = [];
+      const swapInstructions: TransactionInstruction[] = [];
+      const swapSigners: Signer[] = [];
+      const cleanupInstructions: TransactionInstruction[] = [];
+      const cleanupSigners: Signer[] = [];
       
       await composeInstructions({
         option,
@@ -291,32 +313,30 @@ export const TradeEntry = () => {
           pubkey: A.account?.pubkey,
           mint: A.account?.info.mint,
           owner: A.account?.info.owner,
-          programId: A.account?.account.owner
         },
         toTokenAccount: {
           pubkey: B.account?.pubkey,
           mint: B.account?.info.mint,
           owner: B.account?.info.owner,
-          programId: B.account?.account.owner
         },
-        instructions1,
-        instructions2,
-        instructions3,
-        signers1,
-        signers2,
-        signers3,
+        setupInstructions,
+        setupSigners,
+        swapInstructions,
+        swapSigners,
+        cleanupInstructions,
+        cleanupSigners,
         slippage,
       }) 
 
       await makeSwapTransactions({
         connection,
         wallet,
-        instructions1,
-        instructions2,
-        instructions3,
-        signers1,
-        signers2,
-        signers3,
+        setupInstructions,
+        setupSigners,
+        swapInstructions,
+        swapSigners,
+        cleanupInstructions,
+        cleanupSigners,
       })
 
       A.setAmount('')
@@ -346,7 +366,7 @@ export const TradeEntry = () => {
       clearTimeout(timer.current)
     }
 
-    loading.current = false
+    setRouteLoading(false)
     setTimeoutLoading(false)
     setActive(s)
 
@@ -368,7 +388,7 @@ export const TradeEntry = () => {
     setRefresh(refresh + 1)
 
     if (A.amount) {
-      loading.current = true
+      setRouteLoading(true)
     }
 
     setTimeoutLoading(false)
@@ -389,7 +409,7 @@ export const TradeEntry = () => {
             shape="circle"
             type="text"
             onClick={handleRefresh}
-            disabled={!A.amount || loading.current || pendingTx}
+            disabled={!A.amount || routeLoading || pendingTx}
             style={{
               display: 'flex',
               justifyContent: 'space-around',
@@ -399,9 +419,9 @@ export const TradeEntry = () => {
             {
               timeoutLoading ?
                 <img style={{ display: 'block', width: '24px', margin: '-3px 0 0' }} src={timeoutIcon} alt="" /> :
-                loading.current ?
-                  <LoadingOutlined style={{ fontSize: '19px', marginTop: '-2px' }} /> :
-                  <ReloadOutlined style={{ fontSize: '19px', marginTop: '-2px' }} />
+                routeLoading ?
+                  <LoadingOutlined style={{ fontSize: '19px', marginTop: '3px' }} /> :
+                  <ReloadOutlined style={{ fontSize: '19px', marginTop: '3px' }} />
             }
           </Button>
           <Popover
@@ -464,12 +484,12 @@ export const TradeEntry = () => {
             disabled
           />
           <Result
-            loading={loading.current && !distributions.length}
+            loading={routeLoading && !distributions.length}
             data={distributions}
             active={active}
             handleSwitchChoice={handleSwitchChoice}
             handleShowRoute={handleShowRoute}
-            error={errorMessage.current}
+            error={routeError}
           />
         </Card>
       </div>
