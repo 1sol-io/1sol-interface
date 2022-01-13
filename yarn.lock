@@ -1541,10 +1541,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@onesol/onesol-sdk@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@onesol/onesol-sdk/-/onesol-sdk-0.2.3.tgz#0d83e4f9dac8ef31052cad61120eff14868688ab"
-  integrity sha512-cVt5GIBfJ/YhFcImUwPncN/FLFNT7auXUfSBvW6eJLbGtvFPu0ve14fEHsKECGIAu/cBxnbYRv1EDZ/PwL+FXw==
+"@onesol/onesol-sdk@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@onesol/onesol-sdk/-/onesol-sdk-0.2.4.tgz#58e2bb2af267aeb3352348849e57489dd0430ee4"
+  integrity sha512-caysK3zPHsOKp5lpePsycpyRZG6lB5j5vN8BrO/x2+oYkK0WFSjgAGWoNwgqkAlQDVDvO4l7sQnGIrZT0QVWnA==
   dependencies:
     "@solana/buffer-layout" "^3.0.0"
     "@solana/web3.js" "^1.31.0"
