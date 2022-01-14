@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
-    "@onesol/onesol-sdk": "0.2.4",
+    "@onesol/onesol-sdk": "0.3.0",
     "@project-serum/borsh": "^0.2.3",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@pythnetwork/client": "^2.0.0",
