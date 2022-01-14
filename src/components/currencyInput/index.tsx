@@ -11,6 +11,8 @@ import {
 import { TokenIcon } from "../tokenIcon";
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
+import Tokens from '../tokens'
+
 import "./styles.less";
 
 const { Option } = Select;
@@ -127,6 +129,7 @@ export const CurrencyInput = (props: {
   };
 
   return (
+    <>
     <Card
       className="ccy-input"
       style={{ borderRadius: 20, margin: 0, width: "100%" }}
@@ -207,5 +210,7 @@ export const CurrencyInput = (props: {
         </div>
       </div>
     </Card>
+    <Tokens visible={true} />
+    </>
   );
 };
