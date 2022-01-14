@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, Select } from "antd";
+
 import { NumericInput } from "../numericInput";
 import { convert, getTokenName } from "../../utils/utils";
 import {
@@ -7,9 +8,10 @@ import {
   useAccountByMint,
   cache,
 } from "../../utils/accounts";
-import "./styles.less";
 import { TokenIcon } from "../tokenIcon";
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
+
+import "./styles.less";
 
 const { Option } = Select;
 
@@ -113,53 +115,6 @@ export const CurrencyInput = (props: {
     );
   });
 
-  // // group accounts by mint and use one with biggest balance
-  // const grouppedUserAccounts = userAccounts
-  //   .sort((a, b) => {
-  //     return b.info.amount.gt(a.info.amount) ? 1 : -1;
-  //   })
-  //   .reduce((map, acc) => {
-  //     const mint = acc.info.mint.toBase58();
-
-  //     if (isKnownMint(tokenMap, mint)) {
-  //       return map;
-  //     }
-
-  //     map.set(mint, (map.get(mint) || []).concat([{ account: acc }]));
-
-  //     return map;
-  //   }, new Map<string, { account: TokenAccount }[]>());
-
-  // const additionalAccounts = [...grouppedUserAccounts.keys()];
-
-  // if (
-  //   tokens.findIndex((t) => t.address === props.mint) < 0 &&
-  //   props.mint &&
-  //   !grouppedUserAccounts.has(props?.mint)
-  // ) {
-  //   additionalAccounts.push(props.mint);
-  // }
-
-  // const renderAdditionalTokens = additionalAccounts.map((mint) => {
-  //   let name: string;
-  //   let icon: JSX.Element;
-
-  //   name = getTokenName(tokenMap, mint, true, 3);
-  //   icon = <TokenIcon mintAddress={mint} />;
-
-  //   return (
-  //     <Option key={mint} value={mint} name={name}>
-  //       <TokenDisplay
-  //         key={mint}
-  //         mintAddress={mint}
-  //         name={name}
-  //         icon={icon}
-  //         showBalance={false}
-  //       />
-  //     </Option>
-  //   );
-  // });
-
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
       (a) => a.info.mint.toBase58() === props.mint
@@ -237,9 +192,7 @@ export const CurrencyInput = (props: {
                 option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >
-              {[...renderPopularTokens, 
-                // ...renderAdditionalTokens
-              ]}
+              {[...renderPopularTokens]}
             </Select>
           ) : (
             props.mint && (
