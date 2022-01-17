@@ -16,8 +16,9 @@ export const TokenDisplay = (props: {
   mintAddress: string
   icon?: JSX.Element
   showBalance?: boolean
+  onClick?: (item: string) => void
 }) => {
-  const { showBalance, mintAddress, name, symbol, icon } = props
+  const { showBalance, mintAddress, name, symbol, icon, onClick } = props
   const tokenMint = cache.getMint(mintAddress)
   const tokenAccount = useAccountByMint(mintAddress)
 
@@ -32,7 +33,16 @@ export const TokenDisplay = (props: {
   }
 
   return (
-    <div className="token-display" title={mintAddress} key={mintAddress}>
+    <div
+      className="token-display"
+      title={mintAddress}
+      key={mintAddress}
+      onClick={() => {
+        if (onClick) {
+          onClick(mintAddress)
+        }
+      }}
+    >
       <div className="hd">
         <div className="token">
           <div className="hd">
@@ -65,7 +75,15 @@ export const TokenDisplay = (props: {
   )
 }
 
-const Tokens = ({ visible = false }) => {
+const Tokens = ({
+  visible = false,
+  onCancel = () => {},
+  onChange
+}: {
+  visible: boolean
+  onCancel: () => void
+  onChange: (mintAddress: string) => void
+}) => {
   const { tokenMap } = useOnesolProtocol()
   const { userAccounts } = useUserAccounts()
 
@@ -108,12 +126,22 @@ const Tokens = ({ visible = false }) => {
   }
 
   return (
-    <Modal visible={visible} centered footer={null}>
+    <Modal
+      visible={visible}
+      centered
+      footer={null}
+      destroyOnClose
+      onCancel={() => {
+        if (onCancel) {
+          onCancel()
+        }
+      }}
+    >
       <div className="modal-tokens">
         <div className="hd">
           <Input
             size="large"
-            placeholder="input here"
+            placeholder="Token Name / Symbol / Address"
             onChange={handleChange}
           />
         </div>
@@ -125,6 +153,11 @@ const Tokens = ({ visible = false }) => {
               symbol={item.symbol}
               mintAddress={item.address}
               showBalance={true}
+              onClick={(mintAddress: string) => {
+                if (onChange) {
+                  onChange(mintAddress)
+                }
+              }}
             />
           ))}
         </div>

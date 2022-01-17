@@ -1,5 +1,5 @@
-import React from "react";
-import { Card, Select } from "antd";
+import React, { useState } from "react";
+import { Card } from "antd";
 
 import { NumericInput } from "../numericInput";
 import { convert, getTokenName } from "../../utils/utils";
@@ -14,8 +14,6 @@ import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 import Tokens from '../tokens'
 
 import "./styles.less";
-
-const { Option } = Select;
 
 export const TokenDisplay = (props: {
   name: string;
@@ -83,39 +81,9 @@ export const CurrencyInput = (props: {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
 
+  const [visible, setVisible] = useState(false);
+
   const { tokenMap } = useOnesolProtocol();
-
-  const keys = [...tokenMap.keys()]
-  const sortByBalance = userAccounts.sort((a, b) => {
-      return b.info.amount.gt(a.info.amount) ? 1 : -1;
-  })
-
-  const tokensUserHave = [...new Set(sortByBalance.map((item) => item.info.mint.toBase58()))]
-  const filteredKeys = keys.filter(key => !tokensUserHave.includes(key))
-
-  const tokens = [...tokensUserHave, ...filteredKeys].map(key => tokenMap.get(key))
-
-  const renderPopularTokens = tokens.map((item) => {
-    if (!item) {
-      return null;
-    }
-
-    return (
-      <Option
-        key={item.address}
-        value={item.address}
-        name={item.symbol}
-        title={item.address}
-      >
-        <TokenDisplay
-          key={item.address}
-          name={item.symbol}
-          mintAddress={item.address}
-          showBalance={true}
-        />
-      </Option>
-    );
-  });
 
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
@@ -179,38 +147,33 @@ export const CurrencyInput = (props: {
           </div>
         </div>
         <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          {!props.hideSelect ? (
-            <Select
-              // size="large"
-              showSearch
-              style={{ minWidth: 100 }}
-              placeholder="CCY"
-              value={props.mint}
-              onChange={(item) => {
-                if (props.onMintChange) {
-                  props.onMintChange(item);
-                }
-              }}
-              filterOption={(input, option) =>
-                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {[...renderPopularTokens]}
-            </Select>
-          ) : (
+          {
             props.mint && (
-              <TokenDisplay
-                key={props.mint}
-                name={getTokenName(tokenMap, props.mint)}
-                mintAddress={props.mint}
-                showBalance={true}
-              />
+              <div onClick={() => setVisible(true)}>
+                <TokenDisplay
+                  key={props.mint}
+                  name={getTokenName(tokenMap, props.mint)}
+                  mintAddress={props.mint}
+                  showBalance={true}
+                />
+              </div>
             )
-          )}
+          }
         </div>
       </div>
     </Card>
-    <Tokens visible={true} />
+
+    <Tokens visible={visible} 
+      onCancel={() => setVisible(false)} 
+      onChange={
+        (mintAddress) => {
+          if (props.onMintChange) {
+            setVisible(false)
+            props.onMintChange(mintAddress);
+          }
+        }
+      } 
+    />
     </>
   );
 };
