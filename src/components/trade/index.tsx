@@ -13,7 +13,8 @@ import {
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
 import * as Sentry from '@sentry/react'
-import { Route as RawDistribution } from "@onesol/onesol-sdk";
+import { Route as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
+import axios from 'axios'
 
 import {
   useConnection,
@@ -45,7 +46,6 @@ import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
 
 import { 
-  PROVIDER_MAP, 
   WRAPPED_SOL_MINT, 
 } from "../../utils/constant";
 
@@ -73,14 +73,6 @@ export interface Distribution extends RawDistribution {
     labels: string[]
   },
   offset?: number,
-}
-
-function isAbortError(error: any): error is DOMException {
-  if (error && error.name === "AbortError") {
-    return true;
-  }
-
-  return false;
 }
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -211,10 +203,12 @@ export const TradeEntry = () => {
       }, 60 * 1000)
     } catch (e) {
       console.error(e)
-
-      if (!isAbortError(e)) {
-        setRouteLoading(false)
-        setRouteError((e as any)?.error || 'Error Occurred')
+      
+      if (axios.isAxiosError(e)) {
+        if (!axios.isCancel(e) && e.response) {
+          setRouteLoading(false)
+          setRouteError((e as any)?.error || 'Error Occurred')
+        }
       }
     }
   }, [A.mint, A.mintAddress, A.amount, B.mint, B.mintAddress, tokenMap, getRoutes])
