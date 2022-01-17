@@ -19,34 +19,6 @@ export const SYMBOL_PAIRS = [
   { name: 'RAY', key: 'HvYREVU9R1MeVp61bJFg39E7qqgnuxKnqxsuYg27T7NE', token: 'RAY', icon: ray },
 ]
 
-export const TOKEN_SWAP_NAME = 'Token Swap'
-export const SERUM_DEX_MARKET_NAME = 'Serum'
-export const ONESOL_NAME = '1Sol'
-export const SABER_STABLE_SWAP_NAME = 'Saber'
-export const ORCA_SWAP_NAME = 'Orca'
-export const RAYDIUM_NAME = 'Raydium'
-export const ONEMOON_NAME = '1Moon'
-export const SAROS_SWAP_NAME = 'Saros'
-
-export const EXCHANGER_SPL_TOKEN_SWAP = 'SplTokenSwap'
-export const EXCHANGER_SERUM_DEX = 'SerumDex'
-export const EXCHANGER_SABER_STABLE_SWAP = 'SaberStableSwap'
-export const EXCHANGER_ORCA_SWAP = 'OrcaSwap'
-export const EXCHANGER_RAYDIUM = 'Raydium'
-export const EXCHANGER_ONEMOON = 'OneMoon'
-export const EXCHANGER_SAROS = 'SarosSwap'
-
-export const PROVIDER_MAP: { [key: string]: string } = {
-  best_route: ONESOL_NAME,
-  [EXCHANGER_SPL_TOKEN_SWAP]: TOKEN_SWAP_NAME,
-  [EXCHANGER_SERUM_DEX]: SERUM_DEX_MARKET_NAME,
-  [EXCHANGER_SABER_STABLE_SWAP]: SABER_STABLE_SWAP_NAME,
-  [EXCHANGER_ORCA_SWAP]: ORCA_SWAP_NAME,
-  [EXCHANGER_RAYDIUM]: RAYDIUM_NAME,
-  [EXCHANGER_ONEMOON]: ONEMOON_NAME,
-  [EXCHANGER_SAROS]: SAROS_SWAP_NAME,
-}
-
 const {
   REACT_APP_ONESOL,
   REACT_APP_TOKEN_SWAP,

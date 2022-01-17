@@ -5,8 +5,7 @@ import { TokenInfo } from "../utils/token-registry";
 
 import { PoolInfo, TokenAccount } from "./../models";
 import axios from 'axios';
-import { Route as RawDistribution, RawRoute } from '@onesol/onesol-sdk';
-import { PROVIDER_MAP } from './constant';
+import { Route as RawDistribution, RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
