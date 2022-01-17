@@ -22,7 +22,6 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
-import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import Warning from "../warning";
 
 import {
@@ -452,7 +451,7 @@ export const TradeEntry = () => {
         <Button
           type="primary"
           className="swap-button"
-          style={{ display: 'flex', justifyContent: 'space-around', margin: '-10px auto', fontSize: '20px', alignItems: 'center' }}
+          style={{ display: 'flex', justifyContent: 'space-around', margin: '-5px auto', fontSize: '20px', alignItems: 'center' }}
           onClick={swapAccounts}
         >
           &#10607;
@@ -461,7 +460,7 @@ export const TradeEntry = () => {
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
           bodyStyle={{ padding: 0 }}
         >
-          <QuoteCurrencyInput
+          <CurrencyInput
             title="To(estimated)"
             onInputChange={(val: any) => {
               if (B.amount !== val) {

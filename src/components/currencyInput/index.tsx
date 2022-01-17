@@ -40,14 +40,20 @@ export const TokenDisplay = (props: {
         title={mintAddress}
         key={mintAddress}
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer'
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginRight: '0.5rem'
+          }}
+        >
           {icon || <TokenIcon mintAddress={mintAddress} />}
-          {name}
+          <div>{name}</div>
         </div>
         {showBalance ? (
           <span
@@ -55,12 +61,13 @@ export const TokenDisplay = (props: {
             key={mintAddress}
             className="token-balance"
           >
-            &nbsp;{" "}
-            {hasBalance
+            {
+              hasBalance
               ? balance < 0.001
                 ? "<0.001"
                 : balance.toFixed(3)
-              : "-"}
+              : "-"
+            }
           </span>
         ) : null}
       </div>
@@ -100,7 +107,7 @@ export const CurrencyInput = (props: {
     <>
     <Card
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0, width: "100%" }}
+      style={{ borderRadius: 20, margin: 0, width: "100%", paddingBottom: '10px' }}
       bodyStyle={{ padding: 0 }}
     >
       <div className="ccy-input-header">
@@ -112,54 +119,69 @@ export const CurrencyInput = (props: {
             props.onInputChange && props.onInputChange(userUiBalance())
           }
         >
-          Balance: {userUiBalance().toFixed(6)}
+          <div style={{color: '#fff', marginRight: '10px', lineHeight: 1}}>Balance: {userUiBalance().toFixed(6)}</div>
+          {
+            !props.disabled ?
+            <div 
+              style={{
+                cursor: 'pointer',
+                fontSize: '10px',
+                background: 'rgba(0, 0, 0, 0.75)',  
+                padding: '2px 8px',
+                borderRadius: '5px'
+              }}
+              onClick={() => {
+                if (props.onMaxClick) {
+                  props.onMaxClick()
+                }
+              }}
+            >
+              MAX
+            </div> :
+            null
+          }
         </div>
       </div>
-      <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
-        <div className="ccy-input-header-left">
-          <NumericInput
-            disabled={props.disabled}
-            value={props.amount}
-            onChange={(val: any) => {
-              if (props.onInputChange) {
-                props.onInputChange(val);
-              }
-            }}
-            style={{
-              width: '155px',
-              fontSize: 18,
-              boxShadow: "none",
-              borderColor: "transparent",
-              outline: "transpaernt",
-              color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
-            }}
-            placeholder="0.00"
-          />
-          <div 
-            style={{cursor: 'pointer'}}
-            onClick={() => {
-              if (props.onMaxClick) {
-                props.onMaxClick()
-              }
-            }}
-          >
-            Max
-          </div>
-        </div>
-        <div className="ccy-input-header-right" style={{ display: "felx" }}>
+      <div className="ccy-input-header">
+        <div 
+          className="ccy-input-header-left" 
+          onClick={() => setVisible(true)}
+        >
           {
             props.mint && (
-              <div onClick={() => setVisible(true)}>
-                <TokenDisplay
-                  key={props.mint}
-                  name={getTokenName(tokenMap, props.mint)}
-                  mintAddress={props.mint}
-                  showBalance={true}
-                />
-              </div>
+              <TokenDisplay
+                key={props.mint}
+                name={getTokenName(tokenMap, props.mint)}
+                mintAddress={props.mint}
+              />
             )
           }
         </div>
+
+        {
+          !props.disabled ?
+          <div className="ccy-input-header-right">
+            <NumericInput
+              disabled={props.disabled}
+              value={props.amount}
+              onChange={(val: any) => {
+                if (props.onInputChange) {
+                  props.onInputChange(val);
+                }
+              }}
+              style={{
+                width: '100%',
+                fontSize: 18,
+                boxShadow: "none",
+                borderColor: "transparent",
+                outline: "transpaernt",
+                color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
+              }}
+              placeholder="0.00"
+            />
+          </div> :
+          null
+        }
       </div>
     </Card>
 

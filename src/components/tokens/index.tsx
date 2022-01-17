@@ -42,6 +42,7 @@ export const TokenDisplay = (props: {
           onClick(mintAddress)
         }
       }}
+      style={{ cursor: 'pointer' }}
     >
       <div className="hd">
         <div className="token">
@@ -102,9 +103,9 @@ const Tokens = ({
       ]
       const filteredKeys = keys.filter((key) => !tokensUserHave.includes(key))
 
-      const tokens = [...tokensUserHave, ...filteredKeys].map((key) =>
-        tokenMap.get(key)
-      )
+      const tokens = [...tokensUserHave, ...filteredKeys]
+        .map((key) => tokenMap.get(key))
+        .filter((token) => token)
 
       setTokens(tokens)
       setOptions(tokens)
@@ -136,12 +137,15 @@ const Tokens = ({
           onCancel()
         }
       }}
+      bodyStyle={{
+        minHeight: '550px'
+      }}
     >
       <div className="modal-tokens">
         <div className="hd">
           <Input
             size="large"
-            placeholder="Token Name / Symbol / Address"
+            placeholder="Search by Token Name / Symbol / Address"
             onChange={handleChange}
           />
         </div>
