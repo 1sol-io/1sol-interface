@@ -49,7 +49,8 @@ export const TokenDisplay = (props: {
           style={{
             display: 'flex',
             alignItems: 'center',
-            marginRight: '0.5rem'
+            marginRight: '0.5rem',
+            lineHeight: 1
           }}
         >
           {icon || <TokenIcon mintAddress={mintAddress} />}
