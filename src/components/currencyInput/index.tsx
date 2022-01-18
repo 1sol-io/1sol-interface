@@ -1,5 +1,7 @@
-import React from "react";
-import { Card, Select } from "antd";
+import React, { useState } from "react";
+import { Card } from "antd";
+import { DownOutlined } from "@ant-design/icons";
+
 import { NumericInput } from "../numericInput";
 import { convert, getTokenName } from "../../utils/utils";
 import {
@@ -7,11 +9,12 @@ import {
   useAccountByMint,
   cache,
 } from "../../utils/accounts";
-import "./styles.less";
 import { TokenIcon } from "../tokenIcon";
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
-const { Option } = Select;
+import Tokens from '../tokens'
+
+import "./styles.less";
 
 export const TokenDisplay = (props: {
   name: string;
@@ -38,14 +41,22 @@ export const TokenDisplay = (props: {
         title={mintAddress}
         key={mintAddress}
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer'
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginRight: '0.5rem',
+            lineHeight: 1
+          }}
+        >
           {icon || <TokenIcon mintAddress={mintAddress} />}
-          {name}
+          <div style={{ marginRight: '0.5rem' }}>{name}</div>
+          <DownOutlined />
         </div>
         {showBalance ? (
           <span
@@ -53,12 +64,13 @@ export const TokenDisplay = (props: {
             key={mintAddress}
             className="token-balance"
           >
-            &nbsp;{" "}
-            {hasBalance
+            {
+              hasBalance
               ? balance < 0.001
                 ? "<0.001"
                 : balance.toFixed(3)
-              : "-"}
+              : "-"
+            }
           </span>
         ) : null}
       </div>
@@ -74,91 +86,15 @@ export const CurrencyInput = (props: {
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
   disabled?: boolean,
-  onMaxClick?: () => void
+  onMaxClick?: () => void,
+  bordered?: boolean,
 }) => {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
 
+  const [visible, setVisible] = useState(false);
+
   const { tokenMap } = useOnesolProtocol();
-
-  const keys = [...tokenMap.keys()]
-  const sortByBalance = userAccounts.sort((a, b) => {
-      return b.info.amount.gt(a.info.amount) ? 1 : -1;
-  })
-
-  const tokensUserHave = [...new Set(sortByBalance.map((item) => item.info.mint.toBase58()))]
-  const filteredKeys = keys.filter(key => !tokensUserHave.includes(key))
-
-  const tokens = [...tokensUserHave, ...filteredKeys].map(key => tokenMap.get(key))
-
-  const renderPopularTokens = tokens.map((item) => {
-    if (!item) {
-      return null;
-    }
-
-    return (
-      <Option
-        key={item.address}
-        value={item.address}
-        name={item.symbol}
-        title={item.address}
-      >
-        <TokenDisplay
-          key={item.address}
-          name={item.symbol}
-          mintAddress={item.address}
-          showBalance={true}
-        />
-      </Option>
-    );
-  });
-
-  // // group accounts by mint and use one with biggest balance
-  // const grouppedUserAccounts = userAccounts
-  //   .sort((a, b) => {
-  //     return b.info.amount.gt(a.info.amount) ? 1 : -1;
-  //   })
-  //   .reduce((map, acc) => {
-  //     const mint = acc.info.mint.toBase58();
-
-  //     if (isKnownMint(tokenMap, mint)) {
-  //       return map;
-  //     }
-
-  //     map.set(mint, (map.get(mint) || []).concat([{ account: acc }]));
-
-  //     return map;
-  //   }, new Map<string, { account: TokenAccount }[]>());
-
-  // const additionalAccounts = [...grouppedUserAccounts.keys()];
-
-  // if (
-  //   tokens.findIndex((t) => t.address === props.mint) < 0 &&
-  //   props.mint &&
-  //   !grouppedUserAccounts.has(props?.mint)
-  // ) {
-  //   additionalAccounts.push(props.mint);
-  // }
-
-  // const renderAdditionalTokens = additionalAccounts.map((mint) => {
-  //   let name: string;
-  //   let icon: JSX.Element;
-
-  //   name = getTokenName(tokenMap, mint, true, 3);
-  //   icon = <TokenIcon mintAddress={mint} />;
-
-  //   return (
-  //     <Option key={mint} value={mint} name={name}>
-  //       <TokenDisplay
-  //         key={mint}
-  //         mintAddress={mint}
-  //         name={name}
-  //         icon={icon}
-  //         showBalance={false}
-  //       />
-  //     </Option>
-  //   );
-  // });
 
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
@@ -172,10 +108,12 @@ export const CurrencyInput = (props: {
   };
 
   return (
+    <>
     <Card
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0, width: "100%" }}
+      style={{ borderRadius: 20, margin: 0, width: "100%", paddingBottom: '10px' }}
       bodyStyle={{ padding: 0 }}
+      bordered={props.bordered}
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
@@ -186,73 +124,83 @@ export const CurrencyInput = (props: {
             props.onInputChange && props.onInputChange(userUiBalance())
           }
         >
-          Balance: {userUiBalance().toFixed(6)}
-        </div>
-      </div>
-      <div className="ccy-input-header" style={{ padding: "0px 10px 5px 7px" }}>
-        <div className="ccy-input-header-left">
-          <NumericInput
-            disabled={props.disabled}
-            value={props.amount}
-            onChange={(val: any) => {
-              if (props.onInputChange) {
-                props.onInputChange(val);
-              }
-            }}
-            style={{
-              width: '155px',
-              fontSize: 18,
-              boxShadow: "none",
-              borderColor: "transparent",
-              outline: "transpaernt",
-              color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
-            }}
-            placeholder="0.00"
-          />
-          <div 
-            style={{cursor: 'pointer'}}
-            onClick={() => {
-              if (props.onMaxClick) {
-                props.onMaxClick()
-              }
-            }}
-          >
-            Max
-          </div>
-        </div>
-        <div className="ccy-input-header-right" style={{ display: "felx" }}>
-          {!props.hideSelect ? (
-            <Select
-              // size="large"
-              showSearch
-              style={{ minWidth: 100 }}
-              placeholder="CCY"
-              value={props.mint}
-              onChange={(item) => {
-                if (props.onMintChange) {
-                  props.onMintChange(item);
+          <div style={{color: '#fff', marginRight: '10px', lineHeight: 1}}>Balance: {userUiBalance().toFixed(6)}</div>
+          {
+            !props.disabled ?
+            <div 
+              style={{
+                cursor: 'pointer',
+                fontSize: '10px',
+                background: 'rgba(0, 0, 0, 0.75)',  
+                padding: '2px 8px',
+                borderRadius: '5px'
+              }}
+              onClick={() => {
+                if (props.onMaxClick) {
+                  props.onMaxClick()
                 }
               }}
-              filterOption={(input, option) =>
-                option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
             >
-              {[...renderPopularTokens, 
-                // ...renderAdditionalTokens
-              ]}
-            </Select>
-          ) : (
+              MAX
+            </div> :
+            null
+          }
+        </div>
+      </div>
+      <div className="ccy-input-header">
+        <div 
+          className="ccy-input-header-left" 
+          onClick={() => setVisible(true)}
+        >
+          {
             props.mint && (
               <TokenDisplay
                 key={props.mint}
                 name={getTokenName(tokenMap, props.mint)}
                 mintAddress={props.mint}
-                showBalance={true}
               />
             )
-          )}
+          }
         </div>
+
+        {
+          !props.disabled ?
+          <div className="ccy-input-header-right">
+            <NumericInput
+              disabled={props.disabled}
+              value={props.amount}
+              onChange={(val: any) => {
+                if (props.onInputChange) {
+                  props.onInputChange(val);
+                }
+              }}
+              style={{
+                width: '100%',
+                fontSize: 18,
+                boxShadow: "none",
+                borderColor: "transparent",
+                outline: "transpaernt",
+                color: props.amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
+              }}
+              placeholder="0.00"
+            />
+          </div> :
+          null
+        }
       </div>
     </Card>
+
+    <Tokens visible={visible} 
+      onCancel={() => setVisible(false)} 
+      onChange={
+        (mintAddress) => {
+          if (props.onMintChange) {
+            setVisible(false)
+            props.onMintChange(mintAddress);
+          }
+        }
+      } 
+    />
+    </>
   );
 };

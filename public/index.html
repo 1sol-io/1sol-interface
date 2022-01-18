@@ -78,6 +78,7 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <% if (process.env.NODE_ENV !== 'development') { %>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QBGV13WF6K"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -106,5 +107,6 @@
         document.write('<scr' + 'ipt>eruda.init();eruda.position({ x: 40, y: 200 });</scr' + 'ipt>');
       })();
     </script>
+    <% } %>
   </body>
 </html>

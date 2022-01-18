@@ -12,7 +12,6 @@ import {
   SwapOutlined
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
-import * as Sentry from '@sentry/react'
 import { Route as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
 import axios from 'axios'
 
@@ -22,7 +21,6 @@ import {
 } from "../../utils/connection";
 import { useWallet } from "../../context/wallet";
 import { CurrencyInput } from "../currencyInput";
-import { QuoteCurrencyInput } from "../quoteCurrencyInput";
 import Warning from "../warning";
 
 import {
@@ -110,7 +108,6 @@ export const TradeEntry = () => {
 
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
   const choice: { current: string } = useRef('')
-  const errorMessage: { current: string } = useRef('')
 
   const [active, setActive] = useState('')
   const [priceExchange, setPriceExchange] = useState<PriceExchange | undefined>()
@@ -221,7 +218,7 @@ export const TradeEntry = () => {
     setPriceExchange(undefined)
     setHasPriceSwapped(true)
 
-    errorMessage.current = ''
+    setRouteError('')
 
     if (!A.amount) {
       setRouteLoading(false)
@@ -337,13 +334,6 @@ export const TradeEntry = () => {
       fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
-      Sentry.withScope(function(scope) {
-        scope.setTag("fromMint", A.mintAddress);
-        scope.setTag("toMint", B.mintAddress);
-        scope.setTag("mode", route?.routes.length === 1 ? "single" : "multiple");
-        scope.setLevel(Sentry.Severity.Error);
-        Sentry.captureException(new TradeError(`${e}`));
-      });
 
       notify({
         description: "Please try again and approve transactions from your wallet",
@@ -448,20 +438,22 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
           onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          bordered
         />
         <Button
           type="primary"
           className="swap-button"
-          style={{ display: 'flex', justifyContent: 'space-around', margin: '-10px auto', fontSize: '20px', alignItems: 'center' }}
+          style={{ display: 'flex', justifyContent: 'space-around', margin: '-5px auto', fontSize: '20px', alignItems: 'center' }}
           onClick={swapAccounts}
         >
           &#10607;
         </Button>
+
         <Card
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
           bodyStyle={{ padding: 0 }}
         >
-          <QuoteCurrencyInput
+          <CurrencyInput
             title="To(estimated)"
             onInputChange={(val: any) => {
               if (B.amount !== val) {
@@ -476,7 +468,9 @@ export const TradeEntry = () => {
               B.setMint(item);
             }}
             disabled
+            bordered={false}
           />
+
           <Result
             loading={routeLoading && !distributions.length}
             data={distributions}

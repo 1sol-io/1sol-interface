@@ -19,13 +19,12 @@ export const TokenIcon = (props: {
         className={props.className}
         key={props.mintAddress}
         onError={() => setFailed(true)}
-        width="20"
-        height="20"
+        width="24"
+        height="24"
         src={icon}
         style={{
           marginRight: '0.5rem',
-          marginTop: '0.11rem',
-          borderRadius: '1rem',
+          borderRadius: '50%',
           backgroundColor: 'white',
           backgroundClip: 'padding-box',
           ...props.style
