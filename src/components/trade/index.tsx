@@ -12,7 +12,6 @@ import {
   SwapOutlined
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
-import * as Sentry from '@sentry/react'
 import { Route as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
 import axios from 'axios'
 
@@ -335,13 +334,6 @@ export const TradeEntry = () => {
       fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
-      Sentry.withScope(function(scope) {
-        scope.setTag("fromMint", A.mintAddress);
-        scope.setTag("toMint", B.mintAddress);
-        scope.setTag("mode", route?.routes.length === 1 ? "single" : "multiple");
-        scope.setLevel(Sentry.Severity.Error);
-        Sentry.captureException(new TradeError(`${e}`));
-      });
 
       notify({
         description: "Please try again and approve transactions from your wallet",
