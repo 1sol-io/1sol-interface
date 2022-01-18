@@ -109,7 +109,6 @@ export const TradeEntry = () => {
 
   const timer: { current: NodeJS.Timeout | null } = useRef(null)
   const choice: { current: string } = useRef('')
-  const errorMessage: { current: string } = useRef('')
 
   const [active, setActive] = useState('')
   const [priceExchange, setPriceExchange] = useState<PriceExchange | undefined>()
@@ -220,7 +219,7 @@ export const TradeEntry = () => {
     setPriceExchange(undefined)
     setHasPriceSwapped(true)
 
-    errorMessage.current = ''
+    setRouteError('')
 
     if (!A.amount) {
       setRouteLoading(false)
@@ -447,6 +446,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
           onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          bordered
         />
         <Button
           type="primary"
@@ -456,6 +456,7 @@ export const TradeEntry = () => {
         >
           &#10607;
         </Button>
+
         <Card
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
           bodyStyle={{ padding: 0 }}
@@ -475,7 +476,9 @@ export const TradeEntry = () => {
               B.setMint(item);
             }}
             disabled
+            bordered={false}
           />
+
           <Result
             loading={routeLoading && !distributions.length}
             data={distributions}

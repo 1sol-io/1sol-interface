@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 
 import { NumericInput } from "../numericInput";
 import { convert, getTokenName } from "../../utils/utils";
@@ -54,7 +55,8 @@ export const TokenDisplay = (props: {
           }}
         >
           {icon || <TokenIcon mintAddress={mintAddress} />}
-          <div>{name}</div>
+          <div style={{ marginRight: '0.5rem' }}>{name}</div>
+          <DownOutlined />
         </div>
         {showBalance ? (
           <span
@@ -84,7 +86,8 @@ export const CurrencyInput = (props: {
   onInputChange?: (val: number) => void;
   onMintChange?: (account: string) => void;
   disabled?: boolean,
-  onMaxClick?: () => void
+  onMaxClick?: () => void,
+  bordered?: boolean,
 }) => {
   const { userAccounts } = useUserAccounts();
   const mint = cache.getMint(props.mint);
@@ -110,6 +113,7 @@ export const CurrencyInput = (props: {
       className="ccy-input"
       style={{ borderRadius: 20, margin: 0, width: "100%", paddingBottom: '10px' }}
       bodyStyle={{ padding: 0 }}
+      bordered={props.bordered}
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
