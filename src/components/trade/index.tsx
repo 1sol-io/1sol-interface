@@ -38,7 +38,6 @@ import {
   getDecimalLength 
 } from "../../utils/utils";
 import { useUserAccounts } from "../../utils/accounts";
-import { TradeError } from "../../utils/error";
 
 import { Settings } from "../settings";
 import { TokenIcon } from "../tokenIcon";
