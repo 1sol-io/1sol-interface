@@ -6,7 +6,6 @@ import { NumericInput } from "../numericInput";
 import { convert, getTokenName } from "../../utils/utils";
 import {
   useUserAccounts,
-  useAccountByMint,
   cache,
 } from "../../utils/accounts";
 import { TokenIcon } from "../tokenIcon";
@@ -20,20 +19,8 @@ export const TokenDisplay = (props: {
   name: string;
   mintAddress: string;
   icon?: JSX.Element;
-  showBalance?: boolean;
 }) => {
-  const { showBalance, mintAddress, name, icon } = props;
-  const tokenMint = cache.getMint(mintAddress);
-  const tokenAccount = useAccountByMint(mintAddress);
-
-  let balance: number = 0;
-  let hasBalance: boolean = false;
-  if (showBalance) {
-    if (tokenAccount && tokenMint) {
-      balance = convert(tokenAccount, tokenMint);
-      hasBalance = balance > 0;
-    }
-  }
+  const { mintAddress, name, icon } = props;
 
   return (
     <>
@@ -58,21 +45,7 @@ export const TokenDisplay = (props: {
           <div style={{ marginRight: '0.5rem' }}>{name}</div>
           <DownOutlined />
         </div>
-        {showBalance ? (
-          <span
-            title={balance.toString()}
-            key={mintAddress}
-            className="token-balance"
-          >
-            {
-              hasBalance
-              ? balance < 0.001
-                ? "<0.001"
-                : balance.toFixed(3)
-              : "-"
-            }
-          </span>
-        ) : null}
+        
       </div>
     </>
   );
@@ -153,13 +126,19 @@ export const CurrencyInput = (props: {
           onClick={() => setVisible(true)}
         >
           {
-            props.mint && (
+            props.mint ? (
               <TokenDisplay
                 key={props.mint}
                 name={getTokenName(tokenMap, props.mint)}
                 mintAddress={props.mint}
               />
-            )
+            ) :
+              // <TokenDisplay
+              //   key='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+              //   name="USDC"
+              //   mintAddress="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+              // />
+              null
           }
         </div>
 
