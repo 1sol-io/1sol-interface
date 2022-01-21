@@ -157,6 +157,8 @@ const Pool = () => {
       setUnstakeValue('')
       setUnstakeLoading(false)
       setUnstakeModalVisible(false)
+      setStakedBalance(0)
+      setUserDeposit('0')
     }
   }, [unstakeValue, stakedTokenAccount, handleWithdraw, pool, fetchStakePool, fetchUserTokenAccounts])
 
