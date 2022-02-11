@@ -42,6 +42,15 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Trade
             </NavLink>
           </Menu.Item>
+          <Menu.Item key="/dex">
+            <a
+              href="https://dex.1sol.io"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              DEX
+            </a>
+          </Menu.Item>
           <Menu.Item key="/staking">
             <NavLink
               to={{
