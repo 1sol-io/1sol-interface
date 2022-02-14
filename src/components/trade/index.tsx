@@ -5,7 +5,6 @@ import {
   PlusOutlined,
   RightOutlined,
   ArrowRightOutlined,
-  SettingOutlined,
   ExpandOutlined,
   ReloadOutlined,
   InfoCircleOutlined,
