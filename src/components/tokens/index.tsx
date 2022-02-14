@@ -149,6 +149,7 @@ const Tokens = ({
             placeholder="Search by Token Name / Symbol / Address"
             onChange={handleChange}
             prefix={<SearchOutlined />}
+            autoFocus
           />
         </div>
         <div className="bd">
