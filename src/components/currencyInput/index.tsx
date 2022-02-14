@@ -99,14 +99,7 @@ export const CurrencyInput = (props: {
           {
             !props.disabled ?
             <div 
-              style={{
-                cursor: 'pointer',
-                fontSize: '10px',
-                background: '#7049F6',  
-                padding: '2px 8px',
-                borderRadius: '3px',
-                color: '#fff'
-              }}
+              className="max-btn"
               onClick={() => {
                 if (props.onMaxClick) {
                   props.onMaxClick()
