@@ -10,10 +10,42 @@
   }
 
   .icon {
-    width: 30px;
-
     &:not(:last-of-type) {
       margin-right: 15px;
+    }
+
+    a {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 0%,
+        rgba(255, 255, 255, 0.02) 52.32%,
+        rgba(255, 255, 255, 0.04) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-sizing: border-box;
+      border-radius: 40px;
+
+      &:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          rgba(255, 255, 255, 0.075) 52.32%,
+          rgba(255, 255, 255, 0.15) 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-sizing: border-box;
+        border-radius: 40px;
+      }
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
     }
   }
 }

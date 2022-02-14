@@ -1,13 +1,24 @@
 // @import "~antd/dist/antd.css";
 @import "~antd/dist/antd.dark.less";
-@primary-color: #8944EF;
+@primary-color: #7049F6;
 // @popover-background: #1a2029;
 
 body {
-  background: #272a2e !important;
+  .ant-modal-header {
+    background: none;
+  }
 
-  .ant-modal-body {
-    background: #323437;
+  .ant-modal-content {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.05) 52.32%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+    backdrop-filter: blur(40px);
+    border-radius: 16px;
   }
 
   .ant-notification-notice {
@@ -48,9 +59,17 @@ body {
       }
 
       .ant-card {
-        background: #323437;
-        // width: 550px;
         margin: 20px auto 30px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.02) 52.32%,
+          rgba(255, 255, 255, 0.04) 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-sizing: border-box;
+        backdrop-filter: blur(25px);
+        border-radius: 16px;
       }
 
       .ant-input-number-handler-wrap {
@@ -76,7 +95,7 @@ body {
 }
 
 .ant-btn-primary {
-  background: linear-gradient(45deg, #67b5fd, #8944ef, #5632de);
+  // background: linear-gradient(45deg, #67b5fd, #8944ef, #5632de);
   border-radius: 32px;
   border: 0 none;
   z-index: 1;

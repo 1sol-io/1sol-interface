@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Spin, Popover, Modal, Tooltip } from "antd";
+import { Button, Spin, Popover, Modal, Tooltip } from "antd";
 import {
   LoadingOutlined,
   PlusOutlined,
@@ -49,6 +49,8 @@ import {
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 import timeoutIcon from '../../assets/4.gif'
+import swapIcon from '../../assets/arrow.svg'
+import settingIcon from '../../assets/setting.svg'
 
 import "./trade.less";
 
@@ -401,7 +403,7 @@ export const TradeEntry = () => {
           >
             {
               timeoutLoading ?
-                <img style={{ display: 'block', width: '24px', margin: '-3px 0 0' }} src={timeoutIcon} alt="" /> :
+                <img style={{ display: 'block', width: '24px' }} src={timeoutIcon} alt="" /> :
                 routeLoading ?
                   <LoadingOutlined style={{ fontSize: '19px', marginTop: '3px' }} /> :
                   <ReloadOutlined style={{ fontSize: '19px', marginTop: '3px' }} />
@@ -409,14 +411,13 @@ export const TradeEntry = () => {
           </Button>
           <Popover
             placement="rightTop"
-            title="Settings"
             content={<Settings />}
             trigger="click"
           >
             <Button
               shape="circle"
               type="text"
-              icon={<SettingOutlined style={{ fontSize: '19px' }} />}
+              icon={<img src={settingIcon} style={{ width: '24px', height: '24px' }} alt="" />}
             />
           </Popover>
         </div>
@@ -439,18 +440,16 @@ export const TradeEntry = () => {
           onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
           bordered
         />
-        <Button
-          type="primary"
+
+        <div
           className="swap-button"
-          style={{ display: 'flex', justifyContent: 'space-around', margin: '-5px auto', fontSize: '20px', alignItems: 'center' }}
           onClick={swapAccounts}
         >
-          &#10607;
-        </Button>
+          <img src={swapIcon} alt="" />
+        </div>
 
-        <Card
+        <div
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
-          bodyStyle={{ padding: 0 }}
         >
           <CurrencyInput
             title="To(estimated)"
@@ -470,23 +469,27 @@ export const TradeEntry = () => {
             bordered={false}
           />
 
-          <Result
-            loading={routeLoading && !distributions.length}
-            data={distributions}
-            active={active}
-            handleSwitchChoice={handleSwitchChoice}
-            handleShowRoute={handleShowRoute}
-            error={routeError}
-          />
-        </Card>
+          {
+            routeLoading || distributions.length || routeError ?
+            <Result
+              loading={routeLoading && !distributions.length}
+              data={distributions}
+              active={active}
+              handleSwitchChoice={handleSwitchChoice}
+              handleShowRoute={handleShowRoute}
+              error={routeError}
+            />
+            : null
+          }
+        </div>
       </div>
-      <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+      <div style={{fontSize: '12px', color: '#617089', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
         <div>Slippage Tolerance</div>
         <div>{slippage * 100}%</div>
       </div>
       {
         priceExchange ?
-        <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+        <div style={{fontSize: '12px', color: '#617089', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
           <div>
             {
               hasPriceSwapped ?

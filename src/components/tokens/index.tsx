@@ -9,6 +9,7 @@ import { convert } from '../../utils/utils'
 import { TokenIcon } from '../tokenIcon'
 
 import './index.less'
+import { SearchOutlined } from '@ant-design/icons/lib/icons'
 
 export const TokenDisplay = (props: {
   name: string
@@ -147,6 +148,7 @@ const Tokens = ({
             size="large"
             placeholder="Search by Token Name / Symbol / Address"
             onChange={handleChange}
+            prefix={<SearchOutlined />}
           />
         </div>
         <div className="bd">

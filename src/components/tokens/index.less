@@ -10,15 +10,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0 0;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    margin-top: 8px;
+    border-radius: 8px;
+
+    &:hover {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
     .token {
       display: flex;
       align-items: center;
 
-      .token-name {
-        color: rgba(255, 255, 255, 0.35);
+      .token-symbol {
+        color: #fff;
+        font-weight: 500;
       }
+
+      .token-name {
+        color: #617089;
+      }
+    }
+
+    .token-balance {
+      color: #fff;
     }
   }
 }

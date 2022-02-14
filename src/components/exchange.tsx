@@ -28,7 +28,6 @@ const ExchangeView = (props: {}) => {
         right={
           <Popover
             placement="topRight"
-            title="Settings"
             content={<Settings />}
             trigger="click"
           >

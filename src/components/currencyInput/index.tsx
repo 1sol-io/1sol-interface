@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Card } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 import { NumericInput } from "../numericInput";
@@ -30,7 +29,8 @@ export const TokenDisplay = (props: {
         style={{
           display: 'flex',
           alignItems: 'center',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          color: '#fff'
         }}
       >
         <div
@@ -82,11 +82,9 @@ export const CurrencyInput = (props: {
 
   return (
     <>
-    <Card
+    <div
       className="ccy-input"
       style={{ borderRadius: 20, margin: 0, width: "100%", paddingBottom: '10px' }}
-      bodyStyle={{ padding: 0 }}
-      bordered={props.bordered}
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
@@ -104,9 +102,10 @@ export const CurrencyInput = (props: {
               style={{
                 cursor: 'pointer',
                 fontSize: '10px',
-                background: 'rgba(0, 0, 0, 0.75)',  
+                background: '#7049F6',  
                 padding: '2px 8px',
-                borderRadius: '5px'
+                borderRadius: '3px',
+                color: '#fff'
               }}
               onClick={() => {
                 if (props.onMaxClick) {
@@ -120,7 +119,7 @@ export const CurrencyInput = (props: {
           }
         </div>
       </div>
-      <div className="ccy-input-header">
+      <div className="ccy-input-body">
         <div 
           className="ccy-input-header-left" 
           onClick={() => setVisible(true)}
@@ -133,11 +132,6 @@ export const CurrencyInput = (props: {
                 mintAddress={props.mint}
               />
             ) :
-              // <TokenDisplay
-              //   key='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-              //   name="USDC"
-              //   mintAddress="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-              // />
               null
           }
         </div>
@@ -167,7 +161,7 @@ export const CurrencyInput = (props: {
           null
         }
       </div>
-    </Card>
+    </div>
 
     <Tokens visible={visible} 
       onCancel={() => setVisible(false)} 
