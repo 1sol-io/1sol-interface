@@ -41,7 +41,7 @@ const ExchangeView = (props: {}) => {
         }
       />
 
-      <div style={{position: 'relative', zIndex: 10}}>
+      <div>
         <Card
           className="airdrop-card exchange-card"
           headStyle={{ padding: 0 }}
