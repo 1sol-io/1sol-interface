@@ -135,6 +135,7 @@ const Tokens = ({
       destroyOnClose
       onCancel={() => {
         if (onCancel) {
+          setOptions(tokens)
           onCancel()
         }
       }}
