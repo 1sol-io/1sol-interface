@@ -4,7 +4,24 @@
   > .bd {
     margin-top: 15px;
     max-height: 420px;
-    overflow: scroll;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      background-color: transparent;
+      width: 2px;
+    }
+
+    &::-webkit-scrollbar {
+      background-color: transparent;
+      height: 4px;
+    }
+    // &::-webkit-scrollbar-track {
+    //   background-color: transparent;
+    // }
+    &::-webkit-scrollbar-thumb {
+      background-color: #090f29;
+      border-radius: 4px;
+    }
   }
 
   .token-display {
