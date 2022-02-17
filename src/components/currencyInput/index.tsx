@@ -42,7 +42,7 @@ export const TokenDisplay = (props: {
           }}
         >
           {icon || <TokenIcon mintAddress={mintAddress} />}
-          <div style={{ marginRight: '0.5rem' }}>{name}</div>
+          <div style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>{name}</div>
           <DownOutlined />
         </div>
         
