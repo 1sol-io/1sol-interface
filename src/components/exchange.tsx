@@ -43,6 +43,14 @@ const ExchangeView = (props: {}) => {
 
       <div>
         <Card
+          className="exchange-card"
+          headStyle={{ padding: 0 }}
+          bodyStyle={{ position: "relative", padding: '0 20px 20px' }}
+        >
+          {tradeTab.render()}
+        </Card>
+
+        <Card
           className="airdrop-card exchange-card"
           headStyle={{ padding: 0 }}
         >
@@ -89,16 +97,7 @@ const ExchangeView = (props: {}) => {
           </div>
         </Card>
 
-        <Card
-          className="exchange-card"
-          headStyle={{ padding: 0 }}
-          bodyStyle={{ position: "relative", padding: '0 20px 20px' }}
-        >
-          {tradeTab.render()}
-        </Card>
-
         <Social />
-
       </div>
     </>
   );

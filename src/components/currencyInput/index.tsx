@@ -84,7 +84,7 @@ export const CurrencyInput = (props: {
     <>
     <div
       className="ccy-input"
-      style={{ borderRadius: 20, margin: 0, width: "100%", paddingBottom: '10px' }}
+      style={{ borderRadius: 20, margin: 0, width: "100%" }}
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
