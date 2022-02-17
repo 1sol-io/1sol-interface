@@ -1,10 +1,10 @@
 import React from 'react'
 
-import twitter from '../assets/twitter.svg'
-import telegram from '../assets/telegram.svg'
-import medium from '../assets/medium.svg'
-import github from '../assets/github.svg'
-import discord from '../assets/discord.png'
+import twitter from '../assets/social/twitter.svg'
+import telegram from '../assets/social/telegram.svg'
+import medium from '../assets/social/medium.svg'
+import github from '../assets/social/github.svg'
+import discord from '../assets/social/discord.svg'
 
 import './social.less'
 

@@ -1,15 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Spin, Popover, Modal, Tooltip } from "antd";
+import { Button, Spin, Popover, Modal, Tooltip } from "antd";
 import {
   LoadingOutlined,
   PlusOutlined,
   RightOutlined,
   ArrowRightOutlined,
-  SettingOutlined,
   ExpandOutlined,
   ReloadOutlined,
   InfoCircleOutlined,
-  SwapOutlined
+  SwapOutlined,
+  DownOutlined,
+  UpOutlined,
 } from "@ant-design/icons";
 import { Signer, TransactionInstruction } from "@solana/web3.js";
 import { Route as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
@@ -49,6 +50,8 @@ import {
 import { useOnesolProtocol } from "../../hooks/useOnesolProtocol";
 
 import timeoutIcon from '../../assets/4.gif'
+import swapIcon from '../../assets/arrow.svg'
+import settingIcon from '../../assets/setting.svg'
 
 import "./trade.less";
 
@@ -111,6 +114,8 @@ export const TradeEntry = () => {
   const [active, setActive] = useState('')
   const [priceExchange, setPriceExchange] = useState<PriceExchange | undefined>()
   const [hasPriceSwapped, setHasPriceSwapped] = useState(true)
+
+  const [expanded, setExpanded] = useState(false)
 
   const { fetchUserTokenAccounts } = useUserAccounts();
 
@@ -382,6 +387,10 @@ export const TradeEntry = () => {
     setSwapRoutes(routes)
   }
 
+  const handleToggle = () => {
+    setExpanded(!expanded)
+  }
+
   return (
     <>
       <div className="trade-header">
@@ -401,7 +410,7 @@ export const TradeEntry = () => {
           >
             {
               timeoutLoading ?
-                <img style={{ display: 'block', width: '24px', margin: '-3px 0 0' }} src={timeoutIcon} alt="" /> :
+                <img style={{ display: 'block', width: '24px' }} src={timeoutIcon} alt="" /> :
                 routeLoading ?
                   <LoadingOutlined style={{ fontSize: '19px', marginTop: '3px' }} /> :
                   <ReloadOutlined style={{ fontSize: '19px', marginTop: '3px' }} />
@@ -409,14 +418,13 @@ export const TradeEntry = () => {
           </Button>
           <Popover
             placement="rightTop"
-            title="Settings"
             content={<Settings />}
             trigger="click"
           >
             <Button
               shape="circle"
               type="text"
-              icon={<SettingOutlined style={{ fontSize: '19px' }} />}
+              icon={<img src={settingIcon} style={{ width: '24px', height: '24px' }} alt="" />}
             />
           </Popover>
         </div>
@@ -439,18 +447,16 @@ export const TradeEntry = () => {
           onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
           bordered
         />
-        <Button
-          type="primary"
+
+        <div
           className="swap-button"
-          style={{ display: 'flex', justifyContent: 'space-around', margin: '-5px auto', fontSize: '20px', alignItems: 'center' }}
           onClick={swapAccounts}
         >
-          &#10607;
-        </Button>
+          <img src={swapIcon} alt="" />
+        </div>
 
-        <Card
+        <div
           style={{ borderRadius: 20, margin: 0, width: '100%' }}
-          bodyStyle={{ padding: 0 }}
         >
           <CurrencyInput
             title="To(estimated)"
@@ -470,23 +476,29 @@ export const TradeEntry = () => {
             bordered={false}
           />
 
-          <Result
-            loading={routeLoading && !distributions.length}
-            data={distributions}
-            active={active}
-            handleSwitchChoice={handleSwitchChoice}
-            handleShowRoute={handleShowRoute}
-            error={routeError}
-          />
-        </Card>
+          {
+            routeLoading || distributions.length || routeError ?
+            <Result
+              loading={routeLoading && !distributions.length}
+              data={distributions}
+              active={active}
+              handleSwitchChoice={handleSwitchChoice}
+              handleShowRoute={handleShowRoute}
+              error={routeError}
+              expanded={expanded}
+              handleToggle={handleToggle}
+            />
+            : null
+          }
+        </div>
       </div>
-      <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+      <div style={{fontSize: '12px', color: '#617089', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
         <div>Slippage Tolerance</div>
         <div>{slippage * 100}%</div>
       </div>
       {
         priceExchange ?
-        <div style={{fontSize: '12px', color: '#777', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
+        <div style={{fontSize: '12px', color: '#617089', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px'}}>
           <div>
             {
               hasPriceSwapped ?
@@ -570,59 +582,88 @@ export const Result = (props: {
   data: Distribution[],
   loading: boolean,
   handleSwitchChoice: (a: string) => void,
+  handleToggle: () => void,
   handleShowRoute: (routes: SwapRoute[][]) => void,
   error: string,
   active?: string,
+  expanded?: boolean,
 }) => {
-  const { data, loading, handleSwitchChoice, active, handleShowRoute, error } = props
+  const { data, loading, handleSwitchChoice, active, handleShowRoute, handleToggle, expanded, error } = props
+
+
+  if (loading) {
+    return (
+      <div className="mod-results">
+        <LoadingOutlined style={{ fontSize: 24 }} spin /> 
+      </div>
+    )
+  } else if (!data.length && error) {
+    return (
+      <div className="mod-results">
+        <div>{error}</div>
+      </div>
+    )
+  }
+
+  const result = !expanded ? data.slice(0, 2) : data
 
   return (
     <div className="mod-results">
-      {
-        loading ?
-          <LoadingOutlined style={{ fontSize: 24 }} spin /> :
-          !data.length && error ?
-            <div>{error}</div> :
-            data.map(({ providers, output, offset, id, swapRoute: {routes, labels} }, i) => (
-              <div
-                key={id}
-                className={id === active ? "mod-result active" : 'mod-result'}
-                onClick={() => handleSwitchChoice(id)}
-              >
-                <div className="hd" style={{lineHeight: 1.2, fontSize: providers.length > 1 ? '12px' : '14px', textAlign: 'left'}}>
-                  {
-                    providers.map((provider: string, i: number) => {
-                      return (
-                        <React.Fragment key={provider}>
-                          <div>{provider}</div>
-                          {
-                            i < providers.length - 1 ? <div>×</div> : ''
-                          }
-                        </React.Fragment>
-                      )
-                    })
-                  }
-                </div>
-                <div className="bd">
-                  <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)` : ''}</div>
-                  {
-                    <div onClick={() => handleShowRoute(routes)} className="route">
-                      {labels ? labels.map((label: string, i: number) => (
-                        <span key={i}>
-                          {label}
-                          {
-                            i !== labels.length - 1 ? <RightOutlined style={{ margin: '0 2px' }} /> : null
-                          }
-                        </span>
-                      )) : null}
-                      <ExpandOutlined style={{ marginLeft: '5px' }} />
-                    </div>
-                  }
-                </div>
-                {i === 0 ? <div className="ft">Best</div> : null}
+      <div className="bd">            
+        {
+          result.map(({ providers, output, offset, id, swapRoute: {routes, labels} }, i) => (
+            <div
+              key={id}
+              className={id === active ? "mod-result active" : 'mod-result'}
+              onClick={() => handleSwitchChoice(id)}
+            >
+              <div className="hd" style={{lineHeight: 1.2, fontWeight: 'bold', fontSize: providers.length > 1 ? '12px' : '14px', textAlign: 'left'}}>
+                {
+                  providers.map((provider: string, i: number) => {
+                    return (
+                      <React.Fragment key={provider}>
+                        <div>{provider}</div>
+                        {
+                          i < providers.length - 1 ? <div>×</div> : ''
+                        }
+                      </React.Fragment>
+                    )
+                  })
+                }
               </div>
-            ))
-      }
+              <div className="bd">
+                <div className="number">{output}{offset ? `(${offset.toFixed(2)}%)` : ''}</div>
+                {
+                  <div onClick={() => handleShowRoute(routes)} className="route">
+                    {labels ? labels.map((label: string, i: number) => (
+                      <span key={i}>
+                        {label}
+                        {
+                          i !== labels.length - 1 ? <RightOutlined style={{ margin: '0 2px' }} /> : null
+                        }
+                      </span>
+                    )) : null}
+                    <ExpandOutlined style={{ marginLeft: '5px' }} />
+                  </div>
+                }
+              </div>
+              {i === 0 ? <div className="ft">Best</div> : null}
+            </div>
+          ))
+        }
+      </div>
+      <div 
+        className="ft" 
+        style={{marginTop: '10px', cursor: 'pointer'}}
+        onClick={handleToggle}
+      >
+        <Button size="small" block type="text"
+         icon={
+          expanded ?
+          <UpOutlined style={{fontSize: '10px'}} /> :
+          <DownOutlined style={{fontSize: '10px'}} />
+        }></Button>
+      </div>
     </div>
   )
 }

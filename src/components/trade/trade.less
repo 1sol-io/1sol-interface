@@ -2,7 +2,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 10px 0 5px;
+
+  > .hd {
+    font-size: 14px;
+    font-weight: bold;
+  }
 
   > .bd {
     display: flex;
@@ -21,7 +26,6 @@
   // }
 }
 
-
 .trade-spinner {
   position: absolute !important;
   top: 10px;
@@ -30,9 +34,24 @@
 }
 
 .swap-button {
-  border-radius: 2em;
-  width: 32px;
-  padding: 4px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: space-around;
+  margin: 5px auto -5px;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #67b5fd;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 52.32%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    border-radius: 40px;
+  }
 }
 
 .swap-button > span {
@@ -97,7 +116,7 @@
       border: 1px solid #383a3e;
       border-radius: 16px;
       padding: 10px;
-      background-color: #272a2e;
+      background: #11131b;
     }
 
     .market-route {
@@ -105,17 +124,25 @@
     }
 
     .pool {
-      border: 1px solid #383a3e;
       border-radius: 10px;
       padding: 5px 10px;
       text-align: left;
       width: 100%;
-      background-color: #323437;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 0%,
+        rgba(255, 255, 255, 0.02) 52.32%,
+        rgba(255, 255, 255, 0.04) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-sizing: border-box;
+      border-radius: 5px;
 
       .name {
-        color: rgb(126, 150, 184);
+        color: #fff;
         font-size: 14px;
         margin-bottom: 5px;
+        font-weight: 500;
 
         @media only screen and (max-width: 600px) {
           text-align: center;
@@ -123,7 +150,7 @@
       }
 
       .amount {
-        color: #fff;
+        color: #617089;
         font-size: 12px;
         display: flex;
         justify-content: space-between;
@@ -162,8 +189,12 @@
 }
 
 .mod-results {
-  margin: 20px 0;
-  padding: 0 20px;
+  margin-top: -40px;
+  padding: 25px 20px 10px;
+  background: #090f28;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  border-top: none;
 }
 
 .mod-result {
@@ -171,13 +202,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #37445a;
-  border-radius: 8px 12px 12px;
   padding: 10px;
-  font-size: 13px;
+  font-size: 12px;
   margin: 15px 0 0;
-  color: #777;
   position: relative;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.02) 52.32%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  border-radius: 8px;
+  color: #617089;
 
   &:hover {
     color: #fff;
@@ -185,15 +223,14 @@
 
   &.active {
     color: #fff;
-    border-color: #5632de;
-    background-color: #383a3e;
+    border: 1px solid #7049f6;
   }
 
   > .ft {
     position: absolute;
     display: block;
     font-size: 11px;
-    background: #5632de;
+    background: #7049f6;
     color: #fff;
     padding: 0px 5px;
     border-radius: 10px 10px 0px 10px;
@@ -209,7 +246,6 @@
 
   .route {
     font-size: 11px;
-    color: #999;
     display: flex;
     justify-content: flex-end;
     align-items: center;

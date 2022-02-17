@@ -268,6 +268,7 @@ export function WalletProvider({ children = null as any }) {
         okButtonProps={{ style: { display: "none" } }}
         onCancel={close}
         width={400}
+        footer={null}
       >
         {WALLET_PROVIDERS.map((provider) => {
           const onClick = function () {
@@ -295,7 +296,8 @@ export function WalletProvider({ children = null as any }) {
                 display: provider.name === "Solareum" ? "none" : "block" ,
                 width: "100%",
                 textAlign: "left",
-                marginBottom: 8,
+                marginBottom: 10,
+                borderRadius: 4,
               }}
             >
               {provider.name}

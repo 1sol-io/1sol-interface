@@ -13,3 +13,6 @@ export { default as LoadingOutlined } from '@ant-design/icons/LoadingOutlined'
 export {
   default as InfoCircleOutlined
 } from '@ant-design/icons/InfoCircleOutlined'
+
+export { default as DownOutlined } from '@ant-design/icons/DownOutlined'
+export { default as UpOutlined } from '@ant-design/icons/UpOutlined'
