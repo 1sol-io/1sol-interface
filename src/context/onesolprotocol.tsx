@@ -17,6 +17,7 @@ import {
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
+import { useLocalStorageState } from '../utils/utils'
 
 export const OnesolProtocolContext = createContext<any>(null)
 
@@ -26,7 +27,7 @@ export function OnesolProtocolProvider({ children = null as any }){
   const [oneSolProtocol, setOneSolProtocol] = useState<OnesolProtocol | null>(
     null
   )
-  const [tokens, setTokens] = useState<TokenInfo[]>([])
+  const [tokens, setTokens] = useLocalStorageState('tokens', [])
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
 
   const abortController: {
@@ -44,41 +45,42 @@ export function OnesolProtocolProvider({ children = null as any }){
     [connection]
   )
 
-  const fetchTokenList = useCallback(
-    async () => {
-      if (oneSolProtocol) {
-        const tokenList = await oneSolProtocol.getTokenList()
+  useEffect(
+    () => {
+      let knownMints = new Map<string, TokenInfo>()
 
-        let knownMints = new Map<string, TokenInfo>()
+      tokens.forEach((item: TokenInfo) => {
+        const mint: MintInfo = {
+          mintAuthority: null,
+          supply: new u64(0),
+          decimals: item.decimals,
+          isInitialized: true,
+          freezeAuthority: null
+        }
 
-        tokenList.forEach((item: TokenInfo) => {
-          const mint: MintInfo = {
-            mintAuthority: null,
-            supply: new u64(0),
-            decimals: item.decimals,
-            isInitialized: true,
-            freezeAuthority: null
-          }
+        knownMints.set(item.address, item)
 
-          knownMints.set(item.address, item)
+        cache.addMint(new PublicKey(item.address), mint)
+      })
 
-          cache.addMint(new PublicKey(item.address), mint)
-        })
-
-        setTokens(tokenList)
-        setTokenMap(knownMints)
-      }
+      setTokenMap(knownMints)
     },
-    [oneSolProtocol]
+    [tokens]
   )
 
   useEffect(
     () => {
       if (oneSolProtocol) {
+        const fetchTokenList = async () => {
+          const tokenList = await oneSolProtocol.getTokenList()
+
+          setTokens(tokenList)
+        }
+
         fetchTokenList()
       }
     },
-    [oneSolProtocol, fetchTokenList]
+    [oneSolProtocol]
   )
 
   const getRoutes = useCallback(

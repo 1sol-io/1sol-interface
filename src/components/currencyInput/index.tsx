@@ -121,7 +121,7 @@ export const CurrencyInput = (props: {
             props.mint ? (
               <TokenDisplay
                 key={props.mint}
-                name={getTokenName(tokenMap, props.mint)}
+                name={tokenMap.get(props.mint)?.symbol || '-'}
                 mintAddress={props.mint}
               />
             ) :
