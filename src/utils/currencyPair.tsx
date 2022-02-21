@@ -14,10 +14,7 @@ import {
 
 import { cache, useAccountByMint } from "./accounts";
 import {
-  CurveType,
-  PoolConfig,
   TokenAccount,
-  DEFAULT_DENOMINATOR,
 } from "../models";
 import { convert, getTokenIcon, getTokenName } from "./utils";
 import { useOnesolProtocol } from "../hooks/useOnesolProtocol";
@@ -41,8 +38,6 @@ export interface CurrencyPairContextState {
   B: CurrencyContextState;
   lastTypedAccount: string;
   setLastTypedAccount: (mintAddress: string) => void;
-  options: PoolConfig;
-  setOptions: (config: PoolConfig) => void;
 }
 
 const CurrencyPairContext = React.createContext<CurrencyPairContextState | null>(
@@ -53,7 +48,7 @@ const convertAmount = (amount: string, mint?: MintInfo) => {
   return parseFloat(amount) * Math.pow(10, mint?.decimals || 0);
 };
 
-export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
+export const useCurrencyLeg = (defaultMint?: string) => {
   const { tokenMap } = useOnesolProtocol();
   const [amount, setAmount] = useState("");
   const [mintAddress, setMintAddress] = useState(defaultMint || "");
@@ -78,8 +73,7 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
           // at least 0.05 SOL is needed for paying gas
           mintAddress === WRAPPED_SOL_MINT.toBase58() ?
           convert(account, mint) - 0.05 >= parseFloat(amount): 
-          convert(account, mint) >= parseFloat(amount) ||
-          config.curveType === CurveType.ConstantProductWithOffset
+          convert(account, mint) >= parseFloat(amount)
         ),
     }),
     [
@@ -90,7 +84,6 @@ export const useCurrencyLeg = (config: PoolConfig, defaultMint?: string) => {
       tokenMap,
       setAmount,
       setMintAddress,
-      config,
     ]
   );
 };
@@ -103,25 +96,12 @@ export function CurrencyPairProvider({ children = null as any }) {
 
   const [lastTypedAccount, setLastTypedAccount] = useState("");
 
-  const [options, setOptions] = useState<PoolConfig>({
-    curveType: CurveType.ConstantProduct,
-    fees: {
-      tradeFeeNumerator: 25,
-      tradeFeeDenominator: DEFAULT_DENOMINATOR,
-      ownerTradeFeeNumerator: 5,
-      ownerTradeFeeDenominator: DEFAULT_DENOMINATOR,
-      ownerWithdrawFeeNumerator: 0,
-      ownerWithdrawFeeDenominator: 0,
-      hostFeeNumerator: 20,
-      hostFeeDenominator: 100,
-    },
-  });
 
-  const base = useCurrencyLeg(options);
+  const base = useCurrencyLeg();
   const mintAddressA = base.mintAddress;
   const setMintAddressA = base.setMint;
 
-  const quote = useCurrencyLeg(options);
+  const quote = useCurrencyLeg();
   const mintAddressB = quote.mintAddress;
   const setMintAddressB = quote.setMint;
 
@@ -205,8 +185,6 @@ export function CurrencyPairProvider({ children = null as any }) {
         B: quote,
         lastTypedAccount,
         setLastTypedAccount,
-        options,
-        setOptions,
       }}
     >
       {children}
