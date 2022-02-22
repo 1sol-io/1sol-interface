@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DownOutlined } from "@ant-design/icons";
 
 import { NumericInput } from "../numericInput";
-import { convert, getTokenName } from "../../utils/utils";
+import { convert } from "../../utils/utils";
 import {
   useUserAccounts,
   cache,
