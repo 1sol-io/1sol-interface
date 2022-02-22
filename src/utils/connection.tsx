@@ -147,42 +147,85 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
   return errors;
 };
 
-export interface Transactions {
-  instructions: TransactionInstruction[],
-  signers: Signer[],
-  cleanInstructions?: TransactionInstruction[],
-}
-
 export const signAllTransactions = async (
   connection: Connection,
   wallet: any,
-  transactions: {
-    instructions: TransactionInstruction[],
-    signers: Signer[],
-  }[]
+  transactions: Transaction[],
 ) => {
   const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
 
-  const _transactions = transactions.map(({ instructions, signers }) => {
-    let transaction = new Transaction();
-
-    instructions.forEach((instruction) => transaction.add(instruction));
-
-    transaction.recentBlockhash = blockhash;
-
+  const _transactions = transactions.map(transaction => {
+    transaction.recentBlockhash = blockhash
     transaction.feePayer = wallet.publicKey
 
-    if (signers.length > 0) {
-      transaction.partialSign(...signers);
-    }
-
-    return transaction;
+    return transaction
   })
 
+    console.log(_transactions)
   const signedTransactions = await wallet.signAllTransactions(_transactions);
 
   return signedTransactions
+}
 
+export const sendSwapTransaction = async({
+  connection,
+  wallet,
+  transaction,
+  awaitConfirmation = true
+}: {
+  connection: Connection,
+  wallet: any,
+  transaction: Transaction,
+  awaitConfirmation?: boolean
+}) => {
+  transaction.recentBlockhash = (
+    await connection.getRecentBlockhash("max")
+  ).blockhash;
+
+  transaction.feePayer = wallet.publicKey 
+
+  transaction = await wallet.signTransaction(transaction);
+
+  const rawTransaction = transaction.serialize();
+
+  const options = {
+    skipPreflight: true,
+    commitment: "confirmed",
+  };
+
+  const txid = await connection.sendRawTransaction(rawTransaction, options);
+
+  if (awaitConfirmation) {
+    const status = (
+      await connection.confirmTransaction(
+        txid,
+        options && (options.commitment as any)
+      )
+    ).value;
+
+    if (status?.err) {
+      const errors = await getErrorForTransaction(connection, txid);
+
+      notify({
+        message: "Transaction failed...",
+        description: (
+          <>
+            {errors.map((err, i) => (
+              <div key={i}>{err}</div>
+            ))}
+            <ExplorerLink address={txid} type="tx" />
+          </>
+        ),
+        type: "error",
+      });
+
+      throw new Error(
+        `Raw transaction ${txid} failed (${JSON.stringify(status)})`
+      );
+    }
+  }
+
+  return txid;
 }
 
 export const sendTransaction = async (
@@ -210,7 +253,7 @@ export const sendTransaction = async (
 
   const rawTransaction = transaction.serialize();
 
-  let options = {
+  const options = {
     skipPreflight: true,
     commitment: "confirmed",
   };
@@ -255,7 +298,7 @@ export const sendSignedTransaction = async (
   transaction: Transaction,
   awaitConfirmation = true
 ) => {
-  let options = {
+  const options = {
     skipPreflight: true,
     commitment: "confirmed",
   };
