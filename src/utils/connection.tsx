@@ -161,7 +161,6 @@ export const signAllTransactions = async (
     return transaction
   })
 
-    console.log(_transactions)
   const signedTransactions = await wallet.signAllTransactions(_transactions);
 
   return signedTransactions
