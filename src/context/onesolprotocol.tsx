@@ -81,6 +81,7 @@ export function OnesolProtocolProvider({ children = null as any }){
         fetchTokenList()
       }
     },
+    // eslint-disable-next-line
     [oneSolProtocol]
   )
 
@@ -100,6 +101,7 @@ export function OnesolProtocolProvider({ children = null as any }){
         fetchProtocolSwapInfo()
       }
     },
+    // eslint-disable-next-line
     [oneSolProtocol, wallet, connected]
   )
 
@@ -136,12 +138,6 @@ export function OnesolProtocolProvider({ children = null as any }){
       slippage: number
     }) => {
       if (oneSolProtocol && wallet) {
-        if (abortController.current) {
-          abortController.current.abort()
-        }
-
-        abortController.current = new AbortController()
-
         const transactions = await oneSolProtocol.getTransactions({
           wallet: wallet.publicKey,
           distribution,
