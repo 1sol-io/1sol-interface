@@ -118,6 +118,7 @@ export function OnesolProtocolProvider({ children = null as any }){
           amount,
           sourceMintAddress,
           destinationMintAddress,
+          size: 10,
           signal: abortController.current.signal
         })
 

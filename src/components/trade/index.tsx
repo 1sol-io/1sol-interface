@@ -220,6 +220,7 @@ export const TradeEntry = () => {
     setActive('')
     setPriceExchange(undefined)
     setHasPriceSwapped(true)
+    setExpanded(false)
 
     setRouteError('')
 
@@ -257,6 +258,8 @@ export const TradeEntry = () => {
 
     A.setMint(B.mintAddress);
     B.setMint(tempMint);
+
+    setExpanded(false)
 
     if (A.amount) {
       setRouteLoading(true)
@@ -350,6 +353,7 @@ export const TradeEntry = () => {
     }
 
     setTimeoutLoading(false)
+    setExpanded(false)
   }
 
   const handleShowRoute = (routes: SwapRoute[][]) => {
