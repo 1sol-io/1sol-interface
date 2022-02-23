@@ -418,7 +418,9 @@ export const TradeEntry = () => {
           onMintChange={(item) => {
             A.setMint(item);
           }}
-          onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          onMaxClick={() => {
+            A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          }
           bordered
         />
 
