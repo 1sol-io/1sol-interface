@@ -110,7 +110,9 @@ const Tokens = ({
         .filter((token) => token)
 
       setTokens(tokens)
-      setOptions(tokens)
+      // if user searched for one token, and when userAccounts changed, filtered results should be kept
+      // or the list will be reset to all the tokens
+      setOptions((options) => (options.length ? options : tokens))
     },
     [tokenMap, userAccounts]
   )
