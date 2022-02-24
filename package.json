@@ -33,6 +33,7 @@
     "identicon.js": "^2.3.3",
     "jazzicon": "^1.5.0",
     "jsbi": "^4.1.0",
+    "lodash.debounce": "^4.0.8",
     "numeral": "^2.0.6",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -55,7 +56,11 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",

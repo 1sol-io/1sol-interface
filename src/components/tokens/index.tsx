@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import debounce from 'lodash.debounce'
 import { Modal, Input } from 'antd'
+import { SearchOutlined } from '@ant-design/icons/lib/icons'
 
 import { TokenInfo } from '@onesol/onesol-sdk'
 
@@ -9,7 +11,6 @@ import { convert } from '../../utils/utils'
 import { TokenIcon } from '../tokenIcon'
 
 import './index.less'
-import { SearchOutlined } from '@ant-design/icons/lib/icons'
 
 export const TokenDisplay = (props: {
   name: string
@@ -114,17 +115,25 @@ const Tokens = ({
     [tokenMap, userAccounts]
   )
 
+  const debounced = useMemo(
+    () =>
+      debounce((value) => {
+        const filtered = tokens.filter(
+          (token: TokenInfo) =>
+            token.name.toLowerCase().includes(value) ||
+            token.symbol.toLowerCase().includes(value) ||
+            (value.length > 10 && token.address.toLowerCase().includes(value))
+        )
+
+        setOptions(filtered)
+      }, 300),
+    [tokens]
+  )
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLocaleLowerCase()
 
-    const filtered = tokens.filter(
-      (token: TokenInfo) =>
-        token.name.toLowerCase().includes(value) ||
-        token.symbol.toLowerCase().includes(value) ||
-        token.address.toLowerCase().includes(value)
-    )
-
-    setOptions(filtered)
+    debounced(value)
   }
 
   return (
