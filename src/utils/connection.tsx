@@ -152,16 +152,7 @@ export const signAllTransactions = async (
   wallet: any,
   transactions: Transaction[],
 ) => {
-  const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
-
-  const _transactions = transactions.map(transaction => {
-    transaction.recentBlockhash = blockhash
-    transaction.feePayer = wallet.publicKey
-
-    return transaction
-  })
-
-  const signedTransactions = await wallet.signAllTransactions(_transactions);
+  const signedTransactions = await wallet.signAllTransactions(transactions);
 
   return signedTransactions
 }
@@ -177,15 +168,9 @@ export const sendSwapTransaction = async({
   transaction: Transaction,
   awaitConfirmation?: boolean
 }) => {
-  transaction.recentBlockhash = (
-    await connection.getRecentBlockhash("max")
-  ).blockhash;
+  const signedTransaction = await wallet.signTransaction(transaction);
 
-  transaction.feePayer = wallet.publicKey 
-
-  transaction = await wallet.signTransaction(transaction);
-
-  const rawTransaction = transaction.serialize();
+  const rawTransaction = signedTransaction.serialize();
 
   const options = {
     skipPreflight: true,
