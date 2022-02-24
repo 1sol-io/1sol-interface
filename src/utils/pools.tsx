@@ -25,11 +25,17 @@ import { notify } from './notifications'
 import { getCachedAccount } from './accounts'
 import { programIds } from './ids'
 import { TokenSwapLayout } from './../models'
-import { WRAPPED_SOL_MINT } from './constant'
+import { WRAPPED_SOL_MINT, 
+  // SERUM_PROGRAM_ID 
+} from './constant'
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
   return swap.data.length === TokenSwapLayout.span
 }
+
+// const sleep = (time: number) => {
+//   return new Promise((resolve) => setTimeout(resolve, time));
+// }
 
 async function findOrCreateAccountByMint(
   payer: PublicKey,
@@ -201,7 +207,8 @@ export async function sendTransactions({
   connection: Connection
   wallet: any
   transactions: Transaction[]
-}){
+}) {
+  console.log(transactions)
   if (!transactions.length) {
     throw new Error('No instructions to send')
   } else if (transactions.length === 1) {
@@ -224,6 +231,14 @@ export async function sendTransactions({
 
     for (let i = 0; i < signedTransactions.length; i++) {
       try {
+        // before closing serum open orders account, should wait other programs to do some consume works
+        // if (
+        //   i === 2 && 
+        //   transactions[2].instructions.find(({programId}) => programId.equals(SERUM_PROGRAM_ID)) 
+        // ) {
+        //   await sleep(5000)
+        // }
+
         const txid = await sendSignedTransaction(
           connection,
           signedTransactions[i]
