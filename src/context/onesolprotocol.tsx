@@ -126,9 +126,7 @@ export function OnesolProtocolProvider({ children = null as any }){
 
           return routes
         }
-      } catch (err) {
-        Sentry.captureException(err)
-      }
+      } catch (err) {}
 
       return []
     },
