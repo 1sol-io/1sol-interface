@@ -9,6 +9,7 @@ import { PublicKey } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
 import { OnesolProtocol, Distribution, TokenInfo } from '@onesol/onesol-sdk'
+import * as Sentry from '@sentry/react'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
@@ -107,22 +108,26 @@ export function OnesolProtocolProvider({ children = null as any }){
 
   const getRoutes = useCallback(
     async ({ amount, sourceMintAddress, destinationMintAddress }) => {
-      if (oneSolProtocol) {
-        if (abortController.current) {
-          abortController.current.abort()
+      try {
+        if (oneSolProtocol) {
+          if (abortController.current) {
+            abortController.current.abort()
+          }
+
+          abortController.current = new AbortController()
+
+          const routes = await oneSolProtocol.getRoutes({
+            amount,
+            sourceMintAddress,
+            destinationMintAddress,
+            size: 10,
+            signal: abortController.current.signal
+          })
+
+          return routes
         }
-
-        abortController.current = new AbortController()
-
-        const routes = await oneSolProtocol.getRoutes({
-          amount,
-          sourceMintAddress,
-          destinationMintAddress,
-          size: 10,
-          signal: abortController.current.signal
-        })
-
-        return routes
+      } catch (err) {
+        Sentry.captureException(err)
       }
 
       return []
@@ -138,16 +143,20 @@ export function OnesolProtocolProvider({ children = null as any }){
       distribution: Distribution
       slippage: number
     }) => {
-      if (oneSolProtocol && wallet) {
-        const transactions = await oneSolProtocol.getTransactions({
-          wallet: wallet.publicKey,
-          distribution,
-          protocolSwapInfo:
-            protocolSwapInfo ? new PublicKey(protocolSwapInfo) : null,
-          slippage
-        })
+      try {
+        if (oneSolProtocol && wallet) {
+          const transactions = await oneSolProtocol.getTransactions({
+            wallet: wallet.publicKey,
+            distribution,
+            protocolSwapInfo:
+              protocolSwapInfo ? new PublicKey(protocolSwapInfo) : null,
+            slippage
+          })
 
-        return transactions
+          return transactions
+        }
+      } catch (err) {
+        Sentry.captureException(err)
       }
 
       return []

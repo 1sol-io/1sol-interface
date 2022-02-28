@@ -8,6 +8,8 @@
     "@project-serum/borsh": "^0.2.3",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@pythnetwork/client": "^2.0.0",
+    "@sentry/react": "^6.18.0",
+    "@sentry/tracing": "^6.18.0",
     "@solana/spl-token": "0.1.8",
     "@solana/wallet-adapter-base": "^0.7.0",
     "@solana/wallet-adapter-bitpie": "^0.3.0",

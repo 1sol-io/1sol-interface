@@ -14,6 +14,7 @@ import {
 } from "@ant-design/icons";
 import { Route as RawRoute, Distribution as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
 import axios from 'axios'
+import * as Sentry from "@sentry/react";
 
 import {
   useConnection,
@@ -311,6 +312,7 @@ export const TradeEntry = () => {
       fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
+      Sentry.captureException(e);
 
       notify({
         description: "Please try again and approve transactions from your wallet",

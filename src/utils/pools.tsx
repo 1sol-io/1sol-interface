@@ -14,6 +14,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token'
+import * as Sentry from "@sentry/react";
 
 import {
   sendTransaction,
@@ -208,7 +209,6 @@ export async function sendTransactions({
   wallet: any
   transactions: Transaction[]
 }) {
-  console.log(transactions)
   if (!transactions.length) {
     throw new Error('No instructions to send')
   } else if (transactions.length === 1) {
@@ -253,6 +253,7 @@ export async function sendTransactions({
         });
       } catch (e) {
         const error = e as Error
+        Sentry.captureException(e);
 
         //@ts-ignore
         if (window.gtag) {
