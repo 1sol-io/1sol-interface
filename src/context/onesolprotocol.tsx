@@ -5,30 +5,32 @@ import React, {
   useCallback,
   useRef
 } from 'react'
-import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
-import {
-  OnesolProtocol,
-  Route,
-  TokenAccountInfo,
-  TokenInfo
-} from '@onesol/onesol-sdk'
+import { OnesolProtocol, Distribution, TokenInfo } from '@onesol/onesol-sdk'
+import * as Sentry from '@sentry/react'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
 import { useLocalStorageState } from '../utils/utils'
+import { useWallet } from './wallet'
 
 export const OnesolProtocolContext = createContext<any>(null)
 
 export function OnesolProtocolProvider({ children = null as any }){
   const connection = useConnection()
+  const { wallet, connected } = useWallet()
 
   const [oneSolProtocol, setOneSolProtocol] = useState<OnesolProtocol | null>(
     null
   )
   const [tokens, setTokens] = useLocalStorageState('tokens', [])
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+  const [protocolSwapInfo, setProtocolSwapInfo] = useLocalStorageState(
+    'protocolSwapInfo',
+    ''
+  )
 
   const abortController: {
     current: AbortController | null
@@ -80,26 +82,52 @@ export function OnesolProtocolProvider({ children = null as any }){
         fetchTokenList()
       }
     },
+    // eslint-disable-next-line
     [oneSolProtocol]
+  )
+
+  useEffect(
+    () => {
+      if (oneSolProtocol && connected) {
+        const fetchProtocolSwapInfo = async () => {
+          const swapInfo = await oneSolProtocol.findSwapInfoKey(
+            wallet.publicKey
+          )
+
+          if (swapInfo) {
+            setProtocolSwapInfo(swapInfo.toBase58())
+          }
+        }
+
+        fetchProtocolSwapInfo()
+      }
+    },
+    // eslint-disable-next-line
+    [oneSolProtocol, wallet, connected]
   )
 
   const getRoutes = useCallback(
     async ({ amount, sourceMintAddress, destinationMintAddress }) => {
-      if (oneSolProtocol) {
-        if (abortController.current) {
-          abortController.current.abort()
+      try {
+        if (oneSolProtocol) {
+          if (abortController.current) {
+            abortController.current.abort()
+          }
+
+          abortController.current = new AbortController()
+
+          const routes = await oneSolProtocol.getRoutes({
+            amount,
+            sourceMintAddress,
+            destinationMintAddress,
+            size: 10,
+            signal: abortController.current.signal
+          })
+
+          return routes
         }
-
-        abortController.current = new AbortController()
-
-        const routes = await oneSolProtocol.getRoutes({
-          amount,
-          sourceMintAddress,
-          destinationMintAddress,
-          signal: abortController.current.signal
-        })
-
-        return routes
+      } catch (err) {
+        Sentry.captureException(err)
       }
 
       return []
@@ -107,51 +135,33 @@ export function OnesolProtocolProvider({ children = null as any }){
     [oneSolProtocol]
   )
 
-  const composeInstructions = useCallback(
+  const getTransactions = useCallback(
     async ({
-      route,
-      walletAddress,
-      fromTokenAccount,
-      toTokenAccount,
-      setupInstructions,
-      swapInstructions,
-      cleanupInstructions,
-      setupSigners,
-      swapSigners,
-      cleanupSigners,
+      distribution,
       slippage = 0.005
     }: {
-      route: Route
-      walletAddress: PublicKey
-      fromTokenAccount: TokenAccountInfo
-      toTokenAccount: TokenAccountInfo
-      setupInstructions: TransactionInstruction[]
-      swapInstructions: TransactionInstruction[]
-      cleanupInstructions: TransactionInstruction[]
-      setupSigners: Signer[]
-      swapSigners: Signer[]
-      cleanupSigners: Signer[]
-      slippage?: number
+      distribution: Distribution
+      slippage: number
     }) => {
-      if (oneSolProtocol) {
-        const instructions = await oneSolProtocol.composeInstructions({
-          route,
-          walletAddress,
-          fromTokenAccount,
-          toTokenAccount,
-          setupInstructions,
-          swapInstructions,
-          cleanupInstructions,
-          setupSigners,
-          swapSigners,
-          cleanupSigners,
-          slippage
-        })
+      try {
+        if (oneSolProtocol && wallet) {
+          const transactions = await oneSolProtocol.getTransactions({
+            wallet: wallet.publicKey,
+            distribution,
+            protocolSwapInfo:
+              protocolSwapInfo ? new PublicKey(protocolSwapInfo) : null,
+            slippage
+          })
 
-        return instructions
+          return transactions
+        }
+      } catch (err) {
+        Sentry.captureException(err)
       }
+
+      return []
     },
-    [oneSolProtocol]
+    [oneSolProtocol, wallet, protocolSwapInfo]
   )
 
   return (
@@ -160,7 +170,7 @@ export function OnesolProtocolProvider({ children = null as any }){
         tokens,
         tokenMap,
         getRoutes,
-        composeInstructions
+        getTransactions
       }}
     >
       {children}

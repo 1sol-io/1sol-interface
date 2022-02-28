@@ -6,25 +6,37 @@ import {
   Signer,
   Keypair,
   TransactionInstruction,
-} from "@solana/web3.js";
-import { Token, AccountLayout, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+  Transaction
+} from '@solana/web3.js'
+import {
+  Token,
+  AccountLayout,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token'
+import * as Sentry from "@sentry/react";
 
-import { sendTransaction, Transactions, signAllTransactions, sendSignedTransaction } from "./connection";
-import { notify } from "./notifications";
 import {
-  getCachedAccount,
-} from "./accounts";
-import {
-  programIds,
-} from "./ids";
-import {
-  TokenSwapLayout,
-} from "./../models";
-import { WRAPPED_SOL_MINT } from "./constant";
+  sendTransaction,
+  signAllTransactions,
+  sendSignedTransaction,
+  sendSwapTransaction
+} from './connection'
+import { notify } from './notifications'
+import { getCachedAccount } from './accounts'
+import { programIds } from './ids'
+import { TokenSwapLayout } from './../models'
+import { WRAPPED_SOL_MINT, 
+  // SERUM_PROGRAM_ID 
+} from './constant'
 
 export const isLatest = (swap: AccountInfo<Buffer>) => {
-  return swap.data.length === TokenSwapLayout.span;
-};
+  return swap.data.length === TokenSwapLayout.span
+}
+
+// const sleep = (time: number) => {
+//   return new Promise((resolve) => setTimeout(resolve, time));
+// }
 
 async function findOrCreateAccountByMint(
   payer: PublicKey,
@@ -35,9 +47,9 @@ async function findOrCreateAccountByMint(
   mint: PublicKey, // use to identify same type
   signers: Signer[],
   excluded?: Set<string>
-): Promise<PublicKey> {
-  const accountToFind = mint.toBase58();
-  const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58();
+): Promise<PublicKey>{
+  const accountToFind = mint.toBase58()
+  const isWrappedSol = accountToFind === WRAPPED_SOL_MINT.toBase58()
 
   if (isWrappedSol) {
     // creating depositor pool account
@@ -48,10 +60,10 @@ async function findOrCreateAccountByMint(
       mint,
       owner,
       AccountLayout.span
-    );
+    )
 
-    const toAccount = newToAccount.publicKey;
-    signers.push(newToAccount);
+    const toAccount = newToAccount.publicKey
+    signers.push(newToAccount)
     cleanupInstructions.push(
       Token.createCloseAccountInstruction(
         programIds().token,
@@ -60,20 +72,25 @@ async function findOrCreateAccountByMint(
         payer,
         []
       )
-    );
+    )
     return toAccount
   } else {
-    const associateTokenAddress = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner)
+    const associateTokenAddress = await Token.getAssociatedTokenAddress(
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      TOKEN_PROGRAM_ID,
+      mint,
+      owner
+    )
     const account = getCachedAccount(
       (acc) =>
         acc.pubkey.equals(associateTokenAddress) &&
         acc.info.mint.toBase58() === accountToFind &&
         acc.info.owner.toBase58() === owner.toBase58() &&
         (excluded === undefined || !excluded.has(acc.pubkey.toBase58()))
-    );
+    )
 
     if (account) {
-      return account.pubkey;
+      return account.pubkey
     }
     return await createSplAssociatedTokenAccount(
       instructions,
@@ -87,9 +104,8 @@ async function findOrCreateAccountByMint(
 export enum PoolOperation {
   Add,
   SwapGivenInput,
-  SwapGivenProceeds,
+  SwapGivenProceeds
 }
-
 
 function createSplAccount(
   instructions: TransactionInstruction[],
@@ -98,8 +114,8 @@ function createSplAccount(
   mint: PublicKey,
   owner: PublicKey,
   space: number
-) {
-  const account = Keypair.generate();
+){
+  const account = Keypair.generate()
 
   instructions.push(
     SystemProgram.createAccount({
@@ -107,9 +123,9 @@ function createSplAccount(
       newAccountPubkey: account.publicKey,
       lamports: accountRentExempt,
       space,
-      programId: programIds().token,
+      programId: programIds().token
     })
-  );
+  )
 
   instructions.push(
     Token.createInitAccountInstruction(
@@ -118,23 +134,23 @@ function createSplAccount(
       account.publicKey,
       owner
     )
-  );
+  )
 
-  return account;
+  return account
 }
 
 export async function createSplAssociatedTokenAccount(
   instructions: TransactionInstruction[],
   payer: PublicKey,
   mint: PublicKey,
-  owner: PublicKey,
-) {
+  owner: PublicKey
+){
   const associatedAddress = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     programIds().token,
     mint,
-    owner,
-  );
+    owner
+  )
 
   instructions.push(
     Token.createAssociatedTokenAccountInstruction(
@@ -143,19 +159,20 @@ export async function createSplAssociatedTokenAccount(
       mint,
       associatedAddress,
       owner,
-      payer,
-    ))
+      payer
+    )
+  )
 
-  return associatedAddress;
+  return associatedAddress
 }
 
 export async function createTokenAccount(
   connection: Connection,
   wallet: any,
-  mint: PublicKey,
-) {
-  const toAccountInstructions: TransactionInstruction[] = [];
-  const toAccountigners: Signer[] = [];
+  mint: PublicKey
+){
+  const toAccountInstructions: TransactionInstruction[] = []
+  const toAccountigners: Signer[] = []
 
   const account = await findOrCreateAccountByMint(
     wallet.publicKey,
@@ -176,79 +193,52 @@ export async function createTokenAccount(
 
   notify({
     message: `Token account created`,
-    type: "success",
-    description: ``,
-  });
+    type: 'success',
+    description: ``
+  })
 
-  return account;
+  return account
 }
 
-export async function makeSwapTransactions({
+export async function sendTransactions({
   connection,
   wallet,
-  setupInstructions,
-  swapInstructions,
-  cleanupInstructions,
-  setupSigners,
-  swapSigners,
-  cleanupSigners,
+  transactions
 }: {
-  connection: Connection,
-  wallet: any,
-  setupInstructions: TransactionInstruction[]
-  swapInstructions: TransactionInstruction[]
-  cleanupInstructions: TransactionInstruction[]
-  setupSigners: Signer[]
-  swapSigners: Signer[]
-  cleanupSigners: Signer[]
-}
-) {
-   const transactions: Transactions[] = []
-
-   if (setupInstructions.length) {
-     transactions.push({
-       instructions: setupInstructions,
-       signers: setupSigners
-     })
-   }
-
-   if (swapInstructions.length) {
-     transactions.push({
-       instructions: swapInstructions,
-       signers: swapSigners
-     })
-   }
-   
-   if (cleanupInstructions.length) {
-     transactions.push({
-       instructions: cleanupInstructions,
-       signers: cleanupSigners
-     })
-   }
-
+  connection: Connection
+  wallet: any
+  transactions: Transaction[]
+}) {
   if (!transactions.length) {
     throw new Error('No instructions to send')
   } else if (transactions.length === 1) {
-    const { instructions, signers } = transactions[0]
+    const [transaction] = transactions
 
-    const txid = await sendTransaction(
+    const txid = await sendSwapTransaction({
       connection,
       wallet,
-      instructions,
-      signers
-    );
+      transaction
+    })
 
     notify({
-      message: "Trade executed.",
-      type: "success",
+      message: 'Trade executed.',
+      type: 'success',
       description: `Transaction - ${txid}`,
       txid
-    });
+    })
   } else {
     const signedTransactions = await signAllTransactions(connection, wallet, transactions)
 
     for (let i = 0; i < signedTransactions.length; i++) {
       try {
+        // before closing serum open orders account, should wait other programs to do some consume works
+        // if (
+        //   i === 2 && 
+        //   transactions[2].instructions.find(({programId}) => programId.equals(SERUM_PROGRAM_ID)) 
+        // ) {
+        //   await sleep(5000)
+        // }
+
         const txid = await sendSignedTransaction(
           connection,
           signedTransactions[i]
@@ -263,19 +253,26 @@ export async function makeSwapTransactions({
         });
       } catch (e) {
         const error = e as Error
+        Sentry.captureException(e);
+
         //@ts-ignore
-        window.gtag('event', 'swap_error', {
-          data: error?.message
-        })
+        if (window.gtag) {
+          //@ts-ignore
+          window.gtag('event', 'swap_error', {
+            data: error?.message
+          })
+        }
 
         if (signedTransactions.length === 3 && i === 1) {
           console.log('swap step error: ', e)
+
+          sendSignedTransaction(connection, signedTransactions[2])
 
           notify({
             description: "Please try again",
             message: "Swap trade cancelled.",
             type: "error",
-            duration: 10 
+            duration: 10
           });
         } else {
           throw(e)

@@ -22,19 +22,33 @@ body {
   }
 
   .ant-notification-notice {
-    background: #323437 !important;
     border-radius: 10px;
+    backdrop-filter: blur(40px);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.05) 52.32%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
   }
 
   .ant-notification {
-    background: #272a2e;
-
     .ant-notification-notice-message span {
       color: #fff !important;
     }
     .ant-notification-notice-description span {
       color: #fff !important;
     }
+  }
+
+  .ant-dropdown-menu {
+    backdrop-filter: blur(40px);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.05) 52.32%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
   }
 
   .ant-dropdown-button {

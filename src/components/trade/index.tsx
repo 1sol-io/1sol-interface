@@ -12,9 +12,9 @@ import {
   DownOutlined,
   UpOutlined,
 } from "@ant-design/icons";
-import { Signer, TransactionInstruction } from "@solana/web3.js";
-import { Route as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
+import { Route as RawRoute, Distribution as RawDistribution, PROVIDER_MAP } from "@onesol/onesol-sdk";
 import axios from 'axios'
+import * as Sentry from "@sentry/react";
 
 import {
   useConnection,
@@ -25,7 +25,7 @@ import { CurrencyInput } from "../currencyInput";
 import Warning from "../warning";
 
 import {
-  makeSwapTransactions,
+  sendTransactions,
 } from "../../utils/pools";
 import { notify } from "../../utils/notifications";
 import { useCurrencyPairState } from "../../utils/currencyPair";
@@ -81,7 +81,7 @@ export const TradeEntry = () => {
   const { wallet, connect, connected } = useWallet();
   const connection = useConnection()
 
-  const { getRoutes, tokenMap, composeInstructions } = useOnesolProtocol()
+  const { getRoutes, tokenMap, getTransactions } = useOnesolProtocol()
 
   const [pendingTx, setPendingTx] = useState(false);
   const {
@@ -144,13 +144,13 @@ export const TradeEntry = () => {
       const [best, ...others] = distributions 
 
       if (best) {
-        const id = best.routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, best.exchanger_flag)
-        const providers = best.routes.flat(2).map(route => PROVIDER_MAP[route.exchanger_flag])
+        const id = best.routes.flat(2).reduce((acc, cur: RawRoute) => `${acc}-${cur.pubkey}`, best.routeType)
+        const providers = best.routes.flat(2).map(route => PROVIDER_MAP[route.exchangerFlag])
 
         result.push({
           ...best,
-          input: setMaxPrecision(best.amount_in / 10 ** decimals[0]),
-          output: setMaxPrecision(best.amount_out / 10 ** decimals[1]),
+          input: setMaxPrecision(best.amountIn / 10 ** decimals[0]),
+          output: setMaxPrecision(best.amountOut / 10 ** decimals[1]),
           providers: [...new Set(providers)],
           offset: 0,
           id,
@@ -159,21 +159,21 @@ export const TradeEntry = () => {
       }
 
       result = [...result,
-        ...others.sort((a: RawDistribution, b: RawDistribution) => b.amount_out - a.amount_out)
-        .map(({ amount_in, amount_out, exchanger_flag, routes, ...rest }: RawDistribution) => {
-            const providers = routes.flat(2).map(route => PROVIDER_MAP[route.exchanger_flag])
+        ...others.sort((a: RawDistribution, b: RawDistribution) => b.amountOut - a.amountOut)
+        .map(({ amountIn, routeType, amountOut, routes, ...rest }: RawDistribution) => {
+            const providers = routes.flat(2).map(route => PROVIDER_MAP[route.exchangerFlag])
 
             return {
               ...rest,
-              amount_in,
-              amount_out,
-              exchanger_flag,
+              routeType,
+              amountIn,
+              amountOut,
               routes,
-              input: setMaxPrecision(amount_in / 10 ** decimals[0]),
-              output: setMaxPrecision(amount_out / 10 ** decimals[1]),
+              input: setMaxPrecision(amountIn / 10 ** decimals[0]),
+              output: setMaxPrecision(amountOut / 10 ** decimals[1]),
               providers: [...new Set(providers)],
-              offset: best ? (amount_out - best.amount_out) / best.amount_out * 100 : 0,
-              id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, exchanger_flag)}`,
+              offset: best ? (amountOut - best.amountOut) / best.amountOut * 100 : 0,
+              id: `${routes.flat(2).reduce((acc, cur) => `${acc}-${cur.pubkey}`, routeType)}`,
               swapRoute: getSwapRoute({routes, tokenMap }),
             }
         })
@@ -221,6 +221,7 @@ export const TradeEntry = () => {
     setActive('')
     setPriceExchange(undefined)
     setHasPriceSwapped(true)
+    setExpanded(false)
 
     setRouteError('')
 
@@ -259,6 +260,8 @@ export const TradeEntry = () => {
     A.setMint(B.mintAddress);
     B.setMint(tempMint);
 
+    setExpanded(false)
+
     if (A.amount) {
       setRouteLoading(true)
     }
@@ -285,59 +288,31 @@ export const TradeEntry = () => {
     setRouteLoading(false)
     setTimeoutLoading(false)
 
-    const route = distributions.find(({ id }: { id: string }) => id === active)
+    const distribution = distributions.find(({ id }: { id: string }) => id === active)
 
     try {
       setPendingTx(true);
 
-      if (!route || !route.routes.length) {
+      if (!distribution || !distribution.routes.length) {
         throw new Error('No route found')
       }
 
-      const setupInstructions: TransactionInstruction[] = [];
-      const setupSigners: Signer[] = [];
-      const swapInstructions: TransactionInstruction[] = [];
-      const swapSigners: Signer[] = [];
-      const cleanupInstructions: TransactionInstruction[] = [];
-      const cleanupSigners: Signer[] = [];
-      
-      await composeInstructions({
-        route,
-        walletAddress: wallet.publicKey,
-        fromTokenAccount: {
-          pubkey: A.account?.pubkey,
-          mint: A.account?.info.mint,
-          owner: A.account?.info.owner,
-        },
-        toTokenAccount: {
-          pubkey: B.account?.pubkey,
-          mint: B.account?.info.mint,
-          owner: B.account?.info.owner,
-        },
-        setupInstructions,
-        setupSigners,
-        swapInstructions,
-        swapSigners,
-        cleanupInstructions,
-        cleanupSigners,
-        slippage,
-      }) 
+      const transactions = await getTransactions({
+        distribution,
+        slippage
+      })
 
-      await makeSwapTransactions({
+      await sendTransactions({
         connection,
         wallet,
-        setupInstructions,
-        setupSigners,
-        swapInstructions,
-        swapSigners,
-        cleanupInstructions,
-        cleanupSigners,
+        transactions
       })
 
       A.setAmount('')
       fetchUserTokenAccounts()
     } catch (e) {
       console.error(e)
+      Sentry.captureException(e);
 
       notify({
         description: "Please try again and approve transactions from your wallet",
@@ -380,6 +355,7 @@ export const TradeEntry = () => {
     }
 
     setTimeoutLoading(false)
+    setExpanded(false)
   }
 
   const handleShowRoute = (routes: SwapRoute[][]) => {
@@ -444,7 +420,9 @@ export const TradeEntry = () => {
           onMintChange={(item) => {
             A.setMint(item);
           }}
-          onMaxClick={() => A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          onMaxClick={() => {
+            A.mintAddress === WRAPPED_SOL_MINT.toBase58() ? A.setAmount(`${A.balance - 0.05 > 0 ? A.balance - 0.05 : 0}`) : A.setAmount(`${A.balance}`)}
+          }
           bordered
         />
 

@@ -1,8 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import * as Sentry from '@sentry/react'
 
 import App from './App'
 import * as serviceWorker from './serviceWorker'
+
+Sentry.init({
+  dsn:
+    'https://b38fa4cb18f34d3fadb15787420bab8c@o288719.ingest.sentry.io/6124533',
+  tracesSampleRate: 0.1,
+  allowUrls: [/https?:\/\/app\.1sol\.io/]
+})
 
 ReactDOM.render(
   <React.StrictMode>

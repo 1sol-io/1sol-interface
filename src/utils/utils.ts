@@ -1,11 +1,11 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
 import { MintInfo } from "@solana/spl-token";
-import { TokenInfo } from "../utils/token-registry";
-
-import { PoolInfo, TokenAccount } from "./../models";
 import axios from 'axios';
-import { Route as RawDistribution, RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
+import { Route as RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
+
+import { TokenInfo } from "../utils/token-registry";
+import { PoolInfo, TokenAccount } from "./../models";
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -279,18 +279,18 @@ export const getDecimalLength = (num: number) => {
 
 export const getSwapRoute = ({ routes, tokenMap }: { routes: RawRoute[][], tokenMap: any }) => {
   const swapRoutes: SwapRoute[][] = routes.map((routes: any) => routes.map(({
-    amount_in,
-    amount_out,
-    exchanger_flag,
-    source_token_mint,
-    destination_token_mint
-  }: RawDistribution) => ({
-    from: tokenMap.get(source_token_mint.pubkey)?.symbol,
-    to: tokenMap.get(destination_token_mint.pubkey)?.symbol,
-    in: amount_in / 10 ** source_token_mint.decimals,
-    out: amount_out / 10 ** destination_token_mint.decimals,
-    provider: PROVIDER_MAP[exchanger_flag],
-    ratio: (amount_in / 10 ** source_token_mint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amount_in / 10 ** source_token_mint.decimals, 0) * 100
+    amountIn,
+    amountOut,
+    exchangerFlag,
+    sourceTokenMint,
+    destinationTokenMint
+  }: RawRoute) => ({
+    from: tokenMap.get(sourceTokenMint.address)?.symbol,
+    to: tokenMap.get(destinationTokenMint.address)?.symbol,
+    in: amountIn / 10 ** sourceTokenMint.decimals,
+    out: amountOut / 10 ** destinationTokenMint.decimals,
+    provider: PROVIDER_MAP[exchangerFlag],
+    ratio: (amountIn / 10 ** sourceTokenMint.decimals) / routes.reduce((acc: number, cur: any) => acc + cur.amountIn / 10 ** sourceTokenMint.decimals, 0) * 100
   }
   )))
 
