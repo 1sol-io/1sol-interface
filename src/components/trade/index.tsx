@@ -243,7 +243,7 @@ export const TradeEntry = () => {
       B.mintAddress &&
       Number(A.amount) &&
       A.mintAddress !== B.mintAddress
-    ) {
+    ){
       fetchDistrubition()
     }
 

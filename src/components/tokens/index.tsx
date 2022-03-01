@@ -113,8 +113,19 @@ const Tokens = ({
       const filteredKeys = keys.filter((key) => !tokensUserHave.includes(key))
 
       const tokens = [...tokensUserHave, ...filteredKeys]
-        .map((key) => tokenMap.get(key))
-        .filter((token) => ({ ...token, weight: 0 }))
+        .map((key) => {
+          const token = tokenMap.get(key)
+
+          if (token) {
+            return {
+              ...token,
+              weight: 0
+            }
+          }
+
+          return null
+        })
+        .filter((token) => token)
 
       setTokens(tokens)
       // if user searched for one token, and when userAccounts changed, filtered results should be kept
