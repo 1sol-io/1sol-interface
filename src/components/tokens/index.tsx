@@ -13,6 +13,10 @@ import { TokenIcon } from '../tokenIcon'
 
 import './index.less'
 
+interface Filtered extends TokenInfo {
+  weight: number
+}
+
 export const TokenDisplay = (props: {
   name: string
   symbol: string
@@ -92,9 +96,9 @@ const Tokens = ({
   const { tokenMap } = useOnesolProtocol()
   const { userAccounts } = useUserAccounts()
 
-  const [tokens, setTokens] = useState<TokenInfo[]>([])
-  const [options, setOptions] = useState<TokenInfo[]>([])
-  const [list, setList] = useState<TokenInfo[]>([])
+  const [tokens, setTokens] = useState<Filtered[]>([])
+  const [options, setOptions] = useState<Filtered[]>([])
+  const [list, setList] = useState<Filtered[]>([])
 
   useEffect(
     () => {
@@ -110,7 +114,7 @@ const Tokens = ({
 
       const tokens = [...tokensUserHave, ...filteredKeys]
         .map((key) => tokenMap.get(key))
-        .filter((token) => token)
+        .filter((token) => ({ ...token, weight: 0 }))
 
       setTokens(tokens)
       // if user searched for one token, and when userAccounts changed, filtered results should be kept
@@ -130,14 +134,47 @@ const Tokens = ({
   const debounced = useMemo(
     () =>
       debounce((value) => {
-        const filtered = tokens.filter(
-          (token: TokenInfo) =>
-            token.name.toLowerCase().includes(value) ||
-            token.symbol.toLowerCase().includes(value) ||
-            (value.length > 10 && token.address.toLowerCase().includes(value))
-        )
+        if (!value) {
+          setOptions(tokens)
 
-        setOptions(filtered)
+          return
+        }
+
+        const filtered: Filtered[] = []
+
+        tokens.forEach((token: Filtered) => {
+          let weight = 0
+
+          if (token.symbol.toLowerCase().includes(value)) {
+            weight +=
+              value.length / token.symbol.length * 300 +
+              token.symbol.length -
+              token.symbol.toLowerCase().indexOf(value)
+          }
+
+          if (token.name.toLowerCase().includes(value)) {
+            weight +=
+              value.length / token.name.length * 100 +
+              token.name.length -
+              token.name.toLowerCase().indexOf(value)
+          }
+
+          if (
+            value.length > 10 &&
+            token.address.toLowerCase().includes(value)
+          ) {
+            weight +=
+              value.length / token.address.length * 50 +
+              token.address.length -
+              token.address.toLowerCase().indexOf(value)
+          }
+
+          if (weight > 0) {
+            filtered.push({ ...token, weight })
+          }
+        })
+
+        setOptions(filtered.sort((a, b) => b.weight - a.weight))
       }, 300),
     [tokens]
   )
