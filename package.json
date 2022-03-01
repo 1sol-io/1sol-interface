@@ -39,6 +39,7 @@
     "numeral": "^2.0.6",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3"
   },

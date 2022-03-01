@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import debounce from 'lodash.debounce'
 import { Modal, Input } from 'antd'
 import { SearchOutlined } from '@ant-design/icons/lib/icons'
+import InfiniteScroll from 'react-infinite-scroll-component'
 
 import { TokenInfo } from '@onesol/onesol-sdk'
 
@@ -19,6 +20,7 @@ export const TokenDisplay = (props: {
   icon?: JSX.Element
   showBalance?: boolean
   onClick?: (item: string) => void
+  style?: React.CSSProperties
 }) => {
   const { showBalance, mintAddress, name, symbol, icon, onClick } = props
   const tokenMint = cache.getMint(mintAddress)
@@ -92,6 +94,7 @@ const Tokens = ({
 
   const [tokens, setTokens] = useState<TokenInfo[]>([])
   const [options, setOptions] = useState<TokenInfo[]>([])
+  const [list, setList] = useState<TokenInfo[]>([])
 
   useEffect(
     () => {
@@ -115,6 +118,13 @@ const Tokens = ({
       setOptions((options) => (options.length ? options : tokens))
     },
     [tokenMap, userAccounts]
+  )
+
+  useEffect(
+    () => {
+      setList(options.slice(0, 10))
+    },
+    [options]
   )
 
   const debounced = useMemo(
@@ -164,21 +174,31 @@ const Tokens = ({
             autoFocus
           />
         </div>
-        <div className="bd">
-          {options.map((item: TokenInfo) => (
-            <TokenDisplay
-              key={item.address}
-              name={item.name}
-              symbol={item.symbol}
-              mintAddress={item.address}
-              showBalance={true}
-              onClick={(mintAddress: string) => {
-                if (onChange) {
-                  onChange(mintAddress)
-                }
-              }}
-            />
-          ))}
+        <div className="bd" id="scrollableDiv">
+          <InfiniteScroll
+            dataLength={list.length}
+            next={() => {
+              setList(list.concat(options.slice(list.length, list.length + 10)))
+            }}
+            hasMore={options.length > list.length}
+            loader={<h4>Loading...</h4>}
+            scrollableTarget="scrollableDiv"
+          >
+            {list.map((item: TokenInfo) => (
+              <TokenDisplay
+                key={item.address}
+                name={item.name}
+                symbol={item.symbol}
+                mintAddress={item.address}
+                showBalance={true}
+                onClick={(mintAddress: string) => {
+                  if (onChange) {
+                    onChange(mintAddress)
+                  }
+                }}
+              />
+            ))}
+          </InfiniteScroll>
         </div>
       </div>
     </Modal>
