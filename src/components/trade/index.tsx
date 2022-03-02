@@ -133,11 +133,30 @@ export const TradeEntry = () => {
     const decimals = [A.mint.decimals, B.mint.decimals]
 
     try {
-      const distributions: RawDistribution[] = await getRoutes({
+      const { 
+        routes: distributions, 
+        amount, 
+        sourceMintAddress, 
+        destinationMintAddress 
+      } : {
+        routes: RawDistribution[], 
+        amount: number, 
+        sourceMintAddress: string, 
+        destinationMintAddress: string
+      } = await getRoutes({
         amount: parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`),
         sourceMintAddress: A.mintAddress,
         destinationMintAddress: B.mintAddress,
       })  
+
+      // if result conditions are not identical to current ones, just ignore it
+      if (
+        amount !== parseInt(`${Number(A.amount) * 10 ** A.mint.decimals}`) ||
+        sourceMintAddress !== A.mintAddress ||
+        destinationMintAddress !== B.mintAddress
+      ) {
+        return
+      }
 
       let result: Distribution[] = []
 
