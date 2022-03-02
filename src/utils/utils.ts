@@ -296,16 +296,16 @@ export const getSwapRoute = ({ routes, tokenMap }: { routes: RawRoute[][], token
 
   let labels: string[] = []
 
-  swapRoutes.forEach(routes => {
-    const [first] = routes
+  const [first] = swapRoutes[0]
 
-    if (first) {
-      labels.push(first.from)
-      labels.push(first.to)
-    }
-  })
+  labels.push(first.from)
+  labels.push(first.to)
 
-  labels = [...new Set(labels)]
+  if (swapRoutes.length === 2) {
+    const [first] = swapRoutes[1]
+
+    labels.push(first.to)
+  }
 
   return { routes: swapRoutes, labels }
 }

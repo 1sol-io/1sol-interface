@@ -236,13 +236,14 @@ export const TradeEntry = () => {
 
     if (timer.current) {
       clearTimeout(timer.current)
+      timer.current = null
     }
 
     if (
       A.mintAddress &&
       B.mintAddress &&
-      Number(A.amount) &&
-      A.mintAddress !== B.mintAddress
+      Number(A.amount) 
+      // && A.mintAddress !== B.mintAddress
     ){
       fetchDistrubition()
     }
