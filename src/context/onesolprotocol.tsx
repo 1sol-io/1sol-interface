@@ -125,7 +125,7 @@ export function OnesolProtocolProvider({ children = null as any }){
             experiment: true
           })
 
-          return routes
+          return { routes, amount, sourceMintAddress, destinationMintAddress }
         }
       } catch (err) {}
 
