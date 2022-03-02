@@ -121,7 +121,8 @@ export function OnesolProtocolProvider({ children = null as any }){
             sourceMintAddress,
             destinationMintAddress,
             size: 10,
-            signal: abortController.current.signal
+            signal: abortController.current.signal,
+            experiment: true
           })
 
           return routes

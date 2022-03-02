@@ -199,17 +199,19 @@ const Tokens = ({
   return (
     <Modal
       visible={visible}
+      destroyOnClose
       centered
       footer={null}
-      destroyOnClose
       onCancel={() => {
         if (onCancel) {
-          setOptions(tokens)
           onCancel()
         }
       }}
       bodyStyle={{
         minHeight: '550px'
+      }}
+      afterClose={() => {
+        setOptions(tokens)
       }}
     >
       <div className="modal-tokens">
