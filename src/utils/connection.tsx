@@ -168,9 +168,7 @@ export const sendSwapTransaction = async ({
   transaction: Transaction;
   awaitConfirmation?: boolean;
 }) => {
-  const signedTransaction: Transaction = await wallet.signTransaction(
-    transaction
-  );
+  const signedTransaction: Transaction = await wallet.signTransaction(transaction);
 
   const rawTransaction = signedTransaction.serialize({
     verifySignatures: false,
