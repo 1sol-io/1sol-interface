@@ -1,0 +1,43 @@
+.page-toolkit {
+  padding: 10px;
+
+  .toolkit-card {
+    margin: 0;
+    width: 480px;
+    box-shadow: rgb(0 0 0 / 40%) 0px 0px 30px 0px;
+  }
+
+  .toolkit-item {
+    > .hd {
+      padding: 0 0 5px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    > .bd {
+      text-align: left;
+      margin: 20px 0;
+
+      p {
+        line-height: 1.5;
+        font-size: 14px;
+      }
+    }
+
+    > .ft {
+      .item > .hd,
+      .item > .bd {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        margin-bottom: 10px;
+      }
+
+      .item .label {
+        font-weight: bold;
+      }
+    }
+  }
+}

@@ -1,11 +1,15 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
-import { MintInfo } from "@solana/spl-token";
+import { MintInfo, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import axios from 'axios';
 import { Route as RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
 
 import { TokenInfo } from "../utils/token-registry";
 import { PoolInfo, TokenAccount } from "./../models";
+import { Connection, PublicKey } from '@solana/web3.js';
+import { TokenAccountLayout } from '@onesol/onesol-sdk/lib/onesolprotocol';
+import base58 from 'bs58';
+import bs58 from 'bs58';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -331,4 +335,46 @@ export interface PriceExchange {
   to: string,
   input: number,
   output: number
+}
+
+export const getWrappedSolAccounts = async ({
+  connection,
+  wallet
+}: {
+  connection: Connection,
+  wallet: PublicKey
+}) => {
+  const accounts = await connection.getProgramAccounts(
+    TOKEN_PROGRAM_ID,
+    {
+      filters: [
+        {
+          dataSize: TokenAccountLayout.span,
+        },
+        {
+          memcmp: {
+            offset: 32,
+            bytes: NATIVE_MINT.toBase58(),
+          },
+        },
+        {
+          memcmp: {
+            offset: TokenAccountLayout.offsetOf('state')!,
+            bytes: bs58.encode([1]),
+          },
+        },
+        {
+          memcmp: {
+            offset: TokenAccountLayout.offsetOf('owner')!,
+            bytes: wallet.toBase58(),
+          },
+        }
+      ]
+    }
+  );
+  return accounts.map(({ pubkey, account }) => {
+    const data = TokenAccountLayout.decode(account.data);
+
+    return { pubkey: pubkey, mint: data.mint, owner: data.owner, amount: data.amount }
+  })
 }

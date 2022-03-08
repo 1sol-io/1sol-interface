@@ -10,6 +10,7 @@ import { OnesolProtocolProvider } from "./context/onesolprotocol";
 const Exchange = lazy(() => import("./components/exchange"));
 const Dashboard = lazy(() => import("./components/dashboard"));
 const Staking = lazy(() => import("./components/staking"));
+const Toolkit = lazy(() => import("./components/toolkit"))
 
 // const loading = (
 //   <div className="g-loading">
@@ -41,6 +42,7 @@ export function Routes() {
                     <Redirect to="/trade/USDC-1SOL" />
                   </Route>
                   <Route exact path="/staking" component={Staking} />
+                  <Route exact path="/toolkit" component={Toolkit} />
                 </Switch>
               </CurrencyPairProvider>
               </OnesolProtocolProvider>
