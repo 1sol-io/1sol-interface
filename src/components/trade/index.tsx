@@ -319,7 +319,8 @@ export const TradeEntry = () => {
 
       const transactions = await getTransactions({
         distribution,
-        slippage
+        slippage,
+        legacy: true,
       })
 
       await sendTransactions({

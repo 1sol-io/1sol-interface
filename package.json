@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
-    "@onesol/onesol-sdk": "0.6.0",
+    "@onesol/onesol-sdk": "0.7.0",
     "@project-serum/borsh": "^0.2.3",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@pythnetwork/client": "^2.0.0",
@@ -23,7 +23,7 @@
     "@solana/wallet-adapter-solflare": "^0.4.0",
     "@solana/wallet-adapter-sollet": "^0.8.0",
     "@solana/wallet-adapter-solong": "^0.7.0",
-    "@solana/web3.js": "1.26.0",
+    "@solana/web3.js": "1.36.0",
     "antd": "^4.6.6",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
