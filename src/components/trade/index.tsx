@@ -336,9 +336,10 @@ export const TradeEntry = () => {
       Sentry.captureException(e);
 
       notify({
-        description: "Please try again and approve transactions from your wallet",
+        description: "Please try again and approve transactions from your wallet.",
         message: "Swap trade cancelled.",
         type: "error",
+        showUnwrapTip: true
       });
     } finally {
       setPendingTx(false);
