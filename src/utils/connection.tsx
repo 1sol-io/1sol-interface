@@ -1,4 +1,3 @@
-
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Connection,
@@ -7,9 +6,9 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 
-import { useLocalStorageState, getFastestEndpoint } from './utils'
+import { useLocalStorageState, getFastestEndpoint } from "./utils";
 import { setProgramIds } from "./ids";
-import { ENDPOINTS, CHAIN_ID, CHAIN_NAME} from '../utils/constant'
+import { ENDPOINTS, CHAIN_ID, CHAIN_NAME } from "../utils/constant";
 
 import { notify } from "./notifications";
 import { ExplorerLink } from "../components/explorerLink";
@@ -27,14 +26,14 @@ interface ConnectionConfig {
   setSlippage: (val: number) => void;
   env: ENV;
   setEndpoint: (val: string) => void;
-  chainId: number,
+  chainId: number;
 }
 
 const ConnectionContext = React.createContext<ConnectionConfig>({
   endpoint: DEFAULT,
-  setEndpoint: () => { },
+  setEndpoint: () => {},
   slippage: DEFAULT_SLIPPAGE,
-  setSlippage: (val: number) => { },
+  setSlippage: (val: number) => {},
   connection: new Connection(DEFAULT, "recent"),
   // sendConnection: new Connection(DEFAULT, "recent"),
   env: CHAIN_NAME,
@@ -49,31 +48,32 @@ export function ConnectionProvider({ children = undefined as any }) {
     DEFAULT_SLIPPAGE.toString()
   );
 
-  const connection = useMemo(() => new Connection(endpoint, "recent"), [
-    endpoint,
-  ]);
+  const connection = useMemo(
+    () => new Connection(endpoint, "recent"),
+    [endpoint]
+  );
   // const sendConnection = useMemo(() => new Connection(endpoint, "recent"), [
   //   endpoint,
   // ]);
 
   const env = CHAIN_NAME;
-  const chainId = Number(CHAIN_ID); 
+  const chainId = Number(CHAIN_ID);
 
   useEffect(() => {
-    if (!['mainnet-beta', 'devnet'].includes(env)) {
+    if (!["mainnet-beta", "devnet"].includes(env)) {
       notify({
-        message: 'Wrong Network',
-        description: `${env} is avaliable for now.`
-      })
+        message: "Wrong Network",
+        description: `${env} is avaliable for now.`,
+      });
     }
-  }, [env])
+  }, [env]);
 
   useEffect(() => {
     (async () => {
       const endpoint = await getFastestEndpoint(ENDPOINTS);
 
       setEndpoint(endpoint);
-    })(); 
+    })();
   }, []);
 
   setProgramIds(env);
@@ -123,7 +123,7 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
   // wait for all confirmation before geting transaction
   await connection.confirmTransaction(txid, "max");
 
-  const tx = await connection.getParsedConfirmedTransaction(txid, 'confirmed');
+  const tx = await connection.getParsedConfirmedTransaction(txid, "confirmed");
 
   const errors: string[] = [];
 
@@ -150,31 +150,35 @@ const getErrorForTransaction = async (connection: Connection, txid: string) => {
 export const signAllTransactions = async (
   connection: Connection,
   wallet: any,
-  transactions: Transaction[],
+  transactions: Transaction[]
 ) => {
   const signedTransactions = await wallet.signAllTransactions(transactions);
 
-  return signedTransactions
-}
+  return signedTransactions;
+};
 
-export const sendSwapTransaction = async({
+export const sendSwapTransaction = async ({
   connection,
   wallet,
   transaction,
-  awaitConfirmation = true
+  awaitConfirmation = true,
 }: {
-  connection: Connection,
-  wallet: any,
-  transaction: Transaction,
-  awaitConfirmation?: boolean
+  connection: Connection;
+  wallet: any;
+  transaction: Transaction;
+  awaitConfirmation?: boolean;
 }) => {
-  const signedTransaction = await wallet.signTransaction(transaction);
+  const signedTransaction: Transaction = await wallet.signTransaction(
+    transaction
+  );
 
-  const rawTransaction = signedTransaction.serialize();
+  const rawTransaction = signedTransaction.serialize({
+    verifySignatures: false,
+  });
 
   const options = {
     skipPreflight: true,
-    commitment: "confirmed",
+    commitment: "processed",
   };
 
   const txid = await connection.sendRawTransaction(rawTransaction, options);
@@ -210,7 +214,7 @@ export const sendSwapTransaction = async({
   }
 
   return txid;
-}
+};
 
 export const sendTransaction = async (
   connection: Connection,
@@ -227,7 +231,7 @@ export const sendTransaction = async (
     await connection.getRecentBlockhash("max")
   ).blockhash;
 
-  transaction.feePayer = wallet.publicKey
+  transaction.feePayer = wallet.publicKey;
 
   if (signers.length > 0) {
     transaction.partialSign(...signers);
@@ -239,7 +243,7 @@ export const sendTransaction = async (
 
   const options = {
     skipPreflight: true,
-    commitment: "confirmed",
+    commitment: "processed",
   };
 
   const txid = await connection.sendRawTransaction(rawTransaction, options);
@@ -287,7 +291,12 @@ export const sendSignedTransaction = async (
     commitment: "confirmed",
   };
 
-  const txid = await connection.sendRawTransaction(transaction.serialize(), options);
+  const txid = await connection.sendRawTransaction(
+    transaction.serialize({
+      verifySignatures: false,
+    }),
+    options
+  );
 
   if (awaitConfirmation) {
     const status = (
@@ -320,4 +329,4 @@ export const sendSignedTransaction = async (
   }
 
   return txid;
-}
+};
