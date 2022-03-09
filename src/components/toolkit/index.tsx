@@ -1,37 +1,39 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState
-} from 'react'
-import { Card, Button, Spin, Popover, Modal, Tooltip } from 'antd'
+import React, { Fragment, useCallback, useState } from 'react'
+import { Card, Button } from 'antd'
+import { PublicKey } from '@solana/web3.js'
 
 import { AppBar } from '../appBar'
 import Social from '../social'
 
 import { shortenAddress } from '../../utils/utils'
-import { useConnection } from '../../utils/connection'
 
-import { WRAPPED_SOL_MINT } from '../../utils/constant'
 import { useWallet } from '../../context/wallet'
+import { useWrappedSolAccounts } from '../../hooks/useWrappedSol'
 
 import './index.less'
 
 const Toolkit = () => {
-  const { wallet, connect, connected } = useWallet()
-  const connection = useConnection()
+  const { connect, connected } = useWallet()
+  const { wrappedSolAccounts, unwrapSol } = useWrappedSolAccounts()
 
-  const [wsol, setWsol] = useState([])
+  const [unwrapLoading, setUnwrapLoading] = useState(false)
 
-  useCallback(
-    () => {
-      // if (connected) {
-      //   const wsol = []
-      //   setWsol(wsol)
-      // }
+  const handleUnwrapSol = useCallback(
+    async () => {
+      try {
+        setUnwrapLoading(true)
+
+        await unwrapSol(
+          wrappedSolAccounts.map((account) => new PublicKey(account.address))
+        )
+
+        setUnwrapLoading(false)
+      } catch (e) {
+        console.error(e)
+        setUnwrapLoading(false)
+      }
     },
-    [connection, connected]
+    [wrappedSolAccounts, unwrapSol]
   )
 
   return (
@@ -53,19 +55,19 @@ const Toolkit = () => {
             </div>
             {connected ? (
               <div className="ft">
-                {wsol.length ? (
+                {wrappedSolAccounts.length ? (
                   <div className="item">
                     <div className="hd">
                       <div className="label">Address</div>
                       <div className="label">Balance</div>
                     </div>
                     <div className="bd">
-                      {wsol.map((item, index) => (
+                      {wrappedSolAccounts.map((item, index) => (
                         <Fragment key={index}>
                           <div className="value">
-                            {shortenAddress(wallet.publicKey.toBase58(), 12)}
+                            {shortenAddress(item.address, 10)}
                           </div>
-                          <div className="value">0.0</div>
+                          <div className="value">{item.balance}</div>
                         </Fragment>
                       ))}
                     </div>
@@ -73,10 +75,12 @@ const Toolkit = () => {
                 ) : null}
 
                 <Button
-                  disabled={!wsol.length}
+                  disabled={!wrappedSolAccounts.length}
                   block
                   type="primary"
                   size="large"
+                  onClick={handleUnwrapSol}
+                  loading={unwrapLoading}
                 >
                   Unwrap All
                 </Button>
