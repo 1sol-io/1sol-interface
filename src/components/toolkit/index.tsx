@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Card, Button } from 'antd'
 import { PublicKey } from '@solana/web3.js'
 
@@ -61,26 +61,25 @@ const Toolkit = () => {
                       <div className="label">Address</div>
                       <div className="label">Balance</div>
                     </div>
-                    <div className="bd">
-                      {wrappedSolAccounts.map((item, index) => (
-                        <Fragment key={index}>
-                          <div className="value">
-                            {shortenAddress(item.address, 10)}
-                          </div>
-                          <div className="value">{item.balance}</div>
-                        </Fragment>
-                      ))}
-                    </div>
+                    {wrappedSolAccounts.map((item, index) => (
+                      <div className="bd" key={index}>
+                        <div className="value">
+                          {shortenAddress(item.address, 10)}
+                        </div>
+                        <div className="value">{item.balance}</div>
+                      </div>
+                    ))}
                   </div>
                 ) : null}
 
                 <Button
-                  disabled={!wrappedSolAccounts.length}
+                  disabled={!wrappedSolAccounts.length || unwrapLoading}
                   block
                   type="primary"
                   size="large"
                   onClick={handleUnwrapSol}
                   loading={unwrapLoading}
+                  style={{ marginTop: '20px' }}
                 >
                   Unwrap All
                 </Button>

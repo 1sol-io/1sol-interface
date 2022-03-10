@@ -371,6 +371,7 @@ export const getWrappedSolAccounts = async ({
       ]
     }
   );
+
   return accounts.map(({ pubkey, account }) => {
     const { mint, owner, amount } = TokenAccountLayout.decode(account.data);
 

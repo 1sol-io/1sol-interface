@@ -32,7 +32,7 @@ export function useWrappedSolAccounts() {
       })))
     }
 
-    if (connected && wallet && connection) {
+    if (connected && wallet && wallet.publicKey && connection) {
       fetchAccounts()
     }
   }, [connected, wallet, connection])
