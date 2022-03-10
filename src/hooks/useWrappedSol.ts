@@ -26,8 +26,8 @@ export function useWrappedSolAccounts() {
         wallet: wallet.publicKey
       })
 
-      setWrappedSolAccounts(accounts.map(({ mint, amount }) => ({
-        address: mint.toBase58(),
+      setWrappedSolAccounts(accounts.map(({ pubkey, amount }) => ({
+        address: pubkey.toBase58(),
         balance: convert(amount.toNumber(), 9),
       })))
     }

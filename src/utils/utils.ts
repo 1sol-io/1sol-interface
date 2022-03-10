@@ -3,10 +3,13 @@ import { useCallback, useState } from "react";
 import { MintInfo, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import axios from 'axios';
 import { Route as RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
+import {
+  struct, u8,
+} from '@solana/buffer-layout';
 
 import { TokenInfo } from "../utils/token-registry";
 import { PoolInfo, TokenAccount } from "./../models";
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { TokenAccountLayout } from '@onesol/onesol-sdk/lib/onesolprotocol';
 import bs58 from 'bs58';
 
@@ -387,12 +390,29 @@ export const createUnwrapSolInstructions = ({
   accounts: PublicKey[],
 }) => {
   return accounts.map(account =>
-    Token.createCloseAccountInstruction(
-      TOKEN_PROGRAM_ID,
-      account,
-      wallet,
-      wallet,
-      []
-    )
+    createCloseTokenAccountInstruction(account, wallet, wallet)
   )
+}
+
+export const createCloseTokenAccountInstruction = (
+  account: PublicKey,
+  destination: PublicKey,
+  authority: PublicKey,
+) => {
+  const keys = [
+    { pubkey: account, isSigner: false, isWritable: true },
+    { pubkey: destination, isSigner: false, isWritable: true },
+    { pubkey: authority, isSigner: true, isWritable: false }
+  ];
+  const closeAccountInstructionData = struct([u8('instruction')]);
+  const data = Buffer.alloc(closeAccountInstructionData.span);
+  closeAccountInstructionData.encode({
+    instruction: 9,
+  }, data);
+
+  return new TransactionInstruction({
+    keys,
+    programId: TOKEN_PROGRAM_ID,
+    data,
+  });
 }
