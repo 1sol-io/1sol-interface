@@ -46,7 +46,7 @@ const Toolkit = () => {
           bodyStyle={{ position: 'relative', padding: '20px' }}
         >
           <div className="toolkit-item">
-            <div className="hd">unwrap Wrapped SOL to SOL</div>
+            <div className="hd">unwrap Wrapped SOL</div>
             <div className="bd">
               <p>
                 If you have Wrapped SOL in your wallet you can easily unwrap it.
