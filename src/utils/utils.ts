@@ -1,6 +1,6 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
-import { MintInfo, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { MintInfo, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import axios from 'axios';
 import { Route as RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
 import {

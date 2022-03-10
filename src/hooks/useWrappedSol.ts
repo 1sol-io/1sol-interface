@@ -9,6 +9,7 @@ import { useWallet } from '../context/wallet'
 import { useConnection } from '../utils/connection'
 import { convert, getWrappedSolAccounts, createUnwrapSolInstructions } from '../utils/utils'
 import { sendTransaction } from '../utils/connection'
+import { notify } from '../utils/notifications'
 
 export function useWrappedSolAccounts() {
   const connection = useConnection()
@@ -42,7 +43,16 @@ export function useWrappedSolAccounts() {
   ) => {
     const instructions = createUnwrapSolInstructions({ wallet: wallet.publicKey, accounts })
 
-    await sendTransaction(connection, wallet, instructions, [])
+    const txid = await sendTransaction(connection, wallet, instructions, [])
+
+    setWrappedSolAccounts([])
+
+    notify({
+      message: 'Unwrap executed.',
+      type: 'success',
+      description: `Transaction - ${txid}`,
+      txid
+    })
   }, [wallet, connection])
 
   return { wrappedSolAccounts, unwrapSol }
