@@ -15,6 +15,7 @@ import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
 import { useLocalStorageState } from '../utils/utils'
 import { useWallet } from './wallet'
+import { ONESOL_PROGRAM_ID } from '../utils/constant'
 
 export const OnesolProtocolContext = createContext<any>(null)
 
@@ -39,7 +40,12 @@ export function OnesolProtocolProvider({ children = null as any }){
   useEffect(
     () => {
       if (connection) {
-        const oneSolProtocol = new OnesolProtocol(connection)
+        const apiBase = window.localStorage.getItem('onesol-interface:api:base')
+        const oneSolProtocol = new OnesolProtocol(
+          connection,
+          ONESOL_PROGRAM_ID,
+          apiBase ? { apiBase } : undefined
+        )
 
         setOneSolProtocol(oneSolProtocol)
       }
