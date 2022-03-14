@@ -1,5 +1,6 @@
 import React from 'react'
-import { notification } from 'antd'
+import { Button, notification } from 'antd'
+
 import { ExplorerLink } from '../components/explorerLink';
 
 export function notify({
@@ -9,6 +10,7 @@ export function notify({
   type = 'info',
   placement = 'bottomLeft',
   duration = 4.5,
+  showUnwrapTip = false
 }){
   if (txid) {
     description = <>
@@ -22,11 +24,14 @@ export function notify({
   }
 
   const config = {
-    message: <span style={{ color: 'black' }}>{message}</span>,
-    description:
-      <span style={{ color: 'black', opacity: 0.5 }}>{description}</span>,
+    message: <span style={{ color: '#fff' }}>{message}</span>,
+    description: <>
+      <p style={{ color: '#fff', opacity: 0.5, marginBottom: '5px' }}>{description}</p>
+      { showUnwrapTip ? <p>Wrapped SOL can be unwrapped <Button type="primary" size="small"><a href="/toolkit" style={{ color: '#fff', textDecoration: 'none' }}>here</a></Button>.</p> : null }
+    </>,
     placement,
     duration
   }
+
   ;(notification as any)[type](config)
 }

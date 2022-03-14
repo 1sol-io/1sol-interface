@@ -2,6 +2,8 @@ import React from "react";
 import { Button, Card, Popover } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
 
+import { useWrappedSolAccounts } from "../hooks/useWrappedSol";
+
 import { TradeEntry } from "./trade";
 import { Settings } from "./settings";
 import { AppBar } from "./appBar";
@@ -11,6 +13,7 @@ import HuobiLogo from '../assets/huobi.svg'
 import BybitLogo from '../assets/bybit.svg'
 
 import './exchange.less'
+import { Link } from "react-router-dom";
 
 const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };
@@ -21,6 +24,8 @@ const ExchangeView = (props: {}) => {
         return <TradeEntry />;
       },
     };
+
+  const { wrappedSolAccounts } = useWrappedSolAccounts();
 
   return (
     <>
@@ -42,6 +47,25 @@ const ExchangeView = (props: {}) => {
       />
 
       <div>
+        { 
+          wrappedSolAccounts.length ? 
+          <Card 
+            className="exchange-card toolkit-tip-card" 
+            headStyle={{ padding: 0 }}
+            bodyStyle={{ position: "relative", padding: '20px' }}
+          >
+            <div className="toolkit-tip">
+              <div className="hd">You have Wrapped SOL, unwrap?</div>
+              <div className="bd">
+                <Link to="/toolkit">
+                  <Button type="primary" size="small">Unwrap</Button>
+                </Link>
+              </div>
+            </div>
+          </Card>: 
+          null
+        }
+
         <Card
           className="exchange-card"
           headStyle={{ padding: 0 }}

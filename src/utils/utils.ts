@@ -1,11 +1,17 @@
 import BN from 'bn.js';
 import { useCallback, useState } from "react";
-import { MintInfo } from "@solana/spl-token";
+import { MintInfo, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import axios from 'axios';
 import { Route as RawRoute, PROVIDER_MAP } from '@onesol/onesol-sdk';
+import {
+  struct, u8,
+} from '@solana/buffer-layout';
 
 import { TokenInfo } from "../utils/token-registry";
 import { PoolInfo, TokenAccount } from "./../models";
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { TokenAccountLayout } from '@onesol/onesol-sdk/lib/onesolprotocol';
+import bs58 from 'bs58';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -331,4 +337,82 @@ export interface PriceExchange {
   to: string,
   input: number,
   output: number
+}
+
+export const getWrappedSolAccounts = async ({
+  connection,
+  wallet
+}: {
+  connection: Connection,
+  wallet: PublicKey
+}) => {
+  const accounts = await connection.getProgramAccounts(
+    TOKEN_PROGRAM_ID,
+    {
+      filters: [
+        {
+          dataSize: TokenAccountLayout.span,
+        },
+        {
+          memcmp: {
+            offset: TokenAccountLayout.offsetOf('mint')!,
+            bytes: NATIVE_MINT.toBase58(),
+          },
+        },
+        {
+          memcmp: {
+            offset: TokenAccountLayout.offsetOf('state')!,
+            bytes: bs58.encode([1]),
+          },
+        },
+        {
+          memcmp: {
+            offset: TokenAccountLayout.offsetOf('owner')!,
+            bytes: wallet.toBase58(),
+          },
+        }
+      ]
+    }
+  );
+
+  return accounts.map(({ pubkey, account }) => {
+    const { mint, owner, amount } = TokenAccountLayout.decode(account.data);
+
+    return { pubkey, mint, owner, amount }
+  })
+}
+
+export const createUnwrapSolInstructions = ({
+  wallet,
+  accounts,
+}: {
+  wallet: PublicKey,
+  accounts: PublicKey[],
+}) => {
+  return accounts.map(account =>
+    createCloseTokenAccountInstruction(account, wallet, wallet)
+  )
+}
+
+export const createCloseTokenAccountInstruction = (
+  account: PublicKey,
+  destination: PublicKey,
+  authority: PublicKey,
+) => {
+  const keys = [
+    { pubkey: account, isSigner: false, isWritable: true },
+    { pubkey: destination, isSigner: false, isWritable: true },
+    { pubkey: authority, isSigner: true, isWritable: false }
+  ];
+  const closeAccountInstructionData = struct([u8('instruction')]);
+  const data = Buffer.alloc(closeAccountInstructionData.span);
+  closeAccountInstructionData.encode({
+    instruction: 9,
+  }, data);
+
+  return new TransactionInstruction({
+    keys,
+    programId: TOKEN_PROGRAM_ID,
+    data,
+  });
 }

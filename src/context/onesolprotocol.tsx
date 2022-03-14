@@ -88,7 +88,7 @@ export function OnesolProtocolProvider({ children = null as any }){
 
   useEffect(
     () => {
-      if (oneSolProtocol && connected) {
+      if (oneSolProtocol && connected && wallet && wallet.publicKey) {
         const fetchProtocolSwapInfo = async () => {
           const swapInfo = await oneSolProtocol.findSwapInfoKey(
             wallet.publicKey
