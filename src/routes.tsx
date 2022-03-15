@@ -11,6 +11,8 @@ const Exchange = lazy(() => import("./components/exchange"));
 const Dashboard = lazy(() => import("./components/dashboard"));
 const Staking = lazy(() => import("./components/staking"));
 const Toolkit = lazy(() => import("./components/toolkit"))
+const Farms = lazy(() => import("./components/farms"))
+const Farm = lazy(() => import("./components/farm"))
 
 // const loading = (
 //   <div className="g-loading">
@@ -41,6 +43,8 @@ export function Routes() {
                   <Route exact path="/airdrop">
                     <Redirect to="/trade/USDC-1SOL" />
                   </Route>
+                  <Route path="/farms/:id" component={Farm} />
+                  <Route exact path="/farms" component={Farms} />
                   <Route exact path="/staking" component={Staking} />
                   <Route exact path="/toolkit" component={Toolkit} />
                 </Switch>

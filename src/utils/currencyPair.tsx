@@ -197,7 +197,7 @@ export const useCurrencyPairState = () => {
   return context as CurrencyPairContextState;
 };
 
-const isValidAddress = (address: string) => {
+export const isValidAddress = (address: string) => {
   try {
     const decoded = bs58.decode(address);
     return decoded.length === 32;
