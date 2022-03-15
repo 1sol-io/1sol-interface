@@ -51,6 +51,15 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               DEX
             </a>
           </Menu.Item>
+          <Menu.Item key="/farms">
+            <NavLink
+              to={{
+                pathname: '/farms'
+              }}
+            >
+              Farms
+            </NavLink>
+          </Menu.Item>
           <Menu.Item key="/staking">
             <NavLink
               to={{

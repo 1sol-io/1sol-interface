@@ -16,3 +16,4 @@ export {
 
 export { default as DownOutlined } from '@ant-design/icons/DownOutlined'
 export { default as UpOutlined } from '@ant-design/icons/UpOutlined'
+export { default as PlusOutlined } from '@ant-design/icons/PlusOutlined'
