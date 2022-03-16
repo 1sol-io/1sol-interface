@@ -3,16 +3,18 @@ import { useParams } from 'react-router-dom'
 import { Card, Button } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
+import { FarmItem, FarmInfo, TokenSwap } from '@onesol/farm'
+
+import { useOnesolFarmingProtocol } from '../../hooks/useOnesolFarmingProtocol'
+
 import { AppBar } from '../appBar'
 import Social from '../social'
 import { Currency } from './currency'
 import { TokenIcon } from '../tokenIcon'
 
-import { useConnection } from '../../utils/connection'
 import { useCurrencyLeg } from '../../utils/currencyPair'
 import {WRAPPED_SOL_MINT } from '../../utils/constant'
 import { TokenInfo } from '../../utils/token-registry'
-import { FarmItems } from '@onesol/farm'
 
 import { useWallet } from '../../context/wallet'
 import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
@@ -25,10 +27,12 @@ type FarmParams = {
 
 const Farm = () => {
   const { id } = useParams<FarmParams>()
-  const farm = FarmItems.find(({ address }) => id === address.toBase58())
+
+  const { farmMap, getFarmInfo, getEstimateAmount, getFarmSwap } = useOnesolFarmingProtocol()
+
+  const farm: FarmItem = farmMap[id]
 
   const { connect, connected } = useWallet()
-  // const connection = useConnection()
 
   const { tokens } = useOnesolProtocol();
 
@@ -38,18 +42,45 @@ const Farm = () => {
   const quote = useCurrencyLeg();
   const setMintAddressB = quote.setMint;
 
+  const [farmInfo, setFarmInfo] = useState<FarmInfo>()
+  const [farmSwap, setFarmSwap] = useState<TokenSwap>()
+
   useEffect(() => {
     if (farm) {
-      const {pool: {tokenA, tokenB}} = farm
+      const { pool: { tokenA, tokenB }} = farm
 
       setMintAddressA(
-        tokens.find((t: TokenInfo) => t.address === tokenA.mint.toBase58())?.address || ""
+        tokens.find((t: TokenInfo) => t.address === tokenA.mint.address.toBase58())?.address || ""
       );
       setMintAddressB(
-        tokens.find((t: TokenInfo) => t.address === tokenB.mint.toBase58())?.address || ""
+        tokens.find((t: TokenInfo) => t.address === tokenB.mint.address.toBase58())?.address || ""
       );
     }
   }, [farm, tokens, setMintAddressA, setMintAddressB])
+
+  useEffect(() => {
+    if (farm) {
+      const getFarm = async () => {
+        const info = await getFarmInfo(farm)
+
+        setFarmInfo(info)
+      }
+
+      getFarm()
+    }
+  }, [farm, getFarmInfo])
+
+  useEffect(() => {
+    if (farm) {
+      const getSwap = async () => {
+        const swap = await getFarmSwap(farm)
+
+        setFarmSwap(swap)
+      }
+
+      getSwap()
+    }
+  }, [farm, getFarmSwap])
 
   const renderTitle = () => {
     if (!farm) {
@@ -94,12 +125,24 @@ const Farm = () => {
           <Currency 
             mint={base.mintAddress} 
             amount={base.amount}
-            onInputChange={(val: number) => base.setAmount(`${val}`)} 
-            onMaxClick={() => {
-              base.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
-              base.setAmount(`${base.balance - 0.05 > 0 ? base.balance - 0.05 : 0}`) : 
-              base.setAmount(`${base.balance}`)}
-            }
+            onInputChange={ (val: number) => { 
+              base.setAmount(`${val}`)
+              
+              const amount =  getEstimateAmount({ farmSwap, farm, amount: val })
+
+              quote.setAmount(`${amount}`)
+            }} 
+            onMaxClick={ () => {
+              const val = base.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
+                base.balance - 0.05 > 0 ? base.balance - 0.05 : 0 : 
+                base.balance
+
+              base.setAmount(`${val}`)
+
+              const amount = getEstimateAmount({ farmSwap, farm, amount: val })
+
+              quote.setAmount(`${amount}`)
+            }}
           />
           <div className="plus-icon">
             <PlusOutlined style={{fontSize: '18px'}} />
@@ -107,12 +150,24 @@ const Farm = () => {
           <Currency 
             mint={quote.mintAddress} 
             amount={quote.amount}
-            onInputChange={(val: number) => quote.setAmount(`${val}`)} 
-            onMaxClick={() => {
-              quote.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
-              quote.setAmount(`${quote.balance - 0.05 > 0 ? quote.balance - 0.05 : 0}`) : 
-              quote.setAmount(`${quote.balance}`)}
-            }
+            onInputChange={ (val: number) => {
+              quote.setAmount(`${val}`)
+              
+              const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
+
+              base.setAmount(`${amount}`)
+            }} 
+            onMaxClick={ () => {
+              const val = quote.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
+                quote.balance - 0.05 > 0 ? quote.balance - 0.05 : 0 : 
+                quote.balance
+
+              quote.setAmount(`${val}`)
+
+              const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
+
+              base.setAmount(`${amount}`)
+            }}
           />
         </div>
         <div className="ft">
