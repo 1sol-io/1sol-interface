@@ -22,6 +22,11 @@ module.exports = {
     },
     configure: (webpackConfig, { env }) => {
       webpackConfig.devtool = false
+      webpackConfig.module.rules.push({
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto'
+      })
 
       // webpackConfig.plugins.push(new webpackBundleAnalyzer())
 

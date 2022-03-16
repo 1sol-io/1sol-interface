@@ -2,17 +2,22 @@ import React, { Fragment } from 'react'
 import { Card, Button } from 'antd'
 import { Link } from 'react-router-dom'
 
+import { FarmItem } from '@onesol/farm'
+
+import { useOnesolFarmingProtocol } from '../../hooks/useOnesolFarmingProtocol'
+
 import { AppBar } from '../appBar'
 import Social from '../social'
 
 import { TokenIcon } from '../tokenIcon'
-import { FarmItems } from '@onesol/farm'
 
 import './index.less'
 
 const Farms = () => {
+  const { farms } = useOnesolFarmingProtocol()
+
   const renderFarms = () =>
-    FarmItems.map(({ address, pool }, i) => (
+    farms.map(({ address, pool }: FarmItem, i: number) => (
       <Fragment key={i}>
         <Card
           className="farm-card"

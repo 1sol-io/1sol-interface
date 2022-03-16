@@ -6,6 +6,7 @@ import { ConnectionProvider } from "./utils/connection";
 import { AccountsProvider } from "./utils/accounts";
 import { CurrencyPairProvider } from "./utils/currencyPair";
 import { OnesolProtocolProvider } from "./context/onesolprotocol";
+import { OnesolFarmingProtocolProvider } from "./context/onesolfarming";
 
 const Exchange = lazy(() => import("./components/exchange"));
 const Dashboard = lazy(() => import("./components/dashboard"));
@@ -33,22 +34,24 @@ export function Routes() {
           <WalletProvider>
             <AccountsProvider>
               <OnesolProtocolProvider>
-              <CurrencyPairProvider>
-                <Switch>
-                  <Route exact path="/">
-                    <Redirect to="/trade/USDC-1SOL" />
-                  </Route>
-                  <Route path="/trade/:pair" component={Exchange} />
-                  <Route exact path="/dashboard" component={Dashboard} />
-                  <Route exact path="/airdrop">
-                    <Redirect to="/trade/USDC-1SOL" />
-                  </Route>
-                  <Route path="/farms/:id" component={Farm} />
-                  <Route exact path="/farms" component={Farms} />
-                  <Route exact path="/staking" component={Staking} />
-                  <Route exact path="/toolkit" component={Toolkit} />
-                </Switch>
-              </CurrencyPairProvider>
+                <OnesolFarmingProtocolProvider>
+                  <CurrencyPairProvider>
+                    <Switch>
+                      <Route exact path="/">
+                        <Redirect to="/trade/USDC-1SOL" />
+                      </Route>
+                      <Route path="/trade/:pair" component={Exchange} />
+                      <Route exact path="/dashboard" component={Dashboard} />
+                      <Route exact path="/airdrop">
+                        <Redirect to="/trade/USDC-1SOL" />
+                      </Route>
+                      <Route path="/farms/:id" component={Farm} />
+                      <Route exact path="/farms" component={Farms} />
+                      <Route exact path="/staking" component={Staking} />
+                      <Route exact path="/toolkit" component={Toolkit} />
+                    </Switch>
+                  </CurrencyPairProvider>
+                </OnesolFarmingProtocolProvider>
               </OnesolProtocolProvider>
             </AccountsProvider>
           </WalletProvider>

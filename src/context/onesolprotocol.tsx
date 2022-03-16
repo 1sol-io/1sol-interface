@@ -82,7 +82,34 @@ export function OnesolProtocolProvider({ children = null as any }){
         const fetchTokenList = async () => {
           const tokenList = await oneSolProtocol.getTokenList()
 
-          setTokens(tokenList)
+          setTokens([
+            ...tokenList,
+            // for farming test
+            {
+              address: '8tyKuP3hjUi2dSfMLWYtQxzxZCv1Zmnvv3S2DmAaKg8B',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So111111111111111111111111111111011111111112/logo.png',
+              name: 'Base',
+              symbol: 'BASE'
+            },
+            {
+              address: 'GWydM4S7c8ZMfnv4w5MDdZpRTykHWdwa9P3BCu5v1B4W',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: 'Quote',
+              symbol: 'QUOTE'
+            }
+          ])
         }
 
         fetchTokenList()
