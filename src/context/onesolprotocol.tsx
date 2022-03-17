@@ -84,6 +84,7 @@ export function OnesolProtocolProvider({ children = null as any }){
 
           setTokens([
             ...tokenList,
+            // TODO
             // for farming test
             {
               address: '8tyKuP3hjUi2dSfMLWYtQxzxZCv1Zmnvv3S2DmAaKg8B',
