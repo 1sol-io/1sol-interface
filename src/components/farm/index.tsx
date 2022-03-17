@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Card, Button } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
-import { FarmItem, FarmInfo, TokenSwap } from '@onesol/farm'
+import { FarmItem, FarmInfo, TokenSwap, TransactionPayload, UserFarmInfo } from '@onesol/farm'
 
 import { useOnesolFarmingProtocol } from '../../hooks/useOnesolFarmingProtocol'
 
@@ -20,6 +20,10 @@ import { useWallet } from '../../context/wallet'
 import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
 
 import './index.less'
+import { sendSignedTransactions } from '../../utils/pools'
+import { useConnection } from '../../utils/connection'
+import { convert } from '../../utils/utils'
+import { u64 } from '@solana/spl-token'
 
 type FarmParams = {
   id: string
@@ -28,11 +32,18 @@ type FarmParams = {
 const Farm = () => {
   const { id } = useParams<FarmParams>()
 
-  const { farmMap, getFarmInfo, getEstimateAmount, getFarmSwap } = useOnesolFarmingProtocol()
+  const { 
+    farmMap, 
+    getFarmInfo, 
+    getUserFarmInfo,
+    getEstimateAmount, 
+    getFarmSwap,
+    getDepositTransactions 
+  } = useOnesolFarmingProtocol()
 
   const farm: FarmItem = farmMap[id]
-
-  const { connect, connected } = useWallet()
+  const connection = useConnection()
+  const { connect, connected, wallet } = useWallet()
 
   const { tokens } = useOnesolProtocol();
 
@@ -43,7 +54,9 @@ const Farm = () => {
   const setMintAddressB = quote.setMint;
 
   const [farmInfo, setFarmInfo] = useState<FarmInfo>()
+  const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfo>()
   const [farmSwap, setFarmSwap] = useState<TokenSwap>()
+  const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string, lpAmount: string}>()
 
   useEffect(() => {
     if (farm) {
@@ -74,13 +87,32 @@ const Farm = () => {
     if (farm) {
       const getSwap = async () => {
         const swap = await getFarmSwap(farm)
+        // const { quote: {tokenAAmount, tokenBAmount, getLPSupply}} = swap
+        // const lpAmount = await getLPSupply()
 
         setFarmSwap(swap)
+        // setPool({
+        //   tokenAAmount: `${convert(Number(tokenAAmount), 6)}`,
+        //   tokenBAmount: `${convert(Number(tokenBAmount), 6)}`,
+        //   lpAmount: `${convert(lpAmount.toNumber(), 6)}`
+        // })
       }
 
       getSwap()
     }
   }, [farm, getFarmSwap])
+
+  useEffect(() => {
+    if (connected && farm) {
+      const getUserFarm = async () => {
+        const info = await getUserFarmInfo(farm)
+
+        setUserFarmInfo(info)
+      }
+
+      getUserFarm()
+    }
+  }, [farm, connected, getUserFarmInfo])
 
   const renderTitle = () => {
     if (!farm) {
@@ -116,7 +148,20 @@ const Farm = () => {
     )
   }
 
-  const handleDeposit = useCallback(() => {}, [])
+  const handleDeposit = useCallback(async () => {
+    const transactions = await getDepositTransactions({
+      farm,
+      farmSwap,
+      amountA: base.amount,
+      amountB: quote.amount,
+    })
+
+    await sendSignedTransactions({
+      connection,
+      wallet,
+      transactions: transactions.map((t: TransactionPayload) => t.transaction),
+    })
+  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet])
 
   const renderDeposit = () => {
     return (
@@ -195,7 +240,12 @@ const Farm = () => {
           className="liquidity-card"
           headStyle={{ padding: 0 }}
           bodyStyle={{ padding: '20px' }}
-          ></Card>
+          >
+            <div>Pooled(base){pool ? pool.tokenAAmount: 0}</div>
+            <div>Pooled(quote){pool ? pool.tokenBAmount: 0}</div>
+            <div>LP supply{pool ? pool.lpAmount: 0}</div>
+            { userFarmInfo ? convert(Number(userFarmInfo.stakeTokenAmount), 6) : 0 }
+          </Card>
         </div>
       </div>
     )

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react'
 
 import { FarmRouter, FarmItems, FarmItem, TokenSwap } from '@onesol/farm'
-import { u64 } from '@solana/spl-token'
+import { Token, u64 } from '@solana/spl-token'
 
 import { useConnection } from '../utils/connection'
 import { useWallet } from './wallet'
@@ -32,7 +32,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         setOneSolFarmingProtocol(oneSolFarmingProtocol)
       }
     },
-    [connection]
+    [connection, wallet]
   )
 
   useEffect(() => {
@@ -63,10 +63,11 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
     async (farm: FarmItem) => {
       if (oneSolFarmingProtocol && wallet) {
         const info = await oneSolFarmingProtocol.getUserFarmInfo(
-          farm,
-          wallet.publicKey
+          wallet.publicKey,
+          farm
         )
 
+        console.log(info)
         return info
       }
     },
@@ -112,6 +113,38 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
     [oneSolFarmingProtocol]
   )
 
+  const getDepositTransactions = useCallback(
+    async ({
+      farm,
+      farmSwap,
+      amountA,
+      amountB,
+      slippage = 1
+    }: {
+      farm: FarmItem
+      farmSwap: TokenSwap
+      amountA: number
+      amountB: number
+      slippage: number
+    }) => {
+      if (oneSolFarmingProtocol && wallet) {
+        const transactions = await oneSolFarmingProtocol.deposit({
+          farm,
+          farmSwap,
+          user: wallet.publicKey,
+          maximumTokenA:
+            new u64(amountA * 10 ** farm.pool.tokenA.mint.decimals),
+          maximumTokenB:
+            new u64(amountB * 10 ** farm.pool.tokenB.mint.decimals),
+          slippage
+        })
+
+        return transactions
+      }
+    },
+    [oneSolFarmingProtocol, wallet]
+  )
+
   return (
     <OnesolFarmingProtocolContext.Provider
       value={{
@@ -120,7 +153,8 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         getFarmInfo,
         getUserFarmInfo,
         getEstimateAmount,
-        getFarmSwap
+        getFarmSwap,
+        getDepositTransactions
       }}
     >
       {children}
