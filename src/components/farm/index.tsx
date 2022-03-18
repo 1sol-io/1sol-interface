@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Card, Button } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
-import { FarmItem, FarmInfo, TokenSwap, TransactionPayload, UserFarmInfo } from '@onesol/farm'
+import { FarmItem, FarmInfo, TokenSwap, UserFarmInfo } from '@onesol/farm'
 
 import { useOnesolFarmingProtocol } from '../../hooks/useOnesolFarmingProtocol'
 
@@ -38,7 +38,8 @@ const Farm = () => {
     getUserFarmInfo,
     getEstimateAmount, 
     getFarmSwap,
-    getDepositTransactions 
+    getDepositTransactions,
+    getWithdrawTransactions 
   } = useOnesolFarmingProtocol()
 
   const farm: FarmItem = farmMap[id]
@@ -57,6 +58,9 @@ const Farm = () => {
   const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfo>()
   const [farmSwap, setFarmSwap] = useState<TokenSwap>()
   const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string, lpAmount: string}>()
+
+  const [depositLoading, setDepositLoading] = useState(false)
+  const [withdrawLoading, setWithdrawLoading] = useState(false)
 
   useEffect(() => {
     if (farm) {
@@ -87,15 +91,15 @@ const Farm = () => {
     if (farm) {
       const getSwap = async () => {
         const swap = await getFarmSwap(farm)
-        // const { quote: {tokenAAmount, tokenBAmount, getLPSupply}} = swap
-        // const lpAmount = await getLPSupply()
+        const { quote: {tokenAAmount, tokenBAmount, lpSupply}} = swap
 
         setFarmSwap(swap)
-        // setPool({
-        //   tokenAAmount: `${convert(Number(tokenAAmount), 6)}`,
-        //   tokenBAmount: `${convert(Number(tokenBAmount), 6)}`,
-        //   lpAmount: `${convert(lpAmount.toNumber(), 6)}`
-        // })
+
+        setPool({
+          tokenAAmount: `${convert(tokenAAmount.toNumber(), 6)}`,
+          tokenBAmount: `${convert(tokenBAmount.toNumber(), 6)}`,
+          lpAmount: `${convert(lpSupply.toNumber(), 6)}`
+        })
       }
 
       getSwap()
@@ -131,37 +135,70 @@ const Farm = () => {
                 position: 'relative',
                 zIndex: 10
               }}
-              mintAddress={farm.pool.tokenA.mint.address.toBase58()}
+              mintAddress={base.mintAddress}
             />
           </div>
           <div className="token">
             <TokenIcon
               style={{ width: '40px', height: '40px', margin: '0' }}
-              mintAddress={farm.pool.tokenB.mint.address.toBase58()}
+              mintAddress={quote.mintAddress}
             />
           </div>
         </div>
         <div className="title">
-          Base-Quote
+          {base.name}-{quote.name}
         </div>
       </div>
     )
   }
 
   const handleDeposit = useCallback(async () => {
-    const transactions = await getDepositTransactions({
-      farm,
-      farmSwap,
-      amountA: base.amount,
-      amountB: quote.amount,
-    })
+    try {
+      setDepositLoading(true)
 
-    await sendSignedTransactions({
-      connection,
-      wallet,
-      transactions: transactions.map((t: TransactionPayload) => t.transaction),
-    })
+      const transactions = await getDepositTransactions({
+        farm,
+        farmSwap,
+        amountA: base.amount,
+        amountB: quote.amount,
+      })
+
+      await sendSignedTransactions({
+        connection,
+        wallet,
+        transactions,
+      })
+
+      farmSwap?.quote.refresh()
+      base.setAmount(`0`)
+      quote.setAmount(`0`)
+      setDepositLoading(false)
+    } catch (e) {
+      setDepositLoading(false)
+    }
   }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet])
+
+  const handleWithdraw = useCallback(async (amount: u64) => {
+    try {
+      setWithdrawLoading(true)
+
+      const transactions = await getWithdrawTransactions({
+        farm,
+        farmSwap,
+        amount,
+      })
+
+      await sendSignedTransactions({
+        connection,
+        wallet,
+        transactions
+      })
+
+      setWithdrawLoading(false)
+    } catch (e) {
+      setWithdrawLoading(false)
+    }
+  }, [farm, farmSwap, getWithdrawTransactions, connection, wallet])
 
   const renderDeposit = () => {
     return (
@@ -241,10 +278,34 @@ const Farm = () => {
           headStyle={{ padding: 0 }}
           bodyStyle={{ padding: '20px' }}
           >
-            <div>Pooled(base){pool ? pool.tokenAAmount: 0}</div>
-            <div>Pooled(quote){pool ? pool.tokenBAmount: 0}</div>
-            <div>LP supply{pool ? pool.lpAmount: 0}</div>
-            { userFarmInfo ? convert(Number(userFarmInfo.stakeTokenAmount), 6) : 0 }
+            <div>
+              Pending Rewards {  userFarmInfo ? convert(Number(userFarmInfo.rewardDebt), 6).toFixed(2) : 0 }
+              { 
+                userFarmInfo ?
+                <Button 
+                  type='primary' 
+                  style={{ marginTop: '10px' }}
+                  onClick={() => handleWithdraw(new u64(`${userFarmInfo.stakeTokenAmount}`))}
+                >
+                  Harvest
+                </Button> :
+                null
+              }
+            </div>
+            <div>
+              staked { userFarmInfo ? convert(Number(userFarmInfo.stakeTokenAmount), 6).toFixed(2) : 0 } LP
+              { 
+                userFarmInfo ?
+                <Button 
+                  type='primary' 
+                  style={{ marginTop: '10px' }}
+                  onClick={() => handleWithdraw(new u64(`${userFarmInfo.stakeTokenAmount}`))}
+                >
+                  Withdraw
+                </Button> :
+                null
+              }
+            </div>
           </Card>
         </div>
       </div>

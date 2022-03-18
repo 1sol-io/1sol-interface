@@ -12,9 +12,13 @@ import Social from '../social'
 import { TokenIcon } from '../tokenIcon'
 
 import './index.less'
+import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
+
+import { getTokenName } from '../../utils/utils'
 
 const Farms = () => {
   const { farms } = useOnesolFarmingProtocol()
+  const { tokenMap } = useOnesolProtocol()
 
   const renderFarms = () =>
     farms.map(({ address, pool }: FarmItem, i: number) => (
@@ -46,7 +50,9 @@ const Farms = () => {
                   />
                 </div>
               </div>
-              <div className="title">Base-Quote</div>
+              <div className="title">
+                {getTokenName(tokenMap, pool.tokenA.mint.address.toBase58())}-{getTokenName(tokenMap, pool.tokenB.mint.address.toBase58())}
+              </div>
             </div>
             <div className="bd">
               <Button type="primary" size="large">

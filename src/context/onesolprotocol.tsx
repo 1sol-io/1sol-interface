@@ -87,7 +87,7 @@ export function OnesolProtocolProvider({ children = null as any }){
             // TODO
             // for farming test
             {
-              address: '8tyKuP3hjUi2dSfMLWYtQxzxZCv1Zmnvv3S2DmAaKg8B',
+              address: 'CoTUyReykFvBaYdxW5NLw1ySa7AE1G8RNhyWtT6HfKvd',
               chainId: 103,
               decimals: 6,
               extensions:
@@ -96,10 +96,10 @@ export function OnesolProtocolProvider({ children = null as any }){
               logoURI:
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So111111111111111111111111111111011111111112/logo.png',
               name: 'Base',
-              symbol: 'BASE'
+              symbol: 'test1'
             },
             {
-              address: 'GWydM4S7c8ZMfnv4w5MDdZpRTykHWdwa9P3BCu5v1B4W',
+              address: '8r6wmZQhYjkpPefmP5khxVjYbaFpiSUgNejko411kJbx',
               chainId: 103,
               decimals: 6,
               extensions:
@@ -108,7 +108,19 @@ export function OnesolProtocolProvider({ children = null as any }){
               logoURI:
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
               name: 'Quote',
-              symbol: 'QUOTE'
+              symbol: 'test2'
+            },
+            {
+              address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: 'Quote',
+              symbol: 'test3'
             }
           ])
         }
