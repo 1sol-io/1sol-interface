@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Button } from 'antd'
+import { Card, Button, Modal } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
 import { FarmItem, FarmInfo, TokenSwap, UserFarmInfo } from '@onesol/farm'
@@ -11,6 +11,7 @@ import { AppBar } from '../appBar'
 import Social from '../social'
 import { Currency } from './currency'
 import { TokenIcon } from '../tokenIcon'
+import { NumericInput } from '../numericInput'
 
 import { useCurrencyLeg } from '../../utils/currencyPair'
 import {WRAPPED_SOL_MINT } from '../../utils/constant'
@@ -39,7 +40,8 @@ const Farm = () => {
     getEstimateAmount, 
     getFarmSwap,
     getDepositTransactions,
-    getWithdrawTransactions 
+    getWithdrawTransactions,
+    getHarvestTransactions 
   } = useOnesolFarmingProtocol()
 
   const farm: FarmItem = farmMap[id]
@@ -61,6 +63,10 @@ const Farm = () => {
 
   const [depositLoading, setDepositLoading] = useState(false)
   const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [harvestLoading, setHarvestLoading] = useState(false)
+
+  const [visible, setVisible] = useState(false)
+  const [amount, setAmount] = useState('')
 
   useEffect(() => {
     if (farm) {
@@ -106,17 +112,20 @@ const Farm = () => {
     }
   }, [farm, getFarmSwap])
 
-  useEffect(() => {
+  const getUserFarm = useCallback(async () => {
     if (connected && farm) {
-      const getUserFarm = async () => {
         const info = await getUserFarmInfo(farm)
 
         setUserFarmInfo(info)
-      }
 
+    }
+  }, [connected, farm, getUserFarmInfo])
+
+  useEffect(() => {
+    if (connected && farm) {
       getUserFarm()
     }
-  }, [farm, connected, getUserFarmInfo])
+  }, [farm, connected, getUserFarm])
 
   const renderTitle = () => {
     if (!farm) {
@@ -173,20 +182,24 @@ const Farm = () => {
       base.setAmount(`0`)
       quote.setAmount(`0`)
       setDepositLoading(false)
+
+      getUserFarm()
     } catch (e) {
       setDepositLoading(false)
     }
-  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet])
+  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm])
 
-  const handleWithdraw = useCallback(async (amount: u64) => {
+  const handleWithdraw = useCallback(async () => {
     try {
       setWithdrawLoading(true)
+      console.log(`amount`, amount)
 
       const transactions = await getWithdrawTransactions({
         farm,
         farmSwap,
-        amount,
+        amount: new u64(amount),
       })
+      console.log(transactions)
 
       await sendSignedTransactions({
         connection,
@@ -195,10 +208,37 @@ const Farm = () => {
       })
 
       setWithdrawLoading(false)
+      setVisible(false)
+      setAmount(`0.00`)
+
+      getUserFarm()
     } catch (e) {
+      console.error(e)
       setWithdrawLoading(false)
     }
-  }, [farm, farmSwap, getWithdrawTransactions, connection, wallet])
+  }, [farm, farmSwap, getWithdrawTransactions, connection, wallet, getUserFarm, amount])
+
+  const handleHarvest = useCallback(async () => {
+    try {
+      setHarvestLoading(true)
+
+      const transactions = await getHarvestTransactions((
+        farm
+      ))
+
+      await sendSignedTransactions({
+        connection,
+        wallet,
+        transactions
+      })
+
+      setHarvestLoading(false)
+
+      getUserFarm()
+    } catch (e) {
+      setHarvestLoading(false)
+    }
+  }, [connection, wallet, farm, getHarvestTransactions, getUserFarm])
 
   const renderDeposit = () => {
     return (
@@ -254,14 +294,32 @@ const Farm = () => {
         </div>
         <div className="ft">
           <Button
+            disabled={
+              connected && (
+                depositLoading || 
+                !base.amount || 
+                !quote.amount || 
+                Number(base.amount) > base.balance || 
+                Number(quote.amount) > quote.balance
+              )
+            }
+            loading={depositLoading}
             type="primary"
             size="large"
             shape="round"
             block
             onClick={connected ? handleDeposit : connect}
-            style={{ marginTop: '10px' }}
+            style={{ marginTop: '20px' }}
           >
-            {connected ? 'Deposit' : 'Connect'}
+            {
+              connected ? 
+                Number(base.amount) > base.balance ?
+                `Insufficient ${base.name} funds` :
+                Number(quote.amount) > quote.balance ?
+                `Insufficient ${quote.name} funds` :
+                'Deposit' : 
+              'Connect'
+            }
           </Button>
         </div>
       </div>
@@ -278,33 +336,47 @@ const Farm = () => {
           headStyle={{ padding: 0 }}
           bodyStyle={{ padding: '20px' }}
           >
-            <div>
-              Pending Rewards {  userFarmInfo ? convert(Number(userFarmInfo.rewardDebt), 6).toFixed(2) : 0 }
-              { 
-                userFarmInfo ?
-                <Button 
-                  type='primary' 
-                  style={{ marginTop: '10px' }}
-                  onClick={() => handleWithdraw(new u64(`${userFarmInfo.stakeTokenAmount}`))}
-                >
-                  Harvest
-                </Button> :
-                null
-              }
+            <div className='mod'>
+              <div className='hd'>
+                <div className='label'>Pending Rewards</div>
+                <div className='value'>{ userFarmInfo ? Number(userFarmInfo.pendingReward).toFixed(2) : 0.00 }</div>
+              </div>
+              <div className='bd'>
+                { 
+                  userFarmInfo ?
+                  <Button 
+                    disabled={harvestLoading || !Number(userFarmInfo.pendingReward)}
+                    loading={harvestLoading}
+                    type='primary' 
+                    style={{ marginTop: '10px' }}
+                    onClick={handleHarvest}
+                  >
+                    Harvest
+                  </Button> :
+                  null
+                }
+              </div>
             </div>
-            <div>
-              staked { userFarmInfo ? convert(Number(userFarmInfo.stakeTokenAmount), 6).toFixed(2) : 0 } LP
-              { 
-                userFarmInfo ?
-                <Button 
-                  type='primary' 
-                  style={{ marginTop: '10px' }}
-                  onClick={() => handleWithdraw(new u64(`${userFarmInfo.stakeTokenAmount}`))}
-                >
-                  Withdraw
-                </Button> :
-                null
-              }
+            <div className='mod'>
+              <div className='hd'>
+                <div className='label'>Staked</div>
+                <div className='value'>{ userFarmInfo ? Number(userFarmInfo.stakeTokenAmount).toFixed(2) : 0.00 } LP</div>
+              </div>
+              <div className='bd'>
+                { 
+                  userFarmInfo ?
+                  <Button 
+                    disabled={withdrawLoading || !Number(userFarmInfo.stakeTokenAmount)}
+                    loading={withdrawLoading}
+                    type='primary' 
+                    style={{ marginTop: '10px' }}
+                    onClick={() => setVisible(true)}
+                  >
+                    Withdraw
+                  </Button> :
+                  null
+                }
+              </div>
             </div>
           </Card>
         </div>
@@ -325,6 +397,79 @@ const Farm = () => {
           {renderDeposit()}
         </Card>
         {renderLiquidity()}
+        <Modal
+          visible={visible}
+          confirmLoading={withdrawLoading}
+          footer={[
+            <Button onClick={() => {
+              setAmount(`0.00`)
+              setVisible(false)
+            }}>Cancel</Button>,
+            <Button 
+              disabled={
+                withdrawLoading || 
+                !Number(amount) || 
+                (userFarmInfo && Number(amount) > Number(userFarmInfo.stakeTokenAmount))
+              } 
+              type="primary" 
+              onClick={handleWithdraw}
+              style={{borderRadius: '0'}}
+            >OK</Button>
+          ]}
+        >
+          <div className='modal-unsake'>
+            <div 
+              className='hd'
+              style={{
+                marginTop: '30px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '12px'
+              }}
+            >
+              <div className='label'>Balance:{ userFarmInfo ? Number(userFarmInfo.stakeTokenAmount) : 0.00 }</div>
+              <Button 
+                type="primary" 
+                size="small" 
+                onClick={() => {
+                  setAmount( userFarmInfo ? `${Number(userFarmInfo.stakeTokenAmount)}` : '0.00' )
+                }}
+                style={{
+                  fontSize: '10px',
+                  borderRadius: '2px',
+                  height: '20px',
+                  padding: '2px 5px'
+                }}
+              >Max</Button>
+            </div>
+            <div 
+              className='bd'
+              style={{
+                background: '#090f28',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                marginTop: '8px',
+                padding: '10px',
+                height: '50px'
+              }}
+            >
+              <NumericInput
+                value={amount}
+                onChange={(val: any) => setAmount(val)}
+                style={{
+                  width: '100%',
+                  fontSize: 18,
+                  boxShadow: "none",
+                  borderColor: "transparent",
+                  outline: "transpaernt",
+                  color: amount !== '0.00' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.3)'
+                }}
+                placeholder="0.00"
+               />
+            </div>
+          </div>
+        </Modal>
       </div>
       <Social />
     </div>

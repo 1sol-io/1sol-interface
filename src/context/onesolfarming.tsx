@@ -67,7 +67,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
           farm
         )
 
-        console.log(info)
+        console.log(`user farm info`, info)
         return info
       }
     },
@@ -172,6 +172,20 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
     [oneSolFarmingProtocol, wallet]
   )
 
+  const getHarvestTransactions = useCallback(
+    async (farm: FarmItem) => {
+      if (oneSolFarmingProtocol && wallet) {
+        const transactions = await oneSolFarmingProtocol.harvest({
+          farm,
+          user: wallet.publicKey
+        })
+
+        return transactions.map(({ transaction }) => transaction)
+      }
+    },
+    [oneSolFarmingProtocol, wallet]
+  )
+
   return (
     <OnesolFarmingProtocolContext.Provider
       value={{
@@ -182,7 +196,8 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         getEstimateAmount,
         getFarmSwap,
         getDepositTransactions,
-        getWithdrawTransactions
+        getWithdrawTransactions,
+        getHarvestTransactions
       }}
     >
       {children}
