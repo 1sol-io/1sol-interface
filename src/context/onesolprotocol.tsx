@@ -5,11 +5,11 @@ import React, {
   useCallback,
   useRef
 } from 'react'
+import * as Sentry from '@sentry/react'
 import { PublicKey } from '@solana/web3.js'
 import { MintInfo, u64 } from '@solana/spl-token'
 
 import { OnesolProtocol, Distribution, TokenInfo } from '@onesol/onesol-sdk'
-import * as Sentry from '@sentry/react'
 
 import { useConnection } from '../utils/connection'
 import { cache } from '../utils/accounts'
@@ -114,26 +114,24 @@ export function OnesolProtocolProvider({ children = null as any }){
 
   const getRoutes = useCallback(
     async ({ amount, sourceMintAddress, destinationMintAddress }) => {
-      try {
-        if (oneSolProtocol) {
-          if (abortController.current) {
-            abortController.current.abort()
-          }
-
-          abortController.current = new AbortController()
-
-          const routes = await oneSolProtocol.getRoutes({
-            amount,
-            sourceMintAddress,
-            destinationMintAddress,
-            size: 10,
-            signal: abortController.current.signal,
-            experiment: true
-          })
-
-          return { routes, amount, sourceMintAddress, destinationMintAddress }
+      if (oneSolProtocol) {
+        if (abortController.current) {
+          abortController.current.abort()
         }
-      } catch (err) {}
+
+        abortController.current = new AbortController()
+
+        const routes = await oneSolProtocol.getRoutes({
+          amount,
+          sourceMintAddress,
+          destinationMintAddress,
+          size: 10,
+          signal: abortController.current.signal,
+          experiment: true
+        })
+
+        return { routes, amount, sourceMintAddress, destinationMintAddress }
+      }
 
       return []
     },

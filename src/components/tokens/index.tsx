@@ -8,6 +8,7 @@ import { TokenInfo } from '@onesol/onesol-sdk'
 
 import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
 import { cache, useAccountByMint, useUserAccounts } from '../../utils/accounts'
+import { useWallet } from '../../context/wallet'
 import { convert } from '../../utils/utils'
 import { TokenIcon } from '../tokenIcon'
 
@@ -95,10 +96,12 @@ const Tokens = ({
 }) => {
   const { tokenMap } = useOnesolProtocol()
   const { userAccounts } = useUserAccounts()
+  const { connected } = useWallet()
 
   const [tokens, setTokens] = useState<Filtered[]>([])
   const [options, setOptions] = useState<Filtered[]>([])
   const [list, setList] = useState<Filtered[]>([])
+  const [keyword, setKeyword] = useState('')
 
   useEffect(
     () => {
@@ -130,9 +133,11 @@ const Tokens = ({
       setTokens(tokens)
       // if user searched for one token, and when userAccounts changed, filtered results should be kept
       // or the list will be reset to all the tokens
-      setOptions((options) => (options.length ? options : tokens))
+      if (!keyword) {
+        setOptions(tokens)
+      }
     },
-    [tokenMap, userAccounts]
+    [tokenMap, userAccounts, keyword]
   )
 
   useEffect(
@@ -192,6 +197,7 @@ const Tokens = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLocaleLowerCase()
+    setKeyword(value)
 
     debounced(value)
   }
