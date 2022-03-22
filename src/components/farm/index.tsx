@@ -343,10 +343,30 @@ const Farm = () => {
       <div className="farm-liquidity">
         <div className="hd">Your Liquidity</div>
         <div className="bd">
+          {
+            userFarmInfo && !Number(userFarmInfo.depositTokenAmount) ?
+            <Card
+              className="liquidity-card"
+              headStyle={{ padding: 0 }}
+              bodyStyle={{ padding: '20px' }}
+            >
+              <div className='liquidity-tip'>
+                <div className='hd'>
+                  <p>The last execution is not completed.</p> 
+                  <p>It needs to be revoked or retried.</p>
+                </div>
+                <div className='bd'>
+                  <Button>Revoke</Button>
+                  <Button type="primary" style={{ borderRadius: '0', marginLeft: '20px' }}>Retry</Button>
+                </div>
+              </div>
+            </Card> : 
+            null
+          }
           <Card
-          className="liquidity-card"
-          headStyle={{ padding: 0 }}
-          bodyStyle={{ padding: '20px' }}
+            className="liquidity-card"
+            headStyle={{ padding: 0 }}
+            bodyStyle={{ padding: '20px' }}
           >
             <div className='mod'>
               <div className='hd'>

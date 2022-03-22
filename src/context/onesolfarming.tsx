@@ -186,6 +186,38 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
     [oneSolFarmingProtocol, wallet]
   )
 
+  const getRemoveLiquidityTransactions = useCallback(
+    async ({ farm, farmSwap }: { farm: FarmItem; farmSwap: TokenSwap }) => {
+      if (oneSolFarmingProtocol && wallet) {
+        const transactions = await oneSolFarmingProtocol.withdrawAllTokenTypesAll(
+          {
+            farm,
+            farmSwap,
+            user: wallet.publicKey,
+            slippage: 1
+          }
+        )
+
+        return transactions.map(({ transaction }) => transaction)
+      }
+    },
+    [oneSolFarmingProtocol, wallet]
+  )
+
+  const getStakeTransactions = useCallback(
+    async (farm: FarmItem) => {
+      if (oneSolFarmingProtocol && wallet) {
+        const transactions = await oneSolFarmingProtocol.stakeAll({
+          farm,
+          user: wallet.publicKey
+        })
+
+        return transactions.map(({ transaction }) => transaction)
+      }
+    },
+    [oneSolFarmingProtocol, wallet]
+  )
+
   return (
     <OnesolFarmingProtocolContext.Provider
       value={{
@@ -198,7 +230,9 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         getFarmSwap,
         getDepositTransactions,
         getWithdrawTransactions,
-        getHarvestTransactions
+        getHarvestTransactions,
+        getRemoveLiquidityTransactions,
+        getStakeTransactions
       }}
     >
       {children}
