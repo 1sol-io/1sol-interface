@@ -120,7 +120,7 @@ export function convert(
 
 var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];
 
-const abbreviateNumber = (number: number, precision: number) => {
+export const abbreviateNumber = (number: number, precision: number) => {
   let tier = (Math.log10(number) / 3) | 0;
   let scaled = number;
   let suffix = SI_SYMBOL[tier];
@@ -132,7 +132,7 @@ const abbreviateNumber = (number: number, precision: number) => {
   return scaled.toFixed(precision) + suffix;
 };
 
-const format = (val: number, precision: number, abbr: boolean) =>
+export const format = (val: number, precision: number, abbr: boolean) =>
   abbr ? abbreviateNumber(val, precision) : val.toFixed(precision);
 
 export function formatTokenAmount(
@@ -415,4 +415,8 @@ export const createCloseTokenAccountInstruction = (
     programId: TOKEN_PROGRAM_ID,
     data,
   });
+}
+
+export const formatWithCommas = (num: number, precision: number = 0) => {
+  return num.toFixed(precision).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

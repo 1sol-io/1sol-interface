@@ -189,6 +189,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   return (
     <OnesolFarmingProtocolContext.Provider
       value={{
+        oneSolFarmingProtocol,
         farms,
         farmMap,
         getFarmInfo,
