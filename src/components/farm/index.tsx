@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Card, Button, Modal } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
+import { u64 } from '@solana/spl-token'
 
 import { FarmItem, FarmInfo, TokenSwap, UserFarmInfo } from '@onesol/farm'
 
@@ -16,15 +17,16 @@ import { NumericInput } from '../numericInput'
 import { useCurrencyLeg } from '../../utils/currencyPair'
 import {WRAPPED_SOL_MINT } from '../../utils/constant'
 import { TokenInfo } from '../../utils/token-registry'
+import { formatWithCommas } from '../../utils/utils'
+import { convert } from '../../utils/utils'
 
 import { useWallet } from '../../context/wallet'
 import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
 
-import './index.less'
 import { sendSignedTransactions } from '../../utils/pools'
 import { useConnection } from '../../utils/connection'
-import { convert } from '../../utils/utils'
-import { u64 } from '@solana/spl-token'
+
+import './index.less'
 
 type FarmParams = {
   id: string
@@ -59,7 +61,10 @@ const Farm = () => {
   const [farmInfo, setFarmInfo] = useState<FarmInfo>()
   const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfo>()
   const [farmSwap, setFarmSwap] = useState<TokenSwap>()
-  const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string, lpAmount: string}>()
+  const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string}>({
+    tokenAAmount: '-',
+    tokenBAmount: '-'
+  })
 
   const [depositLoading, setDepositLoading] = useState(false)
   const [withdrawLoading, setWithdrawLoading] = useState(false)
@@ -81,36 +86,33 @@ const Farm = () => {
     }
   }, [farm, tokens, setMintAddressA, setMintAddressB])
 
-  useEffect(() => {
+  const getSwap = useCallback(async () => {
     if (farm) {
-      const getFarm = async () => {
-        const info = await getFarmInfo(farm)
+      const {pool: { tokenA, tokenB }} = farm
+      const swap: TokenSwap = await getFarmSwap(farm)
+      const { quote: {tokenAAmount, tokenBAmount }} = swap
 
-        setFarmInfo(info)
-      }
+      setFarmSwap(swap)
 
-      getFarm()
-    }
-  }, [farm, getFarmInfo])
-
-  useEffect(() => {
-    if (farm) {
-      const getSwap = async () => {
-        const swap = await getFarmSwap(farm)
-        const { quote: {tokenAAmount, tokenBAmount, lpSupply}} = swap
-
-        setFarmSwap(swap)
-
-        setPool({
-          tokenAAmount: `${convert(tokenAAmount.toNumber(), 6)}`,
-          tokenBAmount: `${convert(tokenBAmount.toNumber(), 6)}`,
-          lpAmount: `${convert(lpSupply.toNumber(), 6)}`
-        })
-      }
-
-      getSwap()
+      setPool({
+        tokenAAmount: `${formatWithCommas(convert(tokenAAmount.toNumber(), tokenA.mint.decimals))}`,
+        tokenBAmount: `${formatWithCommas(convert(tokenBAmount.toNumber(), tokenB.mint.decimals))}`,
+      })
     }
   }, [farm, getFarmSwap])
+
+  useEffect(() => {
+    getSwap()
+  }, [farm, getSwap])
+
+  const getFarm = useCallback(async () => {
+    if (farm) {
+      const info = await getFarmInfo(farm)
+
+      console.log('farm info:', info)
+      setFarmInfo(info)
+    }
+  } , [farm, getFarmInfo])
 
   const getUserFarm = useCallback(async () => {
     if (connected && farm) {
@@ -120,6 +122,12 @@ const Farm = () => {
 
     }
   }, [connected, farm, getUserFarmInfo])
+
+  useEffect(() => {
+    if (farm) {
+      getFarm()
+    }
+  }, [farm, getFarm])
 
   useEffect(() => {
     if (connected && farm) {
@@ -183,23 +191,23 @@ const Farm = () => {
       quote.setAmount(`0`)
       setDepositLoading(false)
 
+      getSwap()
+      getFarm()
       getUserFarm()
     } catch (e) {
       setDepositLoading(false)
     }
-  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm])
+  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm, getFarm, getSwap])
 
   const handleWithdraw = useCallback(async () => {
     try {
       setWithdrawLoading(true)
-      console.log(`amount`, amount)
 
       const transactions = await getWithdrawTransactions({
         farm,
         farmSwap,
-        amount: new u64(amount),
+        amount: new u64(Number(amount) * 10 ** farm.stakeTokenMint!.decimals),
       })
-      console.log(transactions)
 
       await sendSignedTransactions({
         connection,
@@ -211,12 +219,14 @@ const Farm = () => {
       setVisible(false)
       setAmount(`0.00`)
 
+      getSwap()
+      getFarm()
       getUserFarm()
     } catch (e) {
       console.error(e)
       setWithdrawLoading(false)
     }
-  }, [farm, farmSwap, getWithdrawTransactions, connection, wallet, getUserFarm, amount])
+  }, [farm, farmSwap, getWithdrawTransactions, connection, wallet, getUserFarm, amount, getFarm, getSwap])
 
   const handleHarvest = useCallback(async () => {
     try {
@@ -234,11 +244,13 @@ const Farm = () => {
 
       setHarvestLoading(false)
 
+      getSwap()
+      getFarm()
       getUserFarm()
     } catch (e) {
       setHarvestLoading(false)
     }
-  }, [connection, wallet, farm, getHarvestTransactions, getUserFarm])
+  }, [connection, wallet, farm, getHarvestTransactions, getUserFarm, getFarm, getSwap])
 
   const renderDeposit = () => {
     return (
@@ -339,7 +351,13 @@ const Farm = () => {
             <div className='mod'>
               <div className='hd'>
                 <div className='label'>Pending Rewards</div>
-                <div className='value'>{ userFarmInfo ? Number(userFarmInfo.pendingReward).toFixed(2) : 0.00 }</div>
+                <div className='value'>
+                  { 
+                    userFarmInfo ? 
+                    formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2) : 
+                    0.00 
+                  }
+                </div>
               </div>
               <div className='bd'>
                 { 
@@ -360,7 +378,7 @@ const Farm = () => {
             <div className='mod'>
               <div className='hd'>
                 <div className='label'>Staked</div>
-                <div className='value'>{ userFarmInfo ? Number(userFarmInfo.stakeTokenAmount).toFixed(2) : 0.00 } LP</div>
+                <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.stakeTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
               </div>
               <div className='bd'>
                 { 
@@ -384,6 +402,40 @@ const Farm = () => {
     )
   }
 
+  const renderPool = () => {
+    return (
+      <div className='farm-pool'>
+        <div className='hd'>Pool</div>
+        <div className='bd'>
+          <Card
+            className="liquidity-card"
+            headStyle={{ padding: 0 }}
+            bodyStyle={{ padding: '20px' }}
+          >
+            <div className='pool-mod'>
+              <div className='hd'>
+                Pooled {base.name.toUpperCase()}
+              </div>
+              <div className='bd'>{pool.tokenAAmount}</div>
+            </div>
+            <div className='pool-mod'>
+              <div className='hd'>
+                Pooled {quote.name.toUpperCase()}
+              </div>
+              <div className='bd'>{pool.tokenBAmount}</div>
+            </div>
+            <div className='pool-mod'>
+              <div className='hd'>
+                LP Supply
+              </div>
+              <div className='bd'>{farmInfo ? formatWithCommas(convert(Number(farmInfo.lpTokenAmount), farm.stakeTokenMint?.decimals)) : '-'}</div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="page-farm">
       <AppBar />
@@ -397,7 +449,10 @@ const Farm = () => {
           {renderDeposit()}
         </Card>
         {renderLiquidity()}
+        {renderPool()}
+
         <Modal
+          closable={false}
           visible={visible}
           confirmLoading={withdrawLoading}
           footer={[
@@ -406,10 +461,14 @@ const Farm = () => {
               setVisible(false)
             }}>Cancel</Button>,
             <Button 
+              loading={withdrawLoading}
               disabled={
                 withdrawLoading || 
                 !Number(amount) || 
-                (userFarmInfo && Number(amount) > Number(userFarmInfo.stakeTokenAmount))
+                (
+                  userFarmInfo && 
+                  convert(Number(userFarmInfo.stakeTokenAmount), farm.stakeTokenMint?.decimals) < parseFloat(amount)
+                )
               } 
               type="primary" 
               onClick={handleWithdraw}
@@ -421,19 +480,19 @@ const Farm = () => {
             <div 
               className='hd'
               style={{
-                marginTop: '30px',
+                marginTop: '0px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 fontSize: '12px'
               }}
             >
-              <div className='label'>Balance:{ userFarmInfo ? Number(userFarmInfo.stakeTokenAmount) : 0.00 }</div>
+              <div className='label'>Balance:{ userFarmInfo ? convert(Number(userFarmInfo.stakeTokenAmount), farm.stakeTokenMint?.decimals) : 0.00 }</div>
               <Button 
                 type="primary" 
                 size="small" 
                 onClick={() => {
-                  setAmount( userFarmInfo ? `${Number(userFarmInfo.stakeTokenAmount)}` : '0.00' )
+                  setAmount( userFarmInfo ? `${convert(Number(userFarmInfo.stakeTokenAmount), farm.stakeTokenMint?.decimals)}` : '0.00' )
                 }}
                 style={{
                   fontSize: '10px',
