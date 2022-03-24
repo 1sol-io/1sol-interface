@@ -323,6 +323,17 @@ export const TradeEntry = () => {
         legacy: true,
       })
 
+      if (!transactions.length) {
+        notify({
+          description: "Please try again and approve transactions from your wallet.",
+          message: "Swap trade cancelled.",
+          type: "error",
+          showUnwrapTip: false
+        });
+
+        return
+      }
+
       await sendTransactions({
         connection,
         wallet,

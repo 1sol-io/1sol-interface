@@ -29,7 +29,7 @@ export function useWrappedSolAccounts() {
 
       setWrappedSolAccounts(accounts.map(({ pubkey, amount }) => ({
         address: pubkey.toBase58(),
-        balance: convert(amount.toNumber(), 9),
+        balance: amount.toNumber() ? convert(amount.toNumber(), 9) : 0,
       })))
     }
 
