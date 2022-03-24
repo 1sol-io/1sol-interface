@@ -8,7 +8,6 @@ import { TokenInfo } from '@onesol/onesol-sdk'
 
 import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
 import { cache, useAccountByMint, useUserAccounts } from '../../utils/accounts'
-import { useWallet } from '../../context/wallet'
 import { convert } from '../../utils/utils'
 import { TokenIcon } from '../tokenIcon'
 
@@ -96,7 +95,6 @@ const Tokens = ({
 }) => {
   const { tokenMap } = useOnesolProtocol()
   const { userAccounts } = useUserAccounts()
-  const { connected } = useWallet()
 
   const [tokens, setTokens] = useState<Filtered[]>([])
   const [options, setOptions] = useState<Filtered[]>([])

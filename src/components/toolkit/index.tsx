@@ -66,7 +66,12 @@ const Toolkit = () => {
                         <div className="value">
                           {shortenAddress(item.address, 10)}
                         </div>
-                        <div className="value">{item.balance}</div>
+                        <div className="value">
+                          {item.balance}
+                          <span style={{ fontSize: '12px' }}>
+                            +(&#8776;0.02account fee)
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
