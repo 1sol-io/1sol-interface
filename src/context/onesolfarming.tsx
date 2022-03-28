@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react'
 
-import { FarmRouter, FarmItems, FarmItem, TokenSwap } from '@onesol/farm'
-import { Token, u64 } from '@solana/spl-token'
+import { FarmRouter, FarmItems, FarmItem, Quote } from '@onesol/farm'
+import { u64 } from '@solana/spl-token'
 
 import { useConnection } from '../utils/connection'
 import { useWallet } from './wallet'
@@ -77,7 +77,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   const getFarmSwap = useCallback(
     async (farm) => {
       if (oneSolFarmingProtocol) {
-        const swap = await oneSolFarmingProtocol.getFarmSwap(farm)
+        const swap = await oneSolFarmingProtocol.getQuote(farm)
 
         return swap
       }
@@ -92,7 +92,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
       amount,
       reverse = false
     }: {
-      farmSwap: TokenSwap
+      farmSwap: Quote
       farm: FarmItem
       amount: number
       reverse?: boolean
@@ -102,7 +102,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         const decimal = reverse ? tokenB.mint.decimals : tokenA.mint.decimals
         const inputAmount = amount * 10 ** decimal
 
-        const result = farmSwap.quote.estimateTokenAmountNeed(
+        const result = farmSwap.estimateTokenAmountNeed(
           new u64(inputAmount),
           reverse ? tokenB : tokenA
         )
@@ -116,13 +116,11 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   const getDepositTransactions = useCallback(
     async ({
       farm,
-      farmSwap,
       amountA,
       amountB,
       slippage = 1
     }: {
       farm: FarmItem
-      farmSwap: TokenSwap
       amountA: number
       amountB: number
       slippage: number
@@ -130,7 +128,6 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
       if (oneSolFarmingProtocol && wallet) {
         const transactions = await oneSolFarmingProtocol.deposit({
           farm,
-          farmSwap,
           user: wallet.publicKey,
           maximumTokenA:
             new u64(amountA * 10 ** farm.pool.tokenA.mint.decimals),
@@ -148,19 +145,16 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   const getWithdrawTransactions = useCallback(
     async ({
       farm,
-      farmSwap,
       amount,
       slippage = 1
     }: {
       farm: FarmItem
-      farmSwap: TokenSwap
       amount: u64
       slippage: number
     }) => {
       if (oneSolFarmingProtocol && wallet) {
         const transactions = await oneSolFarmingProtocol.withdraw({
           farm,
-          farmSwap,
           user: wallet.publicKey,
           poolTokenAmountIn: amount,
           slippage
@@ -187,12 +181,11 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   )
 
   const getRemoveLiquidityTransactions = useCallback(
-    async ({ farm, farmSwap }: { farm: FarmItem; farmSwap: TokenSwap }) => {
+    async ({ farm }: { farm: FarmItem }) => {
       if (oneSolFarmingProtocol && wallet) {
         const transactions = await oneSolFarmingProtocol.withdrawAllTokenTypesAll(
           {
             farm,
-            farmSwap,
             user: wallet.publicKey,
             slippage: 1
           }
