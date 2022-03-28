@@ -87,7 +87,7 @@ export function OnesolProtocolProvider({ children = null as any }){
             // TODO
             // for farming test
             {
-              address: 'CoTUyReykFvBaYdxW5NLw1ySa7AE1G8RNhyWtT6HfKvd',
+              address: '3ok84HKagVdh7eWVmZJiBbYHeo13TKzZtNVSwJRGpWdT',
               chainId: 103,
               decimals: 6,
               extensions:
@@ -99,7 +99,7 @@ export function OnesolProtocolProvider({ children = null as any }){
               symbol: 'test1'
             },
             {
-              address: '8r6wmZQhYjkpPefmP5khxVjYbaFpiSUgNejko411kJbx',
+              address: 'G7AqDwUSHCUHzcn9ioXT3YrohY8jhQjZysmSzCaQ6Vid',
               chainId: 103,
               decimals: 6,
               extensions:

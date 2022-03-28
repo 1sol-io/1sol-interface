@@ -4,7 +4,7 @@ import { Card, Button, Modal } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { u64 } from '@solana/spl-token'
 
-import { FarmItem, FarmInfo, TokenSwap, UserFarmInfo } from '@onesol/farm'
+import { FarmItem, FarmInfo, Quote, UserFarmInfo } from '@onesol/farm'
 
 import { useOnesolFarmingProtocol } from '../../hooks/useOnesolFarmingProtocol'
 
@@ -30,6 +30,15 @@ import './index.less'
 
 type FarmParams = {
   id: string
+}
+
+interface UserFarmInfoProps extends UserFarmInfo {
+ pendingReward: bigint, 
+ depositTokenAmount: bigint 
+}
+
+interface FarmInfoProps extends FarmInfo {
+  lpTokenAmount: bigint
 }
 
 const Farm = () => {
@@ -58,9 +67,9 @@ const Farm = () => {
   const quote = useCurrencyLeg();
   const setMintAddressB = quote.setMint;
 
-  const [farmInfo, setFarmInfo] = useState<FarmInfo>()
-  const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfo>()
-  const [farmSwap, setFarmSwap] = useState<TokenSwap>()
+  const [farmInfo, setFarmInfo] = useState<FarmInfoProps>()
+  const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfoProps>()
+  const [farmSwap, setFarmSwap] = useState<Quote>()
   const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string}>({
     tokenAAmount: '-',
     tokenBAmount: '-'
@@ -89,8 +98,8 @@ const Farm = () => {
   const getSwap = useCallback(async () => {
     if (farm) {
       const {pool: { tokenA, tokenB }} = farm
-      const swap: TokenSwap = await getFarmSwap(farm)
-      const { quote: {tokenAAmount, tokenBAmount }} = swap
+      const swap: Quote = await getFarmSwap(farm)
+      const  {tokenAAmount, tokenBAmount } = swap
 
       setFarmSwap(swap)
 
@@ -186,7 +195,7 @@ const Farm = () => {
         transactions,
       })
 
-      farmSwap?.quote.refresh()
+      farmSwap?.refresh()
       base.setAmount(`0`)
       quote.setAmount(`0`)
       setDepositLoading(false)
