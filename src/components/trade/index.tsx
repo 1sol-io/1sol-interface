@@ -324,14 +324,7 @@ export const TradeEntry = () => {
       })
 
       if (!transactions.length) {
-        notify({
-          description: "Please try again and approve transactions from your wallet.",
-          message: "Swap trade cancelled.",
-          type: "error",
-          showUnwrapTip: false
-        });
-
-        return
+        throw new Error('No transaction found')
       }
 
       await sendTransactions({
@@ -350,7 +343,7 @@ export const TradeEntry = () => {
         description: "Please try again and approve transactions from your wallet.",
         message: "Swap trade cancelled.",
         type: "error",
-        showUnwrapTip: true
+        showUnwrapTip: !['No route found', 'No transaction found'].includes((e as Error).message)
       });
     } finally {
       setPendingTx(false);
