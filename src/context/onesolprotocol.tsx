@@ -121,6 +121,18 @@ export function OnesolProtocolProvider({ children = null as any }){
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
               name: 'Quote',
               symbol: 'test3'
+            },
+            {
+              address: 'DK2dggvqxVustZMGmCuQ4hKcTrEZZRkxDWNCzhcsuXwC',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: 'reward token',
+              symbol: 'Reward'
             }
           ])
         }

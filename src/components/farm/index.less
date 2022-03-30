@@ -4,21 +4,43 @@
     margin: 20px auto 0 !important;
   }
 
-  .farm-title {
-    display: flex;
-    align-items: center;
-    font-size: 20px;
-
-    .tokens {
+  .farm {
+    > .hd {
       display: flex;
       align-items: center;
+      font-size: 20px;
+
+      .tokens {
+        display: flex;
+        align-items: center;
+      }
+
+      .title {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-left: 10px;
+        line-height: 40px;
+      }
     }
 
-    .title {
-      font-size: 1.25rem;
+    > .bd {
+      margin-top: 16px;
+    }
+
+    .mod {
+      text-align: left;
       font-weight: 500;
-      margin-left: 10px;
-      line-height: 40px;
+
+      > .hd {
+        font-size: 16px;
+        color: #d1d5db;
+        margin-top: 8px;
+      }
+
+      > .bd {
+        font-size: 18px;
+        color: #fff;
+      }
     }
   }
 

@@ -26,12 +26,17 @@ import { useOnesolProtocol } from '../../hooks/useOnesolProtocol'
 import { sendSignedTransactions } from '../../utils/pools'
 import { useConnection } from '../../utils/connection'
 
-import './index.less'
-import { OnesolFarmingProtocolProvider } from '../../context/onesolfarming'
 import { notify } from '../../utils/notifications'
+
+import './index.less'
 
 type FarmParams = {
   id: string
+}
+
+interface FarmItemProps extends FarmItem {
+  tvl: number
+  apy: number
 }
 
 interface UserFarmInfoProps extends UserFarmInfo {
@@ -59,7 +64,7 @@ const Farm = () => {
     getStakeTransactions 
   } = useOnesolFarmingProtocol()
 
-  const farm: FarmItem = farmMap[id]
+  const farm: FarmItemProps = farmMap[id]
   const connection = useConnection()
   const { connect, connected, wallet } = useWallet()
 
@@ -71,6 +76,7 @@ const Farm = () => {
   const quote = useCurrencyLeg();
   const setMintAddressB = quote.setMint;
 
+  const [rewardToken, setRewardToken] = useState<TokenInfo | null>(null)
   const [farmInfo, setFarmInfo] = useState<FarmInfoProps>()
   const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfoProps>()
   const [farmSwap, setFarmSwap] = useState<Quote>()
@@ -90,7 +96,7 @@ const Farm = () => {
 
   useEffect(() => {
     if (farm) {
-      const { pool: { tokenA, tokenB }} = farm
+      const { pool: { tokenA, tokenB } } = farm
 
       setMintAddressA(
         tokens.find((t: TokenInfo) => t.address === tokenA.mint.address.toBase58())?.address || ""
@@ -100,6 +106,16 @@ const Farm = () => {
       );
     }
   }, [farm, tokens, setMintAddressA, setMintAddressB])
+
+  useEffect(() => {
+    if (farm && tokens.length) {
+      const { rewardTokenMint: { address }} = farm
+
+      const token = tokens.find((t: TokenInfo) => t.address === address.toBase58())
+
+      setRewardToken(token)
+    }
+  }, [farm, tokens])
 
   const getSwap = useCallback(async () => {
     if (farm) {
@@ -124,9 +140,6 @@ const Farm = () => {
     if (farm) {
       const info = await getFarmInfo(farm)
 
-      console.log('farm info:', info)
-      console.log(Number(info.lpTokenAmount))
-      console.log(convert(Number(info.lpTokenAmount), farm.stakeTokenMint?.decimals))
       setFarmInfo(info)
     }
   } , [farm, getFarmInfo])
@@ -158,29 +171,41 @@ const Farm = () => {
     }
 
     return (
-      <div className="farm-title">
-        <div className="tokens">
-          <div className="token">
-            <TokenIcon
-              style={{
-                width: '40px',
-                height: '40px',
-                margin: '0 -10px 0 0',
-                position: 'relative',
-                zIndex: 10
-              }}
-              mintAddress={base.mintAddress}
-            />
+      <div className="farm">
+        <div className='hd'>
+          <div className="tokens">
+            <div className="token">
+              <TokenIcon
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  margin: '0 -10px 0 0',
+                  position: 'relative',
+                  zIndex: 10
+                }}
+                mintAddress={base.mintAddress}
+              />
+            </div>
+            <div className="token">
+              <TokenIcon
+                style={{ width: '40px', height: '40px', margin: '0' }}
+                mintAddress={quote.mintAddress}
+              />
+            </div>
           </div>
-          <div className="token">
-            <TokenIcon
-              style={{ width: '40px', height: '40px', margin: '0' }}
-              mintAddress={quote.mintAddress}
-            />
+          <div className="title">
+            {base.name}-{quote.name}
           </div>
         </div>
-        <div className="title">
-          {base.name}-{quote.name}
+        <div className='bd'>
+          <div className="mod">
+            <div className='hd'>Total staked</div>
+            <div className='bd'>{ farm.tvl ? `$${formatWithCommas(farm.tvl, 2)}` : '-' }</div>
+          </div>
+          <div className="mod">
+            <div className='hd'>APY</div>
+            <div className='bd'>{ farm.apy ? `${formatWithCommas(farm.apy * 100, 2)}%` : '-' }</div>
+          </div>
         </div>
       </div>
     )
@@ -438,6 +463,7 @@ const Farm = () => {
                     formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2) : 
                     0.00 
                   }
+                  { rewardToken ? <span style={{marginLeft: '5px', fontSize: '12px'}}>{ rewardToken.symbol }</span> : ''}
                 </div>
               </div>
               <div className='bd'>
@@ -477,7 +503,7 @@ const Farm = () => {
             </div>
 
             {
-              userFarmInfo && !Number(userFarmInfo.depositTokenAmount) ?
+              userFarmInfo && Number(userFarmInfo.depositTokenAmount) ?
               <div className='mod'>
                 <div className='hd'>
                   <div className='label'>
