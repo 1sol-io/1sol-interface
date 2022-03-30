@@ -297,22 +297,18 @@ export async function sendSignedTransactions({
     const signedTransactions = await signAllTransactions(connection, wallet, transactions)
 
     for (let i = 0; i < signedTransactions.length; i++) {
-      try {
-        const txid = await sendSignedTransaction(
-          connection,
-          signedTransactions[i]
-        )
+      const txid = await sendSignedTransaction(
+        connection,
+        signedTransactions[i]
+      )
 
-        notify({
-          message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
-          description: `Transaction - ${txid}`,
-          type: 'success',
-          duration: 10,
-          txid
-        });
-      } catch (e) {
-        console.error(e)
-      }
+      notify({
+        message: `${i + 1} of ${signedTransactions.length} transaction succeed${i === signedTransactions.length - 1 ? '.' : ', waiting for the next one...'}`,
+        description: `Transaction - ${txid}`,
+        type: 'success',
+        duration: 10,
+        txid
+      });
     }
   }
 }

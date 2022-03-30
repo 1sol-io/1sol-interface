@@ -418,5 +418,9 @@ export const createCloseTokenAccountInstruction = (
 }
 
 export const formatWithCommas = (num: number, precision: number = 0) => {
+  if (num < 1) {
+    return num
+  }
+
   return num.toFixed(precision).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

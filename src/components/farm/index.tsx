@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Button, Modal } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { Card, Button, Modal, Tooltip } from 'antd'
+import { PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { u64 } from '@solana/spl-token'
 
 import { FarmItem, FarmInfo, Quote, UserFarmInfo } from '@onesol/farm'
@@ -27,6 +27,8 @@ import { sendSignedTransactions } from '../../utils/pools'
 import { useConnection } from '../../utils/connection'
 
 import './index.less'
+import { OnesolFarmingProtocolProvider } from '../../context/onesolfarming'
+import { notify } from '../../utils/notifications'
 
 type FarmParams = {
   id: string
@@ -52,7 +54,9 @@ const Farm = () => {
     getFarmSwap,
     getDepositTransactions,
     getWithdrawTransactions,
-    getHarvestTransactions 
+    getHarvestTransactions,
+    getRemoveLiquidityTransactions,
+    getStakeTransactions 
   } = useOnesolFarmingProtocol()
 
   const farm: FarmItem = farmMap[id]
@@ -78,6 +82,8 @@ const Farm = () => {
   const [depositLoading, setDepositLoading] = useState(false)
   const [withdrawLoading, setWithdrawLoading] = useState(false)
   const [harvestLoading, setHarvestLoading] = useState(false)
+  const [removeLoading, setRemoveLoading] = useState(false)
+  const [stakeLoading, setStakeLoading] = useState(false)
 
   const [visible, setVisible] = useState(false)
   const [amount, setAmount] = useState('')
@@ -119,6 +125,8 @@ const Farm = () => {
       const info = await getFarmInfo(farm)
 
       console.log('farm info:', info)
+      console.log(Number(info.lpTokenAmount))
+      console.log(convert(Number(info.lpTokenAmount), farm.stakeTokenMint?.decimals))
       setFarmInfo(info)
     }
   } , [farm, getFarmInfo])
@@ -198,12 +206,17 @@ const Farm = () => {
       farmSwap?.refresh()
       base.setAmount(`0`)
       quote.setAmount(`0`)
-      setDepositLoading(false)
 
       getSwap()
       getFarm()
       getUserFarm()
     } catch (e) {
+      notify({
+        description: "Please try again and approve transactions from your wallet.",
+        message: "Deposit trade cancelled.",
+        type: "error",
+      });
+    } finally {
       setDepositLoading(false)
     }
   }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm, getFarm, getSwap])
@@ -224,7 +237,6 @@ const Farm = () => {
         transactions
       })
 
-      setWithdrawLoading(false)
       setVisible(false)
       setAmount(`0.00`)
 
@@ -232,7 +244,12 @@ const Farm = () => {
       getFarm()
       getUserFarm()
     } catch (e) {
-      console.error(e)
+      notify({
+        description: "Please try again and approve transactions from your wallet.",
+        message: "Withdraw trade cancelled.",
+        type: "error",
+      });
+    } finally {
       setWithdrawLoading(false)
     }
   }, [farm, farmSwap, getWithdrawTransactions, connection, wallet, getUserFarm, amount, getFarm, getSwap])
@@ -241,9 +258,7 @@ const Farm = () => {
     try {
       setHarvestLoading(true)
 
-      const transactions = await getHarvestTransactions((
-        farm
-      ))
+      const transactions = await getHarvestTransactions(farm)
 
       await sendSignedTransactions({
         connection,
@@ -251,15 +266,72 @@ const Farm = () => {
         transactions
       })
 
+      getSwap()
+      getFarm()
+      getUserFarm()
+    } catch (e) {
+      notify({
+        description: "Please try again and approve transactions from your wallet.",
+        message: "Harvest trade cancelled.",
+        type: "error",
+      });
+    } finally {
       setHarvestLoading(false)
+    }
+  }, [connection, wallet, farm, getHarvestTransactions, getUserFarm, getFarm, getSwap])
+
+  const handleRemove = useCallback(async () => {
+    try {
+      setRemoveLoading(true)
+
+      const transactions = await getRemoveLiquidityTransactions(farm)
+
+      await sendSignedTransactions({
+        connection,
+        wallet,
+        transactions
+      })
 
       getSwap()
       getFarm()
       getUserFarm()
     } catch (e) {
-      setHarvestLoading(false)
+      notify({
+        description: "Please try again and approve transactions from your wallet.",
+        message: "Withdraw trade cancelled.",
+        type: "error",
+      });
+
+    } finally {
+      setRemoveLoading(false)
     }
-  }, [connection, wallet, farm, getHarvestTransactions, getUserFarm, getFarm, getSwap])
+  }, [getRemoveLiquidityTransactions, farm, wallet, connection, getSwap, getFarm, getUserFarm])
+
+  const handleStake = useCallback(async () => {
+    try {
+      setStakeLoading(true)
+
+      const transactions = await getStakeTransactions(farm)
+
+      await sendSignedTransactions({
+        connection,
+        wallet,
+        transactions
+      })
+
+      getSwap()
+      getFarm()
+      getUserFarm()
+    } catch (e) {
+      notify({
+        description: "Please try again and approve transactions from your wallet.",
+        message: "Stake trade cancelled.",
+        type: "error",
+      });
+    } finally {
+      setStakeLoading(false)
+    }
+  }, [getStakeTransactions, farm, wallet, connection, getSwap, getFarm, getUserFarm])
 
   const renderDeposit = () => {
     return (
@@ -352,26 +424,6 @@ const Farm = () => {
       <div className="farm-liquidity">
         <div className="hd">Your Liquidity</div>
         <div className="bd">
-          {
-            userFarmInfo && !Number(userFarmInfo.depositTokenAmount) ?
-            <Card
-              className="liquidity-card"
-              headStyle={{ padding: 0 }}
-              bodyStyle={{ padding: '20px' }}
-            >
-              <div className='liquidity-tip'>
-                <div className='hd'>
-                  <p>The last execution is not completed.</p> 
-                  <p>It needs to be revoked or retried.</p>
-                </div>
-                <div className='bd'>
-                  <Button>Revoke</Button>
-                  <Button type="primary" style={{ borderRadius: '0', marginLeft: '20px' }}>Retry</Button>
-                </div>
-              </div>
-            </Card> : 
-            null
-          }
           <Card
             className="liquidity-card"
             headStyle={{ padding: 0 }}
@@ -395,7 +447,6 @@ const Farm = () => {
                     disabled={harvestLoading || !Number(userFarmInfo.pendingReward)}
                     loading={harvestLoading}
                     type='primary' 
-                    style={{ marginTop: '10px' }}
                     onClick={handleHarvest}
                   >
                     Harvest
@@ -416,7 +467,6 @@ const Farm = () => {
                     disabled={withdrawLoading || !Number(userFarmInfo.stakeTokenAmount)}
                     loading={withdrawLoading}
                     type='primary' 
-                    style={{ marginTop: '10px' }}
                     onClick={() => setVisible(true)}
                   >
                     Withdraw
@@ -425,6 +475,41 @@ const Farm = () => {
                 }
               </div>
             </div>
+
+            {
+              userFarmInfo && !Number(userFarmInfo.depositTokenAmount) ?
+              <div className='mod'>
+                <div className='hd'>
+                  <div className='label'>
+                    Deposited
+                    <Tooltip title="Some are only deposited but not staked, so these aren't earning rewards now."><QuestionCircleOutlined style={{ marginLeft: '5px' }} /></Tooltip>
+                  </div>
+                  <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.depositTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
+                </div>
+                <div className='bd'>
+                  <Button 
+                    disabled={stakeLoading}
+                    loading={stakeLoading}
+                    type="primary" 
+                    style={{ display: 'block', marginBottom: '5px' }} 
+                    onClick={handleStake}
+                  >
+                    Stake
+                  </Button>
+                  <Button 
+                    disabled={removeLoading}
+                    loading={removeLoading}
+                    type="link" 
+                    size="small"
+                    onClick={handleRemove}
+                    style={{ fontSize: '12px' }}
+                  >
+                    Withdraw
+                  </Button>
+                </div>
+              </div>
+              : null
+            }
           </Card>
         </div>
       </div>
