@@ -10,9 +10,10 @@
     align-items: center;
 
     > .hd {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      .token-mod {
+        display: flex;
+        align-items: center;
+      }
     }
 
     .tokens {
@@ -25,6 +26,23 @@
       font-weight: 500;
       margin-left: 10px;
       line-height: 40px;
+    }
+
+    .data-mod {
+      margin-top: 16px;
+    }
+
+    .data {
+      text-align: left;
+      font-weight: 500;
+
+      font-size: 18px;
+      color: #fff;
+
+      &.apy {
+        font-size: 14px;
+        color: #d1d5db;
+      }
     }
   }
 }

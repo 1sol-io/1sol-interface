@@ -8,8 +8,20 @@ import { useWallet } from './wallet'
 
 export const OnesolFarmingProtocolContext = createContext<any>(null)
 
+export interface FarmItemProps extends FarmItem {
+  tvl: number
+  apy: number
+}
+
 interface FarmMapProps {
-  [id: string]: FarmItem
+  [id: string]: FarmItemProps
+}
+
+interface StatisticProps {
+  [id: string]: {
+    apy: number
+    tvl: number
+  }
 }
 
 export function OnesolFarmingProtocolProvider({ children = null as any }){
@@ -18,6 +30,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
 
   const [farms, setFarms] = useState<FarmItem[]>([])
   const [farmMap, setFarmMap] = useState<FarmMapProps>({})
+  const [statistics, setStatistics] = useState<StatisticProps>({})
 
   const [
     oneSolFarmingProtocol,
@@ -37,16 +50,47 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
 
   useEffect(() => {
     const farmMap: {
-      [id: string]: FarmItem
+      [id: string]: FarmItemProps
     } = {}
 
     FarmItems.forEach((item: FarmItem) => {
-      farmMap[item.address.toBase58()] = item
+      farmMap[item.address.toBase58()] = { ...item, tvl: 0, apy: 0 }
     })
 
     setFarms(FarmItems)
     setFarmMap(farmMap)
   }, [])
+
+  const getStatistics = useCallback(
+    async (farm: FarmItem) => {
+      if (oneSolFarmingProtocol) {
+        const { tvl, apy } = await oneSolFarmingProtocol.getStatistics(farm)
+
+        farmMap[farm.address.toBase58()] = {
+          ...farm,
+          tvl,
+          apy
+        }
+
+        setStatistics({
+          ...statistics,
+          [farm.address.toBase58()]:
+            {
+              tvl,
+              apy
+            }
+        })
+      }
+    },
+    [oneSolFarmingProtocol, farmMap]
+  )
+
+  useEffect(
+    () => {
+      farms.forEach((farm) => getStatistics(farm))
+    },
+    [farms, getStatistics]
+  )
 
   const getFarmInfo = useCallback(
     async (farm: FarmItem) => {
