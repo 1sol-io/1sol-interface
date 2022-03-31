@@ -131,8 +131,8 @@ export function OnesolProtocolProvider({ children = null as any }){
               feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
               logoURI:
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'reward token',
-              symbol: 'Reward'
+              name: '1Sol',
+              symbol: '1Sol'
             }
           ])
         }

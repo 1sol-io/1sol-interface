@@ -139,6 +139,7 @@ const Farm = () => {
   const getFarm = useCallback(async () => {
     if (farm) {
       const info = await getFarmInfo(farm)
+      console.log(info)
 
       setFarmInfo(info)
     }
@@ -197,7 +198,19 @@ const Farm = () => {
             {base.name}-{quote.name}
           </div>
         </div>
-        <div className='bd'>
+        <div className='bd' style={{display: 'none'}}>
+          <div className="mod">
+            <div className='hd'>Farm emissions</div>
+            <div className='bd'>
+              { 
+                farmInfo ? 
+                `${formatWithCommas(
+                  convert(Number(farmInfo.rewardPerSecond), farm.rewardTokenMint.decimals) * 60 * 24
+                )} ${ rewardToken?.symbol } / day` : 
+                '-' 
+              }
+            </div>
+          </div>
           <div className="mod">
             <div className='hd'>Total staked</div>
             <div className='bd'>{ farm.tvl ? `$${formatWithCommas(farm.tvl, 2)}` : '-' }</div>
@@ -554,16 +567,48 @@ const Farm = () => {
           >
             <div className='pool-mod'>
               <div className='hd'>
-                Pooled {base.name.toUpperCase()}
+                Total staked
+              </div>
+              <div className='bd'>{ farm.tvl ? `$${formatWithCommas(farm.tvl, 2)}` : '-' }</div>
+            </div>
+            <div className='pool-mod'>
+              <div className='hd'>
+              Farm emissions
+              </div>
+              <div className='bd'>
+                { 
+                  farmInfo ? 
+                  `${formatWithCommas(
+                    convert(Number(farmInfo.rewardPerSecond), farm.rewardTokenMint.decimals) * 60 * 24
+                  )} ${ rewardToken?.symbol } / day` : 
+                  '-' 
+                }
+              </div>
+            </div>
+            <div className='pool-mod'>
+              <div className='hd'>
+                APY
+              </div>
+              <div className='bd'>{ farm.apy ? `${formatWithCommas(farm.apy * 100, 2)}%` : '-' }</div>
+            </div>
+            <div className='pool-mod'>
+              <div className='hd'>
+                Total staked
+              </div>
+              <div className='bd'>{ farm.tvl ? `$${formatWithCommas(farm.tvl, 2)}` : '-' }</div>
+            </div>
+            {/* <div className='pool-mod'>
+              <div className='hd'>
+                Pooled {base.name}
               </div>
               <div className='bd'>{pool.tokenAAmount}</div>
             </div>
             <div className='pool-mod'>
               <div className='hd'>
-                Pooled {quote.name.toUpperCase()}
+                Pooled { quote.name }
               </div>
               <div className='bd'>{pool.tokenBAmount}</div>
-            </div>
+            </div> */}
             <div className='pool-mod'>
               <div className='hd'>
                 LP Supply
