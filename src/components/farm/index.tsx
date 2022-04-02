@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Button, Modal, Tooltip } from 'antd'
+import { Card, Button, Modal, Tooltip, Progress } from 'antd'
 import { PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { u64 } from '@solana/spl-token'
+import CountUp from 'react-countup';
 
 import { FarmItem, FarmInfo, Quote, UserFarmInfo } from '@onesol/farm'
 
@@ -94,6 +95,12 @@ const Farm = () => {
   const [visible, setVisible] = useState(false)
   const [amount, setAmount] = useState('')
 
+  const timer: { current: NodeJS.Timeout | null } = useRef(null)
+  const [percent, setPercent] = useState(0)
+
+  const [rewardStart, setRewardStart] = useState(0)
+  const [rewardEnd, setRewardEnd] = useState(0)
+
   useEffect(() => {
     if (farm) {
       const { pool: { tokenA, tokenB } } = farm
@@ -150,9 +157,15 @@ const Farm = () => {
         const info = await getUserFarmInfo(farm)
 
         setUserFarmInfo(info)
-
     }
   }, [connected, farm, getUserFarmInfo])
+
+  useEffect(() => {
+    if (userFarmInfo) {
+      setRewardStart(rewardEnd)
+      setRewardEnd(Number(userFarmInfo.pendingReward))
+    }
+  }, [userFarmInfo])
 
   useEffect(() => {
     if (farm) {
@@ -165,6 +178,39 @@ const Farm = () => {
       getUserFarm()
     }
   }, [farm, connected, getUserFarm])
+
+  const countDown = useCallback(() => {
+    if (percent < 100) {
+      setPercent(percent => percent + 1)
+      timer.current = setTimeout(countDown, 500)
+    } else {
+      setPercent(0)
+      timer.current = setTimeout(countDown, 500)
+
+      if (farmSwap) {
+        farmSwap.refresh()
+
+        if (base.amount) {
+          const amount = getEstimateAmount({ farmSwap, farm, amount: base.amount })
+
+          quote.setAmount(`${amount}`)
+        }
+
+        getFarm()
+        getUserFarm()
+      }
+    }
+  }, [percent, farmSwap, farm, base.amount, quote, getEstimateAmount, getFarm, getUserFarm])
+
+  useEffect(() => {
+    timer.current = setTimeout(countDown, 500)
+
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current)
+      }
+    }
+  }, [countDown])
 
   const renderTitle = () => {
     if (!farm) {
@@ -473,7 +519,13 @@ const Farm = () => {
                 <div className='value'>
                   { 
                     userFarmInfo ? 
-                    formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2) : 
+                    <CountUp 
+                      start={rewardStart} 
+                      end={rewardEnd} 
+                      separator=","
+                      decimal={`${farm.rewardTokenMint.decimals}`}
+                    />:
+                    // formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2) : 
                     0.00 
                   }
                   { rewardToken ? <span style={{marginLeft: '5px', fontSize: '12px'}}>{ rewardToken.symbol }</span> : ''}
@@ -627,9 +679,11 @@ const Farm = () => {
       <div className="bd">
         {renderTitle()}
         <Card
+          title="Add Liquidity"
           className="deposit-card"
-          headStyle={{ padding: 0 }}
+          headStyle={{ textAlign: 'left' }}
           bodyStyle={{ padding: '20px' }}
+          extra={<Progress type="circle" showInfo={false} percent={percent} width={20} strokeWidth={15} strokeColor="#7049f6" />}
         >
           {renderDeposit()}
         </Card>
