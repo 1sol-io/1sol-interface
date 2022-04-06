@@ -72,14 +72,14 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
           apy
         }
 
-        setStatistics({
-          ...statistics,
+        setStatistics((state) => ({
+          ...state,
           [farm.address.toBase58()]:
             {
               tvl,
               apy
             }
-        })
+        }))
       }
     },
     [oneSolFarmingProtocol, farmMap]
@@ -111,7 +111,6 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
           farm
         )
 
-        console.log(`user farm info`, info)
         return info
       }
     },
@@ -261,6 +260,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         oneSolFarmingProtocol,
         farms,
         farmMap,
+        statistics,
         getFarmInfo,
         getUserFarmInfo,
         getEstimateAmount,
