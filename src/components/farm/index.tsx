@@ -81,10 +81,10 @@ const Farm = () => {
   const [farmInfo, setFarmInfo] = useState<FarmInfoProps>()
   const [userFarmInfo, setUserFarmInfo] = useState<UserFarmInfoProps>()
   const [farmSwap, setFarmSwap] = useState<Quote>()
-  const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string}>({
-    tokenAAmount: '-',
-    tokenBAmount: '-'
-  })
+  // const [pool, setPool] = useState<{tokenAAmount: string, tokenBAmount: string}>({
+  //   tokenAAmount: '-',
+  //   tokenBAmount: '-'
+  // })
 
   const [depositLoading, setDepositLoading] = useState(false)
   const [withdrawLoading, setWithdrawLoading] = useState(false)
@@ -128,27 +128,28 @@ const Farm = () => {
 
   const getSwap = useCallback(async () => {
     if (farm) {
-      const {pool: { tokenA, tokenB }} = farm
       const swap: Quote = await getFarmSwap(farm)
-      const  {tokenAAmount, tokenBAmount } = swap
 
       setFarmSwap(swap)
 
-      setPool({
-        tokenAAmount: `${formatWithCommas(convert(tokenAAmount.toNumber(), tokenA.mint.decimals))}`,
-        tokenBAmount: `${formatWithCommas(convert(tokenBAmount.toNumber(), tokenB.mint.decimals))}`,
-      })
+      // const {pool: { tokenA, tokenB }} = farm
+      // const  {tokenAAmount, tokenBAmount } = swap
+      // setPool({
+      //   tokenAAmount: `${formatWithCommas(convert(tokenAAmount.toNumber(), tokenA.mint.decimals))}`,
+      //   tokenBAmount: `${formatWithCommas(convert(tokenBAmount.toNumber(), tokenB.mint.decimals))}`,
+      // })
     }
   }, [farm, getFarmSwap])
 
   useEffect(() => {
-    getSwap()
+    if (farm) {
+      getSwap()
+    }
   }, [farm, getSwap])
 
   const getFarm = useCallback(async () => {
     if (farm) {
       const info = await getFarmInfo(farm)
-      console.log(info)
 
       setFarmInfo(info)
     }
@@ -167,6 +168,7 @@ const Farm = () => {
       setRewardStart(rewardEnd)
       setRewardEnd(Number(userFarmInfo.pendingReward))
     }
+    // eslint-disable-next-line
   }, [userFarmInfo])
 
   useEffect(() => {
@@ -184,10 +186,10 @@ const Farm = () => {
   const countDown = useCallback(() => {
     if (percent < 100) {
       setPercent(percent => percent + 1)
-      timer.current = setTimeout(countDown, 500)
+      timer.current = setTimeout(countDown, 1000)
     } else {
       setPercent(0)
-      timer.current = setTimeout(countDown, 500)
+      timer.current = setTimeout(countDown, 1000)
 
       if (farmSwap) {
         farmSwap.refresh()
@@ -205,7 +207,7 @@ const Farm = () => {
   }, [percent, farmSwap, farm, base.amount, quote, getEstimateAmount, getFarm, getUserFarm, autoSwap])
 
   useEffect(() => {
-    timer.current = setTimeout(countDown, 500)
+    timer.current = setTimeout(countDown, 1000)
 
     return () => {
       if (timer.current) {
