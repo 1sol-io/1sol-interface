@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Button, Modal, Tooltip, Progress } from 'antd'
+import { Card, Button, Modal, Tooltip, Progress, Switch } from 'antd'
 import { PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { u64 } from '@solana/spl-token'
 import CountUp from 'react-countup';
@@ -101,6 +101,8 @@ const Farm = () => {
   const [rewardStart, setRewardStart] = useState(0)
   const [rewardEnd, setRewardEnd] = useState(0)
 
+  const [autoSwap, setAutoSwap] = useState(false)
+
   useEffect(() => {
     if (farm) {
       const { pool: { tokenA, tokenB } } = farm
@@ -190,7 +192,7 @@ const Farm = () => {
       if (farmSwap) {
         farmSwap.refresh()
 
-        if (base.amount) {
+        if (base.amount && !autoSwap) {
           const amount = getEstimateAmount({ farmSwap, farm, amount: base.amount })
 
           quote.setAmount(`${amount}`)
@@ -200,7 +202,7 @@ const Farm = () => {
         getUserFarm()
       }
     }
-  }, [percent, farmSwap, farm, base.amount, quote, getEstimateAmount, getFarm, getUserFarm])
+  }, [percent, farmSwap, farm, base.amount, quote, getEstimateAmount, getFarm, getUserFarm, autoSwap])
 
   useEffect(() => {
     timer.current = setTimeout(countDown, 500)
@@ -211,6 +213,14 @@ const Farm = () => {
       }
     }
   }, [countDown])
+
+  useEffect(() => {
+    if (!autoSwap && base.amount && farm && farmSwap) {
+      const amount = getEstimateAmount({ farmSwap, farm, amount: base.amount })
+
+      quote.setAmount(`${amount}`)
+    }
+  }, [autoSwap, base.amount, farm, farmSwap, quote, getEstimateAmount])
 
   const renderTitle = () => {
     if (!farm) {
@@ -427,9 +437,11 @@ const Farm = () => {
             onInputChange={ (val: number) => { 
               base.setAmount(`${val}`)
               
-              const amount =  getEstimateAmount({ farmSwap, farm, amount: val })
+              if (!autoSwap) {
+                const amount =  getEstimateAmount({ farmSwap, farm, amount: val })
 
-              quote.setAmount(`${amount}`)
+                quote.setAmount(`${amount}`)
+              }
             }} 
             onMaxClick={ () => {
               const val = base.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
@@ -438,9 +450,11 @@ const Farm = () => {
 
               base.setAmount(`${val}`)
 
-              const amount = getEstimateAmount({ farmSwap, farm, amount: val })
+              if (!autoSwap) {
+                const amount = getEstimateAmount({ farmSwap, farm, amount: val })
 
-              quote.setAmount(`${amount}`)
+                quote.setAmount(`${amount}`)
+              }
             }}
           />
           <div className="plus-icon">
@@ -452,9 +466,11 @@ const Farm = () => {
             onInputChange={ (val: number) => {
               quote.setAmount(`${val}`)
               
-              const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
+              if (!autoSwap) {
+                const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
 
-              base.setAmount(`${amount}`)
+                base.setAmount(`${amount}`)
+              }
             }} 
             onMaxClick={ () => {
               const val = quote.mintAddress === WRAPPED_SOL_MINT.toBase58() ? 
@@ -463,9 +479,11 @@ const Farm = () => {
 
               quote.setAmount(`${val}`)
 
-              const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
+              if (!autoSwap) {
+                const amount =  getEstimateAmount({ farmSwap, farm, amount: val, reverse: true})
 
-              base.setAmount(`${amount}`)
+                base.setAmount(`${amount}`)
+              }
             }}
           />
         </div>
@@ -643,12 +661,6 @@ const Farm = () => {
               </div>
               <div className='bd'>{ farm.apy ? `${formatWithCommas(farm.apy * 100, 2)}%` : '-' }</div>
             </div>
-            <div className='pool-mod'>
-              <div className='hd'>
-                Total staked
-              </div>
-              <div className='bd'>{ farm.tvl ? `$${formatWithCommas(farm.tvl, 2)}` : '-' }</div>
-            </div>
             {/* <div className='pool-mod'>
               <div className='hd'>
                 Pooled {base.name}
@@ -683,7 +695,19 @@ const Farm = () => {
           className="deposit-card"
           headStyle={{ textAlign: 'left' }}
           bodyStyle={{ padding: '20px' }}
-          extra={<Progress type="circle" showInfo={false} percent={percent} width={20} strokeWidth={15} strokeColor="#7049f6" />}
+          extra={
+            <div style={{display: 'flex', alignItems: 'center'}}>
+              <Switch checked={autoSwap} size="small" onClick={() => setAutoSwap(!autoSwap)} />
+              <Tooltip title="Liquidity must be deposited according to the ratio of tokens in the pool. Check this to auto-swap your liquidity to that ratio before depositing(may fail if the price moves more than your slippage tolerance.) When liqudidity is withdrawn, equal values of both tokens will be withdrawn.">
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                  <span style={{fontSize: '12px', margin: '0 3px'}}>Auto-swap</span>
+                  <QuestionCircleOutlined />
+                </div>
+              </Tooltip>
+              <span style={{color: 'rgba(255, 255, 255, 0.3)', margin: '0 5px'}}>|</span>
+              <Progress type="circle" showInfo={false} percent={percent} width={20} strokeWidth={15} strokeColor="#7049f6" />
+            </div>
+          }
         >
           {renderDeposit()}
         </Card>
