@@ -652,7 +652,7 @@ const Farm = () => {
                 { 
                   farmInfo ? 
                   `${formatWithCommas(
-                    convert(Number(farmInfo.rewardPerSecond), farm.rewardTokenMint.decimals) * 60 * 24
+                    convert(Number(farmInfo.rewardPerSecond), farm.rewardTokenMint.decimals) * 60 * 60 * 24
                   )} ${ rewardToken?.symbol } / day` : 
                   '-' 
                 }
