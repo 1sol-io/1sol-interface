@@ -537,13 +537,16 @@ const Farm = () => {
                 <div className='value'>
                   { 
                     userFarmInfo ? 
+                    <>
                     <CountUp 
-                      start={rewardStart} 
-                      end={rewardEnd} 
+                      start={convert(Number(rewardStart), farm.rewardTokenMint.decimals)} 
+                      end={convert(Number(rewardEnd), farm.rewardTokenMint.decimals)} 
                       separator=","
-                      decimal={`${farm.rewardTokenMint.decimals}`}
-                    />:
-                    // formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2) : 
+                      decimals={2}
+                    />
+                    {/* {formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2)} :  */}
+                    </>
+                    :
                     0.00 
                   }
                   { rewardToken ? <span style={{marginLeft: '5px', fontSize: '12px'}}>{ rewardToken.symbol }</span> : ''}
