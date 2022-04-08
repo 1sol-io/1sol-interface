@@ -133,6 +133,30 @@ export function OnesolProtocolProvider({ children = null as any }){
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
               name: '1Sol',
               symbol: '1Sol'
+            },
+            {
+              address: 'DPZUWUqBh1daKrd8yXVtMHzrmcvDboVjRagBLefiYZha',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: '1Sol',
+              symbol: '1Sol'
+            },
+            {
+              address: 'EKRgfbLKkvvCdSjiwkzvyg6Jd7EHKMYYQPwuuRjCNAAQ',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: '1Sol',
+              symbol: '1Sol'
             }
           ])
         }

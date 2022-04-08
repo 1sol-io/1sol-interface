@@ -147,7 +147,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
 
         const result = farmSwap.estimateTokenAmountNeed(
           new u64(inputAmount),
-          reverse ? tokenB : tokenA
+          reverse ? tokenB.mint : tokenA.mint
         )
 
         return result.toNumber() / 10 ** decimal
