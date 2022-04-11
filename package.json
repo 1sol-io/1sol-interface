@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
-    "@onesol/farm": "^0.1.0",
+    "@onesol/farm": "0.2.0",
     "@onesol/onesol-sdk": "0.8.0",
     "@project-serum/borsh": "^0.2.3",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
@@ -61,11 +61,7 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
