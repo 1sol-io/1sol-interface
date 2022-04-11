@@ -43,6 +43,8 @@ interface FarmItemProps extends FarmItem {
 interface UserFarmInfoProps extends UserFarmInfo {
  pendingReward: bigint, 
  depositTokenAmount: bigint 
+ minTokenAOut: u64
+ minTokenBOut: u64
 }
 
 interface FarmInfoProps extends FarmInfo {
@@ -158,6 +160,7 @@ const Farm = () => {
   const getUserFarm = useCallback(async () => {
     if (connected && farm) {
         const info = await getUserFarmInfo(farm)
+        console.log(`user farm info`, info)
 
         setUserFarmInfo(info)
     }
@@ -291,6 +294,7 @@ const Farm = () => {
         farmSwap,
         amountA: base.amount,
         amountB: quote.amount,
+        isAutoSwap: autoSwap
       })
 
       await sendSignedTransactions({
@@ -315,7 +319,7 @@ const Farm = () => {
     } finally {
       setDepositLoading(false)
     }
-  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm, getFarm, getSwap])
+  }, [farm, farmSwap, base, quote, getDepositTransactions, connection, wallet, getUserFarm, getFarm, getSwap, autoSwap])
 
   const handleWithdraw = useCallback(async () => {
     try {
@@ -392,6 +396,7 @@ const Farm = () => {
       getFarm()
       getUserFarm()
     } catch (e) {
+      console.error(e)
       notify({
         description: "Please try again and approve transactions from your wallet.",
         message: "Withdraw trade cancelled.",
@@ -430,6 +435,7 @@ const Farm = () => {
   }, [getStakeTransactions, farm, wallet, connection, getSwap, getFarm, getUserFarm])
 
   const renderDeposit = () => {
+    
     return (
       <div className="farm-deposit">
         <div className="hd">
@@ -494,8 +500,13 @@ const Farm = () => {
             disabled={
               connected && (
                 depositLoading || 
-                !base.amount || 
-                !quote.amount || 
+                (
+                  !autoSwap &&
+                  (!Number(base.amount) || !Number(quote.amount))  
+                ) ||
+                (
+                  autoSwap && !Number(base.amount) && !Number(quote.amount)
+                ) ||
                 Number(base.amount) > base.balance || 
                 Number(quote.amount) > quote.balance
               )
@@ -573,6 +584,10 @@ const Farm = () => {
               <div className='hd'>
                 <div className='label'>Staked</div>
                 <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.stakeTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
+                <div className='extra'>
+                  <div className='token-item'>~ { userFarmInfo && base && base.mint && base.mint.decimals ? formatWithCommas(convert(userFarmInfo.minTokenAOut.toNumber(), base.mint.decimals), 2) : 0.00 } { base.name }</div>
+                  <div className='token-item'>~ { userFarmInfo && quote && quote.mint && quote.mint.decimals ? formatWithCommas(convert(userFarmInfo.minTokenBOut.toNumber(), quote.mint.decimals), 2) : 0.00 } { quote.name }</div>
+                </div>
               </div>
               <div className='bd'>
                 { 

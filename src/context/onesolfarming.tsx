@@ -161,11 +161,13 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
       farm,
       amountA,
       amountB,
+      isAutoSwap = false,
       slippage = 1
     }: {
       farm: FarmItem
       amountA: number
       amountB: number
+      isAutoSwap: boolean
       slippage: number
     }) => {
       if (oneSolFarmingProtocol && wallet) {
@@ -176,8 +178,10 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
             new u64(amountA * 10 ** farm.pool.tokenA.mint.decimals),
           maximumTokenB:
             new u64(amountB * 10 ** farm.pool.tokenB.mint.decimals),
-          slippage
+          slippage,
+          isEven: !isAutoSwap
         })
+        console.log(`deposit transactions: `, transactions)
 
         return transactions.map(({ transaction }) => transaction)
       }
@@ -224,8 +228,9 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
   )
 
   const getRemoveLiquidityTransactions = useCallback(
-    async ({ farm }: { farm: FarmItem }) => {
+    async (farm: FarmItem) => {
       if (oneSolFarmingProtocol && wallet) {
+        console.log(`farm:`, farm)
         const transactions = await oneSolFarmingProtocol.withdrawAllTokenTypesAll(
           {
             farm,
