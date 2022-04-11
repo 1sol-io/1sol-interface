@@ -135,7 +135,7 @@ export function OnesolProtocolProvider({ children = null as any }){
               symbol: '1Sol'
             },
             {
-              address: 'DPZUWUqBh1daKrd8yXVtMHzrmcvDboVjRagBLefiYZha',
+              address: 'BWZsSS4K8kzfZusaBRsJZdfDRBRKasth8q9MzPSSmLoV',
               chainId: 103,
               decimals: 6,
               extensions:
@@ -147,7 +147,7 @@ export function OnesolProtocolProvider({ children = null as any }){
               symbol: '1Sol'
             },
             {
-              address: 'EKRgfbLKkvvCdSjiwkzvyg6Jd7EHKMYYQPwuuRjCNAAQ',
+              address: '6NpjX9vYoJ4K4rLkUNzE4eSPtyFANsUeAYDwx5hdS9ub',
               chainId: 103,
               decimals: 6,
               extensions:
@@ -155,8 +155,32 @@ export function OnesolProtocolProvider({ children = null as any }){
               feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
               logoURI:
                 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: '1Sol',
-              symbol: '1Sol'
+              name: 'USDC',
+              symbol: 'USDC'
+            },
+            {
+              address: 'orcarKHSqC5CDDsGbho8GKvwExejWHxTqGzXgcewB9L',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: 'orca',
+              symbol: 'orca'
+            },
+            {
+              address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
+              chainId: 103,
+              decimals: 6,
+              extensions:
+                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+              logoURI:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+              name: 'USDC',
+              symbol: 'USDC'
             }
           ])
         }
