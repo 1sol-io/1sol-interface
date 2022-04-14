@@ -259,6 +259,26 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
     [oneSolFarmingProtocol, wallet]
   )
 
+  const getTokensToLp = useCallback(
+    async ({ farm, amount }: { farm: FarmItem; amount: u64 }) => {
+      if (oneSolFarmingProtocol) {
+        const {
+          minTokenAOut,
+          minTokenBOut
+        } = await oneSolFarmingProtocol.getTokensToLp({
+          farm,
+          poolTokenAmountIn: amount
+        })
+
+        return {
+          minTokenAOut,
+          minTokenBOut
+        }
+      }
+    },
+    [oneSolFarmingProtocol]
+  )
+
   return (
     <OnesolFarmingProtocolContext.Provider
       value={{
@@ -274,7 +294,8 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
         getWithdrawTransactions,
         getHarvestTransactions,
         getRemoveLiquidityTransactions,
-        getStakeTransactions
+        getStakeTransactions,
+        getTokensToLp
       }}
     >
       {children}

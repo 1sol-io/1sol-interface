@@ -64,7 +64,8 @@ const Farm = () => {
     getWithdrawTransactions,
     getHarvestTransactions,
     getRemoveLiquidityTransactions,
-    getStakeTransactions 
+    getStakeTransactions,
+    getTokensToLp 
   } = useOnesolFarmingProtocol()
 
   const farm: FarmItemProps = farmMap[id]
@@ -104,6 +105,9 @@ const Farm = () => {
   const [rewardEnd, setRewardEnd] = useState(0)
 
   const [autoSwap, setAutoSwap] = useState(false)
+
+  // token amount according to lp amount
+  const [depositTokenAmounts, setDepositTokenAmounts] = useState([new u64(0), new u64(0)])
 
   useEffect(() => {
     if (farm) {
@@ -225,6 +229,18 @@ const Farm = () => {
       quote.setAmount(`${amount}`)
     }
   }, [autoSwap, base.amount, farm, farmSwap, quote, getEstimateAmount])
+
+  useEffect(() => {
+    const getTokenAmounts = async (amount: u64) => {
+      const { minTokenAOut, minTokenBOut } = await getTokensToLp({farm, amount})
+
+      setDepositTokenAmounts([minTokenAOut, minTokenBOut])
+    }
+
+    if (userFarmInfo && Number(userFarmInfo.depositTokenAmount)) {
+      getTokenAmounts(new u64(Number(userFarmInfo.depositTokenAmount)))
+    }
+  }, [userFarmInfo, farm, getTokensToLp])
 
   const renderTitle = () => {
     if (!farm) {
@@ -552,6 +568,10 @@ const Farm = () => {
                     <Tooltip title="Some are only deposited but not staked, so these aren't earning rewards now."><QuestionCircleOutlined style={{ marginLeft: '5px' }} /></Tooltip>
                   </div>
                   <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.depositTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
+                  <div className='extra'>
+                    <div className='token-item'>~ { userFarmInfo && base && base.mint && base.mint.decimals ? formatWithCommas(convert(depositTokenAmounts[0].toNumber(), base.mint.decimals), 2) : 0.00 } { base.name }</div>
+                    <div className='token-item'>~ { userFarmInfo && quote && quote.mint && quote.mint.decimals ? formatWithCommas(convert(depositTokenAmounts[1].toNumber(), quote.mint.decimals), 2) : 0.00 } { quote.name }</div>
+                  </div>
                 </div>
                 <div className='bd'>
                   <Button 
@@ -591,7 +611,6 @@ const Farm = () => {
                       separator=","
                       decimals={2}
                     />
-                    {/* {formatWithCommas(convert(Number(userFarmInfo.pendingReward), farm.rewardTokenMint.decimals), 2)} :  */}
                     </>
                     :
                     0.00 
