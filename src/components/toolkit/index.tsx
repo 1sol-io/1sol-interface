@@ -68,9 +68,9 @@ const Toolkit = () => {
                         </div>
                         <div className="value">
                           {item.balance.toFixed(9)}
-                          <span style={{ fontSize: '12px' }}>
-                            +(&#8776;0.02account fee)
-                          </span>
+                          <div style={{ fontSize: '12px' }}>
+                            (+&#8776;0.02account fee)
+                          </div>
                         </div>
                       </div>
                     ))}
