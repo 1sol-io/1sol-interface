@@ -160,7 +160,6 @@ const Farm = () => {
   const getUserFarm = useCallback(async () => {
     if (connected && farm) {
         const info = await getUserFarmInfo(farm)
-        console.log(`user farm info`, info)
 
         setUserFarmInfo(info)
     }
@@ -544,6 +543,41 @@ const Farm = () => {
             headStyle={{ padding: 0 }}
             bodyStyle={{ padding: '20px' }}
           >
+            {
+              userFarmInfo && Number(userFarmInfo.depositTokenAmount) ?
+              <div className='mod'>
+                <div className='hd'>
+                  <div className='label'>
+                    Deposited
+                    <Tooltip title="Some are only deposited but not staked, so these aren't earning rewards now."><QuestionCircleOutlined style={{ marginLeft: '5px' }} /></Tooltip>
+                  </div>
+                  <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.depositTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
+                </div>
+                <div className='bd'>
+                  <Button 
+                    disabled={stakeLoading}
+                    loading={stakeLoading}
+                    type="primary" 
+                    style={{ display: 'block', marginBottom: '5px' }} 
+                    onClick={handleStake}
+                  >
+                    Stake
+                  </Button>
+                  <Button 
+                    disabled={removeLoading}
+                    loading={removeLoading}
+                    type="link" 
+                    size="small"
+                    onClick={handleRemove}
+                    style={{ fontSize: '12px' }}
+                  >
+                    Withdraw
+                  </Button>
+                </div>
+              </div>
+              : null
+            }
+
             <div className='mod'>
               <div className='hd'>
                 <div className='label'>Pending Rewards</div>
@@ -580,6 +614,7 @@ const Farm = () => {
                 }
               </div>
             </div>
+
             <div className='mod'>
               <div className='hd'>
                 <div className='label'>Staked</div>
@@ -604,41 +639,7 @@ const Farm = () => {
                 }
               </div>
             </div>
-
-            {
-              userFarmInfo && Number(userFarmInfo.depositTokenAmount) ?
-              <div className='mod'>
-                <div className='hd'>
-                  <div className='label'>
-                    Deposited
-                    <Tooltip title="Some are only deposited but not staked, so these aren't earning rewards now."><QuestionCircleOutlined style={{ marginLeft: '5px' }} /></Tooltip>
-                  </div>
-                  <div className='value'>{ userFarmInfo ? formatWithCommas(convert(Number(userFarmInfo.depositTokenAmount), farm.stakeTokenMint?.decimals), 2) : 0.00 } LP</div>
-                </div>
-                <div className='bd'>
-                  <Button 
-                    disabled={stakeLoading}
-                    loading={stakeLoading}
-                    type="primary" 
-                    style={{ display: 'block', marginBottom: '5px' }} 
-                    onClick={handleStake}
-                  >
-                    Stake
-                  </Button>
-                  <Button 
-                    disabled={removeLoading}
-                    loading={removeLoading}
-                    type="link" 
-                    size="small"
-                    onClick={handleRemove}
-                    style={{ fontSize: '12px' }}
-                  >
-                    Withdraw
-                  </Button>
-                </div>
-              </div>
-              : null
-            }
+            
           </Card>
         </div>
       </div>
