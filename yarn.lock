@@ -1598,10 +1598,10 @@
   resolved "https://registry.npmjs.org/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@onesol/farm@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@onesol/farm/-/farm-0.1.0.tgz#c25d01e58950037efbbc568ec3dddfd4465e358d"
-  integrity sha512-b5FEbFhZINJdTGT3q0GKiPbP8DL3R+nrjYWrmwBjunpuXDaO5FKUoWO3EJtoY9lyJubv7PpqdyxJDkrOWPeUDw==
+"@onesol/farm@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@onesol/farm/-/farm-0.3.0.tgz#a64f923450708507ca672afc183bde1571f7b2ca"
+  integrity sha512-ds6T/vn1Zfmhmw6K1NtF5HvFFHTd1mF7G+t0nUL/QUUnF9nOmc9CCidK28nd1V+UyZ7mrihiBM0TvTRsAwWQgA==
   dependencies:
     "@orca-so/aquafarm" "^0.0.12"
     "@orca-so/sdk" "1.2.22"

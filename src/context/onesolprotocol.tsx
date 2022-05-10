@@ -83,117 +83,105 @@ export function OnesolProtocolProvider({ children = null as any }){
           const tokenList = await oneSolProtocol.getTokenList()
 
           setTokens([
-            ...tokenList,
+            ...tokenList
             // TODO
             // for farming test
-            {
-              address: '3ok84HKagVdh7eWVmZJiBbYHeo13TKzZtNVSwJRGpWdT',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So111111111111111111111111111111011111111112/logo.png',
-              name: 'Base',
-              symbol: 'test1'
-            },
-            {
-              address: 'G7AqDwUSHCUHzcn9ioXT3YrohY8jhQjZysmSzCaQ6Vid',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'Quote',
-              symbol: 'test2'
-            },
-            {
-              address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'Quote',
-              symbol: 'test3'
-            },
-            {
-              address: 'DK2dggvqxVustZMGmCuQ4hKcTrEZZRkxDWNCzhcsuXwC',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: '1Sol',
-              symbol: '1Sol'
-            },
-            {
-              address: 'ArL2YNsFxwGGzyEUxJmTBwRvw47UBJSMeAmjgi1mXcjc',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: '1Sol',
-              symbol: '1Sol'
-            },
-            {
-              address: '2pcauJ6W8t6YmgX4jeHmonnJGtjzecJrXoqNfY5MKKxn',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'USDC',
-              symbol: 'USDC'
-            },
-            {
-              address: 'orcarKHSqC5CDDsGbho8GKvwExejWHxTqGzXgcewB9L',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'orca',
-              symbol: 'orca'
-            },
-            {
-              address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'USDC',
-              symbol: 'USDC'
-            },
-            {
-              address: '4yvEW7r1SKgMgrTFXY4XJNC6SFov5omLVRvYouUmgSK6',
-              chainId: 103,
-              decimals: 6,
-              extensions:
-                { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
-              feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
-              logoURI:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
-              name: 'test-reward',
-              symbol: 'test-reward'
-            }
+            // {
+            //   address: '3ok84HKagVdh7eWVmZJiBbYHeo13TKzZtNVSwJRGpWdT',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So111111111111111111111111111111011111111112/logo.png',
+            //   name: 'Base',
+            //   symbol: 'test1'
+            // },
+            // {
+            //   address: 'G7AqDwUSHCUHzcn9ioXT3YrohY8jhQjZysmSzCaQ6Vid',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: 'Quote',
+            //   symbol: 'test2'
+            // },
+            // {
+            //   address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: 'Quote',
+            //   symbol: 'test3'
+            // },
+            // {
+            //   address: 'DK2dggvqxVustZMGmCuQ4hKcTrEZZRkxDWNCzhcsuXwC',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: '1Sol',
+            //   symbol: '1Sol'
+            // },
+            // {
+            //   address: 'BWZsSS4K8kzfZusaBRsJZdfDRBRKasth8q9MzPSSmLoV',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: '1Sol',
+            //   symbol: '1Sol'
+            // },
+            // {
+            //   address: '6NpjX9vYoJ4K4rLkUNzE4eSPtyFANsUeAYDwx5hdS9ub',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: 'USDC',
+            //   symbol: 'USDC'
+            // },
+            // {
+            //   address: 'orcarKHSqC5CDDsGbho8GKvwExejWHxTqGzXgcewB9L',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: 'orca',
+            //   symbol: 'orca'
+            // },
+            // {
+            //   address: 'EmXq3Ni9gfudTiyNKzzYvpnQqnJEMRw2ttnVXoJXjLo1',
+            //   chainId: 103,
+            //   decimals: 6,
+            //   extensions:
+            //     { coingeckoId: 'swanlana', coingeckoName: 'Swanlana' },
+            //   feeAccount: 'CZaCRfx6MbEuXFZ3FjA2roNdqFAMXnPVMzaosxaCzJW1',
+            //   logoURI:
+            //     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/4ThReWAbAVZjNVgs5Ui9Pk3cZ5TYaD9u6Y89fp6EFzoF/logo.png',
+            //   name: 'USDC',
+            //   symbol: 'USDC'
+            // }
           ])
         }
 
