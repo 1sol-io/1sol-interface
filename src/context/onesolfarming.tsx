@@ -143,6 +143,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
       if (oneSolFarmingProtocol) {
         const { pool: { tokenA, tokenB } } = farm
         const decimal = reverse ? tokenB.mint.decimals : tokenA.mint.decimals
+        const anotherDecimal = reverse ? tokenA.mint.decimals : tokenB.mint.decimals
         const inputAmount = amount * 10 ** decimal
 
         const result = farmSwap.estimateTokenAmountNeed(
@@ -150,7 +151,7 @@ export function OnesolFarmingProtocolProvider({ children = null as any }){
           reverse ? tokenB.mint : tokenA.mint
         )
 
-        return result.toNumber() / 10 ** decimal
+        return result.toNumber() / 10 ** anotherDecimal
       }
     },
     [oneSolFarmingProtocol]
