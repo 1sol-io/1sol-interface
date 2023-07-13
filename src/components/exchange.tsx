@@ -9,7 +9,6 @@ import { Settings } from "./settings";
 import { AppBar } from "./appBar";
 import Social from "./social";
 
-import HuobiLogo from '../assets/huobi.svg'
 import BybitLogo from '../assets/bybit.svg'
 
 import './exchange.less'
@@ -84,16 +83,7 @@ const ExchangeView = (props: {}) => {
               <Button 
                 type="primary" 
                 shape="round"
-                style={{minWidth: '70px'}}
-              >
-                <a href="https://www.huobi.com/en-us/exchange/1sol_usdt/" target="_blank" rel="noopener noreferrer">
-                  <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={HuobiLogo} alt="" />
-                </a>
-              </Button>
-              <Button 
-                type="primary" 
-                shape="round"
-                style={{minWidth: '70px', marginLeft: '15px'}}
+                style={{minWidth: '70px' }}
               >
                 <a href="https://www.bybit.com/en-US/trade/spot/1SOL/USDT" target="_blank" rel="noopener noreferrer">
                   <img style={{display: 'block', height: '18px', marginTop: '-3px'}} src={BybitLogo} alt="" />
