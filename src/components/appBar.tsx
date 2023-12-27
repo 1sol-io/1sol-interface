@@ -78,11 +78,8 @@ export const AppBar = (props: { left?: JSX.Element; right?: JSX.Element }) => {
               Doc
             </a>
           </Menu.Item>
-          <Menu.Item disabled key="lending">
-            Lending
-          </Menu.Item>
-          <Menu.Item disabled key="nft">
-            NFT
+          <Menu.Item disabled key="incriptions">
+            Inscriptions
           </Menu.Item>
         </Menu>
         {props.left}
