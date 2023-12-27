@@ -11,19 +11,19 @@
     "@sentry/react": "^6.18.0",
     "@sentry/tracing": "^6.18.0",
     "@solana/spl-token": "0.1.8",
-    "@solana/wallet-adapter-base": "^0.7.0",
-    "@solana/wallet-adapter-bitpie": "^0.3.0",
-    "@solana/wallet-adapter-blocto": "^0.3.0",
-    "@solana/wallet-adapter-coin98": "^0.3.0",
-    "@solana/wallet-adapter-ledger": "^0.7.0",
-    "@solana/wallet-adapter-mathwallet": "^0.7.0",
-    "@solana/wallet-adapter-phantom": "^0.7.0",
-    "@solana/wallet-adapter-safepal": "0.4.0",
-    "@solana/wallet-adapter-slope": "^0.3.0",
-    "@solana/wallet-adapter-solflare": "^0.4.0",
-    "@solana/wallet-adapter-sollet": "^0.8.0",
-    "@solana/wallet-adapter-solong": "^0.7.0",
-    "@solana/web3.js": "1.36.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-bitpie": "^0.5.18",
+    "@solana/wallet-adapter-blocto": "^0.5.22",
+    "@solana/wallet-adapter-coin98": "^0.5.20",
+    "@solana/wallet-adapter-ledger": "^0.9.25",
+    "@solana/wallet-adapter-mathwallet": "^0.9.18",
+    "@solana/wallet-adapter-phantom": "^0.9.24",
+    "@solana/wallet-adapter-safepal": "0.5.18",
+    "@solana/wallet-adapter-slope": "^0.5.21",
+    "@solana/wallet-adapter-solflare": "^0.6.28",
+    "@solana/wallet-adapter-sollet": "^0.11.17",
+    "@solana/wallet-adapter-solong": "^0.9.18",
+    "@solana/web3.js": "1.77.3",
     "antd": "^4.6.6",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
@@ -41,7 +41,7 @@
     "react-dom": "^16.13.1",
     "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.3"
+    "react-scripts": "4.0.3"
   },
   "scripts": {
     "dev": "CI= craco start",
@@ -59,16 +59,22 @@
     "extends": "react-app"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "defaults"
     ]
   },
   "homepage": "/",
   "devDependencies": {
-    "@craco/craco": "^5.9.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.18.9",
+    "@babel/plugin-transform-shorthand-properties": "^7.18.6",
+    "@babel/plugin-transform-logical-assignment-operators": "^7.23.4",
+    "@craco/craco": "6.4.5",
     "@types/bn.js": "^4.11.6",
     "@types/bs58": "^4.0.1",
     "@types/echarts": "^4.9.0",

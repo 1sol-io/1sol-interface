@@ -11,7 +11,7 @@ import Wallet from "@project-serum/sol-wallet-adapter";
 import { WalletAdapter } from '@solana/wallet-adapter-base'
 import { SolletWalletAdapter } from "@solana/wallet-adapter-sollet";
 import { SolongWalletAdapter } from "@solana/wallet-adapter-solong";
-import { MathWalletWalletAdapter } from "@solana/wallet-adapter-mathwallet";
+import { MathWalletAdapter } from "@solana/wallet-adapter-mathwallet";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { SafePalWalletAdapter } from "@solana/wallet-adapter-safepal";
 import { Coin98WalletAdapter } from '@solana/wallet-adapter-coin98'
@@ -98,7 +98,7 @@ export const WALLET_PROVIDERS = [
     name: "MathWallet",
     url: MATH_WALLET_URL,
     icon: MathWalletLogo,
-    adapter: MathWalletWalletAdapter,
+    adapter: MathWalletAdapter,
   },
   {
     key: "SafePalWallet",
