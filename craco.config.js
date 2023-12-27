@@ -3,6 +3,14 @@ const CracoLessPlugin = require('craco-less')
 //   .BundleAnalyzerPlugin
 
 module.exports = {
+  babel: {
+    plugins: [
+      "@babel/plugin-proposal-nullish-coalescing-operator",
+      "@babel/plugin-transform-optional-chaining",
+      "@babel/plugin-transform-shorthand-properties",
+      "@babel/plugin-transform-logical-assignment-operators"
+    ],
+  },
   plugins: [
     {
       plugin: CracoLessPlugin,
@@ -32,7 +40,7 @@ module.exports = {
           maxAsyncRequests: 5,
           maxInitialRequests: 4,
           automaticNameDelimiter: '~',
-          name: true,
+          // name: true,
           cacheGroups: {
             vendors: {
               name: 'vendors',
